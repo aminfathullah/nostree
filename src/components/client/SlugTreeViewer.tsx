@@ -261,6 +261,17 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
       }}
     >
       <div className="w-full max-w-md mx-auto">
+        {/* Header Image */}
+        {treeData?.profile?.headerImage && (
+          <div className="w-full h-40 rounded-2xl overflow-hidden mb-6">
+            <img 
+              src={treeData.profile.headerImage} 
+              alt="Header" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+        
         {/* Profile Header */}
         <header className="flex flex-col items-center text-center mb-8">
           {/* Avatar */}
@@ -270,7 +281,7 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
               style={{ backgroundColor: cardBg, boxShadow: `0 0 0 4px ${bgColor}` }}
             >
               <img 
-                src={profile?.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`}
+                src={treeData?.profile?.picture || profile?.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`}
                 alt={`${displayName}'s avatar`}
                 className="w-full h-full object-cover"
                 loading="eager"

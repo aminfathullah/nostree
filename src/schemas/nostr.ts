@@ -130,6 +130,12 @@ export const ProfileOverrideSchema = z.object({
   
   /** Whether to show NIP-05 verification badge */
   show_verification: z.boolean().default(true),
+  
+  /** Custom profile picture URL (overrides Kind 0 picture) */
+  picture: z.string().optional(),
+  
+  /** Header/banner image URL (displayed above profile) */
+  headerImage: z.string().optional(),
 });
 
 /**

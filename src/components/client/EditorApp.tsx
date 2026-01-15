@@ -7,6 +7,8 @@ import { TreeSelector } from "./TreeSelector";
 import { ThemeSelector } from "./ThemeSelector";
 import { CustomThemeEditor } from "./CustomThemeEditor";
 import { TreeTitleEditor } from "./TreeTitleEditor";
+import { HeaderImageEditor } from "./HeaderImageEditor";
+import { AvatarEditor } from "./AvatarEditor";
 import { Button } from "../ui/Button";
 import { Toaster } from "sonner";
 import { Loader2, LogOut, User } from "lucide-react";
@@ -96,6 +98,17 @@ function LinkTreeEditor({
           <TreeTitleEditor
             title={(linkTree.data && 'treeMeta' in linkTree.data && linkTree.data.treeMeta?.title) || slug}
             onTitleChange={(title) => linkTree.updateTreeMeta({ title })}
+            disabled={linkTree.isSaving}
+          />
+          <HeaderImageEditor
+            currentImage={linkTree.data?.profile?.headerImage}
+            onImageChange={(headerImage) => linkTree.updateProfile({ headerImage })}
+            disabled={linkTree.isSaving}
+          />
+          <AvatarEditor
+            currentPicture={linkTree.data?.profile?.picture}
+            fallbackPicture={profile?.picture}
+            onPictureChange={(picture) => linkTree.updateProfile({ picture })}
             disabled={linkTree.isSaving}
           />
         </div>

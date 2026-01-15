@@ -55,6 +55,17 @@ export function MobilePreview({ profile, data, links }: MobilePreviewProps) {
         {/* Content */}
         <div className="h-full overflow-y-auto scrollbar-hide">
           <div className="px-6 py-10">
+            {/* Header Image */}
+            {data?.profile?.headerImage && (
+              <div className="w-full h-32 rounded-xl overflow-hidden mb-6 -mx-2">
+                <img 
+                  src={data.profile.headerImage} 
+                  alt="Header" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            
             {/* Profile Header */}
             <header className="flex flex-col items-center text-center mb-8">
               {/* Avatar */}
@@ -67,7 +78,7 @@ export function MobilePreview({ profile, data, links }: MobilePreviewProps) {
                   }}
                 >
                   <img 
-                    src={profile?.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`}
+                    src={data?.profile?.picture || profile?.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`}
                     alt="Avatar"
                     className="w-full h-full object-cover"
                   />

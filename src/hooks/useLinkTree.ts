@@ -1,6 +1,6 @@
 import { useState, useCallback, useOptimistic, startTransition, useEffect } from "react";
 import { slugToDTag, DEFAULT_SLUG } from "../lib/slug-resolver";
-import type { Link, NostreeData, Theme, TreeMeta } from "../schemas/nostr";
+import type { Link, NostreeData, Theme, TreeMeta, ProfileOverride } from "../schemas/nostr";
 import { NostreeDataSchema } from "../schemas/nostr";
 import { 
   getNDK, 
@@ -73,6 +73,8 @@ interface UseLinkTreeReturn {
   updateTheme: (theme: Theme) => Promise<void>;
   /** Update tree metadata (title, etc.) */
   updateTreeMeta: (updates: Partial<TreeMeta>) => Promise<void>;
+  /** Update profile overrides (headerImage, etc.) */
+  updateProfile: (updates: Partial<ProfileOverride>) => Promise<void>;
   /** Refresh data from relays */
   refresh: () => Promise<void>;
 }
@@ -437,6 +439,66 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     }
   }, [data, pubkey, dTag, slug]);
 
+  /**
+   * Update profile overrides (headerImage, name, bio, etc.)
+   */
+  const updateProfile = useCallback(async (updates: Partial<ProfileOverride>) => {
+    const currentData: NostreeData = data || { 
+      version: "2.0",
+      treeMeta: {
+        slug: slug,
+        isDefault: slug === DEFAULT_SLUG,
+        createdAt: Math.floor(Date.now() / 1000),
+      },
+      links: [],
+      socials: [],
+      theme: {
+        mode: "light",
+        colors: {
+          background: "#ffffff",
+          foreground: "#000000",
+          primary: "#000000",
+          radius: "0.5rem",
+        },
+        font: "Inter",
+      }
+    };
+    
+    setIsSaving(true);
+    
+    try {
+      const updatedData: NostreeData = {
+        ...currentData,
+        profile: {
+          show_verification: true,
+          ...currentData.profile,
+          ...updates,
+        },
+      };
+      
+      const event = createNostreeEvent(updatedData, pubkey, dTag);
+      const result = await publishEvent(event);
+      
+      if (result.success) {
+        setData(updatedData);
+        toast.success("Profile updated!", {
+          description: `Saved to ${result.relaysAccepted} relay${result.relaysAccepted !== 1 ? 's' : ''}`,
+        });
+      } else {
+        toast.error("Profile update failed", {
+          description: "Could not publish to any relays",
+        });
+      }
+    } catch (err) {
+      console.error("Profile update error:", err);
+      toast.error("Profile update failed", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [data, pubkey, dTag, slug]);
+
   return {
     links: optimisticLinks,
     data,
@@ -450,6 +512,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     toggleVisibility,
     updateTheme,
     updateTreeMeta,
+    updateProfile,
     refresh: fetchData,
   };
 }
