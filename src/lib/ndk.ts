@@ -58,7 +58,7 @@ let connectionPromise: Promise<void> | null = null;
 
 export async function fetchEventsWithTimeout(
   filter: NDKFilter,
-  timeoutMs: number = 8000
+  timeoutMs: number = 4000
 ): Promise<Set<NDKEvent>> {
   const ndk = getNDK();
   
@@ -66,11 +66,8 @@ export async function fetchEventsWithTimeout(
   if (!connectionPromise) {
     connectionPromise = Promise.race([
       ndk.connect(),
-      new Promise<void>(r => setTimeout(r, 2000))
-    ]).then(() => {
-      // Small delay for WebSockets to fully establish
-      return new Promise<void>(r => setTimeout(r, 300));
-    });
+      new Promise<void>(r => setTimeout(r, 800))
+    ]);
   }
   
   await connectionPromise;

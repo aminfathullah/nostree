@@ -10,6 +10,35 @@ import { Loader2, BadgeCheck, ExternalLink } from "lucide-react";
 const profileCache = new Map<string, { data: any; ts: number }>();
 const CACHE_TTL = 60000; // 1 minute
 
+// Tree cache in localStorage for instant loading
+const TREE_CACHE_KEY = 'nostree_tree_cache';
+const TREE_CACHE_TTL = 30000; // 30 seconds
+
+function getCachedTree(slug: string): NostreeDataV2 | null {
+  try {
+    const cache = JSON.parse(localStorage.getItem(TREE_CACHE_KEY) || '{}');
+    const entry = cache[slug];
+    if (entry && Date.now() - entry.ts < TREE_CACHE_TTL) {
+      return entry.data;
+    }
+  } catch {}
+  return null;
+}
+
+function setCachedTree(slug: string, data: NostreeDataV2): void {
+  try {
+    const cache = JSON.parse(localStorage.getItem(TREE_CACHE_KEY) || '{}');
+    // Limit cache size - keep only last 10 trees
+    const keys = Object.keys(cache);
+    if (keys.length >= 10) {
+      const oldest = keys.sort((a, b) => cache[a].ts - cache[b].ts)[0];
+      delete cache[oldest];
+    }
+    cache[slug] = { data, ts: Date.now() };
+    localStorage.setItem(TREE_CACHE_KEY, JSON.stringify(cache));
+  } catch {}
+}
+
 interface UserProfile {
   pubkey: string;
   name?: string;
@@ -39,7 +68,15 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
     
     async function loadTree() {
       try {
-        setStatus("loading");
+        // Check cache first for instant display
+        const cachedTree = getCachedTree(slug);
+        if (cachedTree) {
+          setTreeData(cachedTree);
+          setStatus("ready");
+          // Continue to fetch fresh data in background
+        } else {
+          setStatus("loading");
+        }
         
         // Search for tree by slug d-tag (across all users)
         const dTag = slugToDTag(slug);
@@ -48,22 +85,25 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
         let treeEvents: Set<any>;
         if (slug === "default") {
           const [newEvents, legacyEvents] = await Promise.all([
-            fetchEventsWithTimeout({ kinds: [30078], "#d": [dTag] }, 3000),
-            fetchEventsWithTimeout({ kinds: [30078], "#d": ["nostree-data-v1"] }, 3000),
+            fetchEventsWithTimeout({ kinds: [30078], "#d": [dTag] }, 2000),
+            fetchEventsWithTimeout({ kinds: [30078], "#d": ["nostree-data-v1"] }, 2000),
           ]);
           treeEvents = new Set([...newEvents, ...legacyEvents]);
         } else {
           treeEvents = await fetchEventsWithTimeout({
             kinds: [30078],
             "#d": [dTag],
-          }, 3000); // 3s timeout
+          }, 2000); // 2s timeout (cache handles slow networks)
         }
         
         if (cancelled) return;
         
         if (treeEvents.size === 0) {
-          setError(`Tree "${slug}" not found`);
-          setStatus("error");
+          // Only show error if we don't have cached data
+          if (!cachedTree) {
+            setError(`Tree "${slug}" not found`);
+            setStatus("error");
+          }
           return;
         }
         
@@ -89,9 +129,10 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
           return;
         }
         
-        // PROGRESSIVE: Show tree immediately!
+        // Update with fresh data and cache it
         setTreeData(result.data);
         setStatus("ready");
+        setCachedTree(slug, result.data);
         
         // Then load profile in background (non-blocking)
         const ownerPubkey = event.pubkey;

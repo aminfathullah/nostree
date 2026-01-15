@@ -57,7 +57,7 @@ function LinkEditorItem({
     <Reorder.Item
       value={link}
       id={link.id}
-      className="relative group"
+      className="relative group w-full"
       whileDrag={{ scale: 1.02, boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}
     >
       <motion.div
@@ -67,14 +67,14 @@ function LinkEditorItem({
           ${link.visible ? 'border-border' : 'border-border/50 opacity-60'}
         `}
       >
-        <div className="flex items-stretch">
+        <div className="flex items-stretch max-w-full">
           {/* Drag Handle */}
           <div className="flex items-center px-3 cursor-grab active:cursor-grabbing bg-card-hover border-r border-border">
             <GripVertical className="w-5 h-5 text-txt-dim" />
           </div>
 
           {/* Content */}
-          <div className="flex-1 p-3">
+          <div className="flex-1 min-w-0 overflow-hidden p-3">
             {isEditing ? (
               /* Edit Mode */
               <div className="space-y-2">
@@ -115,17 +115,17 @@ function LinkEditorItem({
             ) : (
               /* View Mode */
               <div 
-                className="flex items-center gap-3 cursor-pointer hover:bg-card-hover rounded-lg p-1 -m-1 transition-colors"
+                className="flex items-center gap-3 cursor-pointer hover:bg-card-hover rounded-lg p-1 -m-1 transition-colors w-full"
                 onClick={() => setIsEditing(true)}
               >
                 {link.emoji && (
-                  <span className="text-xl">{link.emoji}</span>
+                  <span className="text-xl flex-shrink-0">{link.emoji}</span>
                 )}
-                <div className="flex-1 min-w-0">
+                <div className="w-0 flex-grow overflow-hidden">
                   <p className="font-medium text-txt-main truncate">{link.title}</p>
                   <p className="text-sm text-txt-dim truncate">{link.url}</p>
                 </div>
-                <ExternalLink className="w-4 h-4 text-txt-dim shrink-0" />
+                <ExternalLink className="w-4 h-4 text-txt-dim flex-shrink-0" />
               </div>
             )}
           </div>
@@ -281,7 +281,7 @@ export function LinkEditor({
         axis="y"
         values={links}
         onReorder={onReorder}
-        className="space-y-2"
+        className="space-y-2 w-full overflow-hidden"
       >
         <AnimatePresence mode="popLayout">
           {links.map((link) => (
