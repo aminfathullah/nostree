@@ -141,7 +141,7 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-96 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden max-h-[80vh] overflow-y-auto">
+          <div className="absolute top-full right-0 mt-2 w-80 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden max-h-[80vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border sticky top-0 bg-card z-10">
               <h4 className="text-sm font-medium text-txt-main">Customize Appearance</h4>

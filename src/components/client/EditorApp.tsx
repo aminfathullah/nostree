@@ -6,9 +6,6 @@ import { MobilePreview } from "./MobilePreview";
 import { TreeSelector } from "./TreeSelector";
 import { ThemeSelector } from "./ThemeSelector";
 import { CustomThemeEditor } from "./CustomThemeEditor";
-import { TreeTitleEditor } from "./TreeTitleEditor";
-import { HeaderImageEditor } from "./HeaderImageEditor";
-import { AvatarEditor } from "./AvatarEditor";
 import { Button } from "../ui/Button";
 import { Toaster } from "sonner";
 import { Loader2, LogOut, User } from "lucide-react";
@@ -83,7 +80,7 @@ function LinkTreeEditor({
 
       {/* Right: Preview + Theme */}
       <div className="hidden lg:block space-y-4">
-        {/* Theme & Title Controls */}
+        {/* Theme Controls Only - Other edits are inline on preview */}
         <div className="flex flex-wrap items-center justify-center gap-2">
           <ThemeSelector
             currentTheme={linkTree.data?.theme}
@@ -95,28 +92,16 @@ function LinkTreeEditor({
             onThemeChange={linkTree.updateTheme}
             disabled={linkTree.isSaving}
           />
-          <TreeTitleEditor
-            title={(linkTree.data && 'treeMeta' in linkTree.data && linkTree.data.treeMeta?.title) || slug}
-            onTitleChange={(title) => linkTree.updateTreeMeta({ title })}
-            disabled={linkTree.isSaving}
-          />
-          <HeaderImageEditor
-            currentImage={linkTree.data?.profile?.headerImage}
-            onImageChange={(headerImage) => linkTree.updateProfile({ headerImage })}
-            disabled={linkTree.isSaving}
-          />
-          <AvatarEditor
-            currentPicture={linkTree.data?.profile?.picture}
-            fallbackPicture={profile?.picture}
-            onPictureChange={(picture) => linkTree.updateProfile({ picture })}
-            disabled={linkTree.isSaving}
-          />
         </div>
         
         <MobilePreview
           profile={profile}
           data={linkTree.data}
           links={linkTree.links}
+          onAvatarChange={(picture) => linkTree.updateProfile({ picture })}
+          onHeaderChange={(headerImage) => linkTree.updateProfile({ headerImage })}
+          onTitleChange={(title) => linkTree.updateTreeMeta({ title })}
+          disabled={linkTree.isSaving}
         />
       </div>
     </div>
