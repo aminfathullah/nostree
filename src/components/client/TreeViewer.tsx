@@ -1,11 +1,10 @@
-import * as React from "react";
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { parseTreePath, resolveNip05, slugToDTag, DEFAULT_SLUG } from "../../lib/slug-resolver";
 import { parseNostreeData } from "../../lib/migration";
 import { getNDK, fetchEventsWithTimeout } from "../../lib/ndk";
-import { npubToHex, isNpub, shortenNpub, hexToNpub } from "../../lib/utils/nip19";
+import { npubToHex } from "../../lib/utils/nip19";
 import type { NostreeDataV2 } from "../../schemas/nostr";
-import { Loader2, BadgeCheck, ExternalLink, AlertCircle } from "lucide-react";
+import { Loader2, BadgeCheck, ExternalLink } from "lucide-react";
 
 // Profile cache for performance
 const profileCache = new Map<string, { data: any; ts: number }>();
@@ -32,7 +31,6 @@ interface TreeViewerProps {
 export function TreeViewer({ path }: TreeViewerProps) {
   const [status, setStatus] = useState<"resolving" | "loading" | "ready" | "error">("resolving");
   const [error, setError] = useState<string | null>(null);
-  const [pubkey, setPubkey] = useState<string | null>(null);
   const [slug, setSlug] = useState<string>(DEFAULT_SLUG);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [treeData, setTreeData] = useState<NostreeDataV2 | null>(null);
@@ -82,11 +80,11 @@ export function TreeViewer({ path }: TreeViewerProps) {
         if (!resolvedPubkey) {
           setError("Could not resolve user");
           setStatus("error");
-          return;
         }
-        
-        setPubkey(resolvedPubkey);
         setStatus("loading");
+        
+        // At this point resolvedPubkey is guaranteed to be non-null
+        const pubkey = resolvedPubkey!;
         
         // Connect and fetch data
         const ndk = getNDK();
@@ -94,13 +92,13 @@ export function TreeViewer({ path }: TreeViewerProps) {
         await new Promise(r => setTimeout(r, 500));
         
         // Fetch profile (with cache)
-        const cached = profileCache.get(resolvedPubkey);
+        const cached = profileCache.get(pubkey);
         if (cached && Date.now() - cached.ts < CACHE_TTL) {
           setProfile(cached.data);
         } else {
           const profileEvents = await fetchEventsWithTimeout({
             kinds: [0],
-            authors: [resolvedPubkey],
+            authors: [pubkey],
           }, 10000);
           
           if (profileEvents.size > 0) {
@@ -111,7 +109,7 @@ export function TreeViewer({ path }: TreeViewerProps) {
             if (profileEvent?.content) {
               const data = JSON.parse(profileEvent.content);
               const profileData: UserProfile = {
-                pubkey: resolvedPubkey,
+                pubkey: pubkey,
                 name: data.name || data.display_name,
                 about: data.about,
                 picture: data.picture || data.image,
@@ -120,7 +118,7 @@ export function TreeViewer({ path }: TreeViewerProps) {
                 lud16: data.lud16,
               };
               setProfile(profileData);
-              profileCache.set(resolvedPubkey, { data: profileData, ts: Date.now() });
+              profileCache.set(pubkey, { data: profileData, ts: Date.now() });
             }
           }
         }
@@ -129,7 +127,7 @@ export function TreeViewer({ path }: TreeViewerProps) {
         const dTag = slugToDTag(parsed.slug);
         const treeEvents = await fetchEventsWithTimeout({
           kinds: [30078],
-          authors: [resolvedPubkey],
+          authors: [pubkey],
           "#d": [dTag],
         }, 8000);
         
@@ -137,7 +135,7 @@ export function TreeViewer({ path }: TreeViewerProps) {
         if (treeEvents.size === 0 && parsed.slug === DEFAULT_SLUG) {
           const legacyEvents = await fetchEventsWithTimeout({
             kinds: [30078],
-            authors: [resolvedPubkey],
+            authors: [pubkey],
             "#d": ["nostree-data-v1"],
           }, 5000);
           
@@ -222,25 +220,32 @@ export function TreeViewer({ path }: TreeViewerProps) {
   const socials = treeData?.socials || [];
   const theme = treeData?.theme;
 
-  // Apply theme
-  const themeStyles = theme ? {
-    "--theme-bg": theme.colors.background,
-    "--theme-fg": theme.colors.foreground,
-    "--theme-primary": theme.colors.primary,
-    "--theme-radius": theme.colors.radius,
-  } as React.CSSProperties : {};
+  // Theme colors with fallbacks
+  const bgColor = theme?.colors.background || "#f5f5f7";
+  const fgColor = theme?.colors.foreground || "#1f2937";
+  const primaryColor = theme?.colors.primary || "#5E47B8";
+  const borderRadius = theme?.colors.radius || "1rem";
+  
+  // Computed styles for theme
+  const cardBg = `${fgColor}10`; // 10% opacity of foreground
+  const cardBorder = `${fgColor}20`; // 20% opacity
+  const cardHoverBorder = `${fgColor}30`;
+  const dimColor = `${fgColor}99`; // 60% opacity
 
   return (
     <main 
-      className="min-h-screen flex flex-col items-center px-4 py-12 pb-20"
-      style={themeStyles}
+      className="min-h-screen flex flex-col items-center px-4 py-12 pb-20 transition-colors"
+      style={{ backgroundColor: bgColor, color: fgColor }}
     >
       <div className="w-full max-w-md mx-auto">
         {/* Profile Header */}
         <header className="flex flex-col items-center text-center mb-8">
           {/* Avatar */}
           <div className="relative mb-4">
-            <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-canvas bg-card">
+            <div 
+              className="w-24 h-24 rounded-full overflow-hidden"
+              style={{ backgroundColor: cardBg, boxShadow: `0 0 0 4px ${bgColor}` }}
+            >
               <img 
                 src={profile?.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`}
                 alt={`${displayName}'s avatar`}
@@ -251,7 +256,8 @@ export function TreeViewer({ path }: TreeViewerProps) {
             
             {showVerification && profile?.nip05 && (
               <div 
-                className="absolute -bottom-1 -right-1 bg-brand text-brand-fg p-1 rounded-full"
+                className="absolute -bottom-1 -right-1 p-1 rounded-full"
+                style={{ backgroundColor: primaryColor, color: bgColor }}
                 title={`Verified: ${profile.nip05}`}
               >
                 <BadgeCheck className="w-4 h-4" />
@@ -260,18 +266,21 @@ export function TreeViewer({ path }: TreeViewerProps) {
           </div>
 
           {/* Name */}
-          <h1 className="text-2xl font-bold text-txt-main mb-1">{displayName}</h1>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: fgColor }}>{displayName}</h1>
 
           {/* Tree slug badge */}
           {slug !== DEFAULT_SLUG && (
-            <p className="text-xs text-txt-dim bg-card px-2 py-0.5 rounded-full mb-2 border border-border">
+            <p 
+              className="text-xs px-2 py-0.5 rounded-full mb-2"
+              style={{ backgroundColor: cardBg, border: `1px solid ${cardBorder}`, color: dimColor }}
+            >
               /{slug}
             </p>
           )}
 
           {/* NIP-05 */}
           {showVerification && profile?.nip05 && (
-            <p className="text-sm text-brand mb-2 flex items-center gap-1">
+            <p className="text-sm mb-2 flex items-center gap-1" style={{ color: primaryColor }}>
               <span>✓</span>
               <span>{profile.nip05.startsWith("_@") ? profile.nip05.slice(2) : profile.nip05}</span>
             </p>
@@ -279,7 +288,7 @@ export function TreeViewer({ path }: TreeViewerProps) {
 
           {/* Bio */}
           {displayBio && (
-            <p className="text-txt-muted max-w-sm text-sm leading-relaxed">{displayBio}</p>
+            <p className="max-w-sm text-sm leading-relaxed" style={{ color: dimColor }}>{displayBio}</p>
           )}
         </header>
 
@@ -292,13 +301,26 @@ export function TreeViewer({ path }: TreeViewerProps) {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="block w-full p-4 rounded-xl transition-all duration-200 bg-card hover:bg-card-hover border border-border hover:border-border-hover hover:scale-[1.02] active:scale-[0.98] hover:shadow-card group animate-slide-up"
-                style={{ animationDelay: `${index * 50}ms` }}
+                className="block w-full p-4 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] group animate-slide-up"
+                style={{ 
+                  backgroundColor: cardBg,
+                  border: `1px solid ${cardBorder}`,
+                  borderRadius: borderRadius,
+                  animationDelay: `${index * 50}ms`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = cardHoverBorder;
+                  e.currentTarget.style.boxShadow = `0 4px 12px ${fgColor}10`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = cardBorder;
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
                 <div className="flex items-center gap-3">
                   {link.emoji && <span className="text-xl">{link.emoji}</span>}
-                  <span className="font-medium text-center flex-1 text-txt-main">{link.title}</span>
-                  <ExternalLink className="w-4 h-4 text-txt-dim group-hover:text-txt-muted transition-colors" />
+                  <span className="font-medium text-center flex-1" style={{ color: fgColor }}>{link.title}</span>
+                  <ExternalLink className="w-4 h-4 transition-opacity" style={{ color: dimColor }} />
                 </div>
               </a>
             ))}
@@ -307,7 +329,7 @@ export function TreeViewer({ path }: TreeViewerProps) {
 
         {/* Empty state */}
         {links.length === 0 && (
-          <div className="text-center py-8 text-txt-muted">
+          <div className="text-center py-8" style={{ color: dimColor }}>
             <p className="text-lg">No links yet</p>
             <p className="text-sm mt-1">This tree is empty.</p>
           </div>
@@ -315,7 +337,7 @@ export function TreeViewer({ path }: TreeViewerProps) {
 
         {/* Social Icons */}
         {socials.length > 0 && (
-          <SocialIconsRow socials={socials} />
+          <SocialIconsRow socials={socials} cardBg={cardBg} cardBorder={cardBorder} borderRadius={borderRadius} />
         )}
 
         {/* Zap Button */}
@@ -323,7 +345,8 @@ export function TreeViewer({ path }: TreeViewerProps) {
           <div className="mt-8 text-center">
             <a 
               href={`lightning:${profile.lud16}`}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-brand hover:bg-brand-hover text-brand-fg font-medium rounded-full transition-all duration-200 hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-2 px-6 py-3 font-medium rounded-full transition-all duration-200 hover:scale-105 active:scale-95"
+              style={{ backgroundColor: primaryColor, color: bgColor }}
             >
               <span>⚡</span>
               <span>Send a Zap</span>
@@ -333,8 +356,8 @@ export function TreeViewer({ path }: TreeViewerProps) {
       </div>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 py-4 text-center text-xs text-txt-dim">
-        <a href="/" className="hover:text-brand transition-colors">
+      <footer className="fixed bottom-0 left-0 right-0 py-4 text-center text-xs" style={{ color: dimColor }}>
+        <a href="/" className="transition-colors hover:opacity-80">
           Powered by Nostree 🌲
         </a>
       </footer>
@@ -343,7 +366,14 @@ export function TreeViewer({ path }: TreeViewerProps) {
 }
 
 // Social icons component
-function SocialIconsRow({ socials }: { socials: Array<{ platform: string; url: string }> }) {
+interface SocialIconsRowProps {
+  socials: Array<{ platform: string; url: string }>;
+  cardBg: string;
+  cardBorder: string;
+  borderRadius: string;
+}
+
+function SocialIconsRow({ socials, cardBg, cardBorder, borderRadius }: SocialIconsRowProps) {
   const platformEmoji: Record<string, string> = {
     twitter: "𝕏",
     instagram: "📷",
@@ -366,7 +396,12 @@ function SocialIconsRow({ socials }: { socials: Array<{ platform: string; url: s
           href={social.url}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="p-2 rounded-full bg-card border border-border hover:border-border-hover hover:bg-card-hover transition-all duration-200 hover:scale-110"
+          className="p-2 transition-all duration-200 hover:scale-110"
+          style={{ 
+            backgroundColor: cardBg,
+            border: `1px solid ${cardBorder}`,
+            borderRadius: borderRadius,
+          }}
           title={social.platform}
         >
           <span className="text-lg">{platformEmoji[social.platform] || "🔗"}</span>

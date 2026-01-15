@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Theme, Radius } from "../../schemas/nostr";
+import type { Theme } from "../../schemas/nostr";
 import { Check, Palette } from "lucide-react";
 
 /**
@@ -99,6 +99,102 @@ export const THEME_PRESETS: Record<string, Theme & { name: string; preview: stri
       foreground: "#134e4a",
       primary: "#14b8a6",
       radius: "1rem",
+    },
+    font: "Inter",
+  },
+  neon: {
+    name: "Neon",
+    preview: "bg-black text-lime-400",
+    mode: "dark",
+    colors: {
+      background: "#0a0a0a",
+      foreground: "#a3e635",
+      primary: "#22d3ee",
+      radius: "0.5rem",
+    },
+    font: "Inter",
+  },
+  lavender: {
+    name: "Lavender",
+    preview: "bg-purple-50 text-purple-900",
+    mode: "light",
+    colors: {
+      background: "#faf5ff",
+      foreground: "#581c87",
+      primary: "#a855f7",
+      radius: "1rem",
+    },
+    font: "Inter",
+  },
+  midnight: {
+    name: "Midnight",
+    preview: "bg-indigo-950 text-indigo-100",
+    mode: "dark",
+    colors: {
+      background: "#1e1b4b",
+      foreground: "#e0e7ff",
+      primary: "#6366f1",
+      radius: "1rem",
+    },
+    font: "Inter",
+  },
+  peach: {
+    name: "Peach",
+    preview: "bg-amber-50 text-amber-900",
+    mode: "light",
+    colors: {
+      background: "#fffbeb",
+      foreground: "#78350f",
+      primary: "#f59e0b",
+      radius: "9999px",
+    },
+    font: "Inter",
+  },
+  cyber: {
+    name: "Cyber",
+    preview: "bg-slate-950 text-pink-400",
+    mode: "dark",
+    colors: {
+      background: "#020617",
+      foreground: "#f472b6",
+      primary: "#ec4899",
+      radius: "0",
+    },
+    font: "Inter",
+  },
+  sage: {
+    name: "Sage",
+    preview: "bg-stone-100 text-stone-700",
+    mode: "light",
+    colors: {
+      background: "#f5f5f4",
+      foreground: "#44403c",
+      primary: "#84cc16",
+      radius: "0.5rem",
+    },
+    font: "Inter",
+  },
+  cherry: {
+    name: "Cherry",
+    preview: "bg-red-950 text-red-100",
+    mode: "dark",
+    colors: {
+      background: "#450a0a",
+      foreground: "#fee2e2",
+      primary: "#ef4444",
+      radius: "1rem",
+    },
+    font: "Inter",
+  },
+  sky: {
+    name: "Sky",
+    preview: "bg-sky-50 text-sky-900",
+    mode: "light",
+    colors: {
+      background: "#f0f9ff",
+      foreground: "#0c4a6e",
+      primary: "#0ea5e9",
+      radius: "9999px",
     },
     font: "Inter",
   },

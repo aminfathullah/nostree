@@ -1,4 +1,4 @@
-import * as React from "react";
+
 import { useState, useEffect } from "react";
 import { getNDK, fetchEventsWithTimeout } from "../../lib/ndk";
 import { npubToHex, isNpub, shortenNpub } from "../../lib/utils/nip19";
@@ -161,25 +161,32 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
   const socials = appData?.socials || [];
   const theme = appData?.theme;
 
-  // Apply theme colors
-  const themeStyles = theme ? {
-    "--theme-bg": theme.colors.background,
-    "--theme-fg": theme.colors.foreground,
-    "--theme-primary": theme.colors.primary,
-    "--theme-radius": theme.colors.radius,
-  } as React.CSSProperties : {};
+  // Theme colors with fallbacks
+  const bgColor = theme?.colors.background || "#f5f5f7";
+  const fgColor = theme?.colors.foreground || "#1f2937";
+  const primaryColor = theme?.colors.primary || "#5E47B8";
+  const borderRadius = theme?.colors.radius || "1rem";
+  
+  // Computed styles for theme
+  const cardBg = `${fgColor}10`; // 10% opacity of foreground
+  const cardBorder = `${fgColor}20`; // 20% opacity
+  const cardHoverBorder = `${fgColor}30`;
+  const dimColor = `${fgColor}99`; // 60% opacity
 
   return (
     <main 
-      className="min-h-screen flex flex-col items-center px-4 py-12 pb-20"
-      style={themeStyles}
+      className="min-h-screen flex flex-col items-center px-4 py-12 pb-20 transition-colors"
+      style={{ backgroundColor: bgColor, color: fgColor }}
     >
       <div className="w-full max-w-md mx-auto">
         {/* Profile Header */}
         <header className="flex flex-col items-center text-center mb-8">
           {/* Avatar */}
           <div className="relative mb-4">
-            <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-canvas bg-card">
+            <div 
+              className="w-24 h-24 rounded-full overflow-hidden"
+              style={{ backgroundColor: cardBg, boxShadow: `0 0 0 4px ${bgColor}` }}
+            >
               <img 
                 src={profile.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`}
                 alt={`${displayName}'s avatar`}
@@ -190,7 +197,8 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
             {/* Verification Badge */}
             {showVerification && profile.nip05 && (
               <div 
-                className="absolute -bottom-1 -right-1 bg-brand text-brand-fg p-1 rounded-full"
+                className="absolute -bottom-1 -right-1 p-1 rounded-full"
+                style={{ backgroundColor: primaryColor, color: bgColor }}
                 title={`Verified: ${profile.nip05}`}
               >
                 <BadgeCheck className="w-4 h-4" />
@@ -199,11 +207,11 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
           </div>
 
           {/* Name */}
-          <h1 className="text-2xl font-bold text-txt-main mb-1">{displayName}</h1>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: fgColor }}>{displayName}</h1>
 
           {/* NIP-05 */}
           {showVerification && profile.nip05 && (
-            <p className="text-sm text-brand mb-2 flex items-center gap-1">
+            <p className="text-sm mb-2 flex items-center gap-1" style={{ color: primaryColor }}>
               <span>✓</span>
               <span>{profile.nip05.startsWith("_@") ? profile.nip05.slice(2) : profile.nip05}</span>
             </p>
@@ -211,7 +219,7 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
 
           {/* Bio */}
           {displayBio && (
-            <p className="text-txt-muted max-w-sm text-sm leading-relaxed">{displayBio}</p>
+            <p className="max-w-sm text-sm leading-relaxed" style={{ color: dimColor }}>{displayBio}</p>
           )}
         </header>
 
@@ -219,14 +227,24 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
         {links.length > 0 && (
           <nav className="flex flex-col gap-3" aria-label="Links">
             {links.map((link, index) => (
-              <LinkCard key={link.id} link={link} index={index} />
+              <LinkCard 
+                key={link.id} 
+                link={link} 
+                index={index} 
+                fgColor={fgColor}
+                cardBg={cardBg}
+                cardBorder={cardBorder}
+                cardHoverBorder={cardHoverBorder}
+                borderRadius={borderRadius}
+                dimColor={dimColor}
+              />
             ))}
           </nav>
         )}
 
         {/* No links message */}
         {links.length === 0 && !appData && (
-          <div className="text-center py-8 text-txt-muted">
+          <div className="text-center py-8" style={{ color: dimColor }}>
             <p className="text-lg">No Nostree links yet</p>
             <p className="text-sm mt-1">This user hasn't set up their Nostree profile.</p>
           </div>
@@ -234,7 +252,7 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
 
         {/* Social Icons */}
         {socials.length > 0 && (
-          <SocialIconsRow socials={socials} />
+          <SocialIconsRow socials={socials} cardBg={cardBg} cardBorder={cardBorder} borderRadius={borderRadius} />
         )}
 
         {/* Zap Button */}
@@ -242,7 +260,8 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
           <div className="mt-8 text-center">
             <a 
               href={`lightning:${profile.lud16}`}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-brand hover:bg-brand-hover text-brand-fg font-medium rounded-full transition-all duration-200 hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-2 px-6 py-3 font-medium rounded-full transition-all duration-200 hover:scale-105 active:scale-95"
+              style={{ backgroundColor: primaryColor, color: bgColor }}
             >
               <span>⚡</span>
               <span>Send a Zap</span>
@@ -255,26 +274,57 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
 }
 
 // Link Card Component
-function LinkCard({ link, index }: { link: Link; index: number }) {
+interface LinkCardProps {
+  link: Link;
+  index: number;
+  fgColor: string;
+  cardBg: string;
+  cardBorder: string;
+  cardHoverBorder: string;
+  borderRadius: string;
+  dimColor: string;
+}
+
+function LinkCard({ link, index, fgColor, cardBg, cardBorder, cardHoverBorder, borderRadius, dimColor }: LinkCardProps) {
   return (
     <a
       href={link.url}
       target="_blank"
       rel="noopener noreferrer nofollow"
-      className="block w-full p-4 rounded-xl transition-all duration-200 bg-card hover:bg-card-hover border border-border hover:border-border-hover hover:scale-[1.02] active:scale-[0.98] hover:shadow-card group animate-slide-up"
-      style={{ animationDelay: `${index * 50}ms` }}
+      className="block w-full p-4 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] group animate-slide-up"
+      style={{ 
+        backgroundColor: cardBg,
+        border: `1px solid ${cardBorder}`,
+        borderRadius: borderRadius,
+        animationDelay: `${index * 50}ms`,
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = cardHoverBorder;
+        e.currentTarget.style.boxShadow = `0 4px 12px ${fgColor}10`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = cardBorder;
+        e.currentTarget.style.boxShadow = 'none';
+      }}
     >
       <div className="flex items-center gap-3">
         {link.emoji && <span className="text-xl">{link.emoji}</span>}
-        <span className="font-medium text-center flex-1 text-txt-main">{link.title}</span>
-        <ExternalLink className="w-4 h-4 text-txt-dim group-hover:text-txt-muted transition-colors" />
+        <span className="font-medium text-center flex-1" style={{ color: fgColor }}>{link.title}</span>
+        <ExternalLink className="w-4 h-4 transition-opacity" style={{ color: dimColor }} />
       </div>
     </a>
   );
 }
 
 // Social Icons Component
-function SocialIconsRow({ socials }: { socials: Social[] }) {
+interface SocialIconsRowProps {
+  socials: Social[];
+  cardBg: string;
+  cardBorder: string;
+  borderRadius: string;
+}
+
+function SocialIconsRow({ socials, cardBg, cardBorder, borderRadius }: SocialIconsRowProps) {
   const platformEmoji: Record<string, string> = {
     twitter: "𝕏",
     instagram: "📷",
@@ -302,7 +352,12 @@ function SocialIconsRow({ socials }: { socials: Social[] }) {
           href={social.url}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="p-2 rounded-full bg-card border border-border hover:border-border-hover hover:bg-card-hover transition-all duration-200 hover:scale-110"
+          className="p-2 transition-all duration-200 hover:scale-110"
+          style={{ 
+            backgroundColor: cardBg,
+            border: `1px solid ${cardBorder}`,
+            borderRadius: borderRadius,
+          }}
           title={social.platform}
         >
           <span className="text-lg">{platformEmoji[social.platform] || "🔗"}</span>

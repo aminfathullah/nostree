@@ -5,6 +5,7 @@ import { LinkEditor } from "./LinkEditor";
 import { MobilePreview } from "./MobilePreview";
 import { TreeSelector } from "./TreeSelector";
 import { ThemeSelector } from "./ThemeSelector";
+import { CustomThemeEditor } from "./CustomThemeEditor";
 import { TreeTitleEditor } from "./TreeTitleEditor";
 import { Button } from "../ui/Button";
 import { Toaster } from "sonner";
@@ -81,8 +82,13 @@ function LinkTreeEditor({
       {/* Right: Preview + Theme */}
       <div className="hidden lg:block space-y-4">
         {/* Theme & Title Controls */}
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <ThemeSelector
+            currentTheme={linkTree.data?.theme}
+            onThemeChange={linkTree.updateTheme}
+            disabled={linkTree.isSaving}
+          />
+          <CustomThemeEditor
             currentTheme={linkTree.data?.theme}
             onThemeChange={linkTree.updateTheme}
             disabled={linkTree.isSaving}
