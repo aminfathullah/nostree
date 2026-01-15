@@ -1,6 +1,6 @@
 import { useState, useCallback, useOptimistic, startTransition, useEffect } from "react";
 import { slugToDTag, DEFAULT_SLUG } from "../lib/slug-resolver";
-import type { Link, NostreeData } from "../schemas/nostr";
+import type { Link, NostreeData, Theme, TreeMeta } from "../schemas/nostr";
 import { NostreeDataSchema } from "../schemas/nostr";
 import { 
   getNDK, 
@@ -69,6 +69,10 @@ interface UseLinkTreeReturn {
   deleteLink: (id: string) => Promise<void>;
   /** Toggle link visibility */
   toggleVisibility: (id: string) => Promise<void>;
+  /** Update theme */
+  updateTheme: (theme: Theme) => Promise<void>;
+  /** Update tree metadata (title, etc.) */
+  updateTreeMeta: (updates: Partial<TreeMeta>) => Promise<void>;
   /** Refresh data from relays */
   refresh: () => Promise<void>;
 }
@@ -315,6 +319,124 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     await publishData(newLinks);
   }, [data, applyOptimistic, publishData]);
 
+  /**
+   * Update theme
+   */
+  const updateTheme = useCallback(async (theme: Theme) => {
+    // Merge with existing data to create new data object with updated theme
+    const currentData: NostreeData = data || { 
+      version: "2.0",
+      treeMeta: {
+        slug: slug,
+        isDefault: slug === DEFAULT_SLUG,
+        createdAt: Math.floor(Date.now() / 1000),
+      },
+      links: [],
+      socials: [],
+      theme: {
+        mode: "light",
+        colors: {
+          background: "#ffffff",
+          foreground: "#000000",
+          primary: "#000000",
+          radius: "0.5rem",
+        },
+        font: "Inter",
+      }
+    };
+    
+    setIsSaving(true);
+    
+    try {
+      const updatedData: NostreeData = {
+        ...currentData,
+        theme,
+      };
+      
+      const event = createNostreeEvent(updatedData, pubkey, dTag);
+      const result = await publishEvent(event);
+      
+      if (result.success) {
+        setData(updatedData);
+        toast.success("Theme updated!", {
+          description: `Saved to ${result.relaysAccepted} relay${result.relaysAccepted !== 1 ? 's' : ''}`,
+        });
+      } else {
+        toast.error("Theme update failed", {
+          description: "Could not publish to any relays",
+        });
+      }
+    } catch (err) {
+      console.error("Theme update error:", err);
+      toast.error("Theme update failed", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [data, pubkey, dTag, slug]);
+
+  /**
+   * Update tree metadata (title, etc.)
+   */
+  const updateTreeMeta = useCallback(async (updates: Partial<TreeMeta>) => {
+    const currentData: NostreeData = data || { 
+      version: "2.0",
+      treeMeta: {
+        slug: slug,
+        isDefault: slug === DEFAULT_SLUG,
+        createdAt: Math.floor(Date.now() / 1000),
+      },
+      links: [],
+      socials: [],
+      theme: {
+        mode: "light",
+        colors: {
+          background: "#ffffff",
+          foreground: "#000000",
+          primary: "#000000",
+          radius: "0.5rem",
+        },
+        font: "Inter",
+      }
+    };
+    
+    setIsSaving(true);
+    
+    try {
+      const updatedData: NostreeData = {
+        ...currentData,
+        treeMeta: {
+          ...currentData.treeMeta,
+          ...updates,
+          // Don't allow overwriting slug from updates
+          slug: currentData.treeMeta.slug,
+        },
+      };
+      
+      const event = createNostreeEvent(updatedData, pubkey, dTag);
+      const result = await publishEvent(event);
+      
+      if (result.success) {
+        setData(updatedData);
+        toast.success("Saved!", {
+          description: `Updated on ${result.relaysAccepted} relay${result.relaysAccepted !== 1 ? 's' : ''}`,
+        });
+      } else {
+        toast.error("Save failed", {
+          description: "Could not publish to any relays",
+        });
+      }
+    } catch (err) {
+      console.error("Tree meta update error:", err);
+      toast.error("Save failed", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [data, pubkey, dTag, slug]);
+
   return {
     links: optimisticLinks,
     data,
@@ -326,6 +448,8 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     updateLink,
     deleteLink,
     toggleVisibility,
+    updateTheme,
+    updateTreeMeta,
     refresh: fetchData,
   };
 }

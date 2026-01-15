@@ -5,6 +5,8 @@ import { useLinkTree } from "../../hooks/useLinkTree";
 import { LinkEditor } from "./LinkEditor";
 import { MobilePreview } from "./MobilePreview";
 import { TreeSelector } from "./TreeSelector";
+import { ThemeSelector } from "./ThemeSelector";
+import { TreeTitleEditor } from "./TreeTitleEditor";
 import { Button } from "../ui/Button";
 import { Toaster } from "sonner";
 import { Loader2, LogOut, User } from "lucide-react";
@@ -77,8 +79,22 @@ function LinkTreeEditor({
         />
       </div>
 
-      {/* Right: Preview */}
-      <div className="hidden lg:block">
+      {/* Right: Preview + Theme */}
+      <div className="hidden lg:block space-y-4">
+        {/* Theme & Title Controls */}
+        <div className="flex items-center justify-center gap-3">
+          <ThemeSelector
+            currentTheme={linkTree.data?.theme}
+            onThemeChange={linkTree.updateTheme}
+            disabled={linkTree.isSaving}
+          />
+          <TreeTitleEditor
+            title={linkTree.data?.treeMeta?.title || slug}
+            onTitleChange={(title) => linkTree.updateTreeMeta({ title })}
+            disabled={linkTree.isSaving}
+          />
+        </div>
+        
         <MobilePreview
           profile={profile}
           data={linkTree.data}
