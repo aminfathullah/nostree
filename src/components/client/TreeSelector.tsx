@@ -189,13 +189,11 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
       return;
     }
     
-    console.log("Deleting tree:", slug);
+
     
     // Remove from local list IMMEDIATELY
     setTrees(prev => {
-      console.log("Previous trees:", prev);
       const filtered = prev.filter(t => t.slug !== slug);
-      console.log("Filtered trees:", filtered);
       return filtered;
     });
     
@@ -235,7 +233,7 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
       // Don't await - let it run in background
       publishEvent(event).then(result => {
         if (result.success) {
-          console.log(`Tree deletion published to ${result.relaysAccepted} relays`);
+          // Success - silently handled in background
         } else {
           console.warn("Could not publish tree deletion to relays");
         }
