@@ -1,4 +1,4 @@
-import { getNDK, fetchEventsWithTimeout } from "./ndk";
+import { fetchEventsWithTimeout } from "./ndk";
 
 /**
  * Result of resolving a tree path
@@ -195,12 +195,73 @@ export async function fetchUserTrees(pubkey: string): Promise<Array<{
   return trees;
 }
 
+/**
+ * Check if a slug is globally available (not claimed by any user)
+ * Returns the pubkey of the owner if taken, or null if available
+ */
+export async function checkSlugAvailability(slug: string): Promise<{
+  available: boolean;
+  owner?: string; // pubkey of current owner if taken
+}> {
+  // Reserved slugs (can't be claimed by anyone)
+  const reserved = ["admin", "login", "profile", "api", "u", "settings", "help", "about", "default"];
+  if (reserved.includes(slug)) {
+    return { available: false };
+  }
+  
+  const dTag = slugToDTag(slug);
+  
+  try {
+    // Query for ANY events with this d-tag (no author filter = global check)
+    const events = await fetchEventsWithTimeout({
+      kinds: [30078],
+      "#d": [dTag],
+    }, 5000);
+    
+    if (events.size === 0) {
+      return { available: true };
+    }
+    
+    // Check if any of the events have actual content (not deleted)
+    for (const event of events) {
+      try {
+        if (event.content) {
+          const data = JSON.parse(event.content);
+          // Skip deleted trees
+          if (data?.treeMeta?.deletedAt) {
+            continue;
+          }
+          // This slug is taken by someone
+          return {
+            available: false,
+            owner: event.pubkey,
+          };
+        }
+      } catch {
+        // If we can't parse content, assume it's taken to be safe
+        return {
+          available: false,
+          owner: event.pubkey,
+        };
+      }
+    }
+    
+    // All events were deleted trees, slug is available
+    return { available: true };
+  } catch (err) {
+    console.error("Error checking slug availability:", err);
+    // On error, assume taken to be safe (prevent conflicts)
+    return { available: false };
+  }
+}
+
 export default {
   resolveNip05,
   parseTreePath,
   slugToDTag,
   dTagToSlug,
   fetchUserTrees,
+  checkSlugAvailability,
   NOSTREE_PREFIX,
   DEFAULT_SLUG,
 };

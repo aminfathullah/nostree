@@ -1,6 +1,6 @@
-import * as React from "react";
+
 import { useState, useEffect } from "react";
-import { fetchUserTrees, slugToDTag, DEFAULT_SLUG } from "../../lib/slug-resolver";
+import { fetchUserTrees, slugToDTag, DEFAULT_SLUG, checkSlugAvailability } from "../../lib/slug-resolver";
 import { publishEvent, createNostreeEvent } from "../../lib/ndk";
 import { Button } from "../ui/Button";
 import { Plus, ChevronDown, Trash2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
@@ -82,30 +82,90 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
     return null;
   };
 
-  const handleCreateTree = () => {
+  const handleCreateTree = async () => {
     const error = validateSlug(newSlug);
     if (error) {
       setSlugError(error);
       return;
     }
     
-    // Add to local list and switch to it
-    const newTree: TreeInfo = {
-      slug: newSlug,
-      dTag: slugToDTag(newSlug),
-      createdAt: Math.floor(Date.now() / 1000),
-    };
+    // Set creating state to show loading
+    setIsLoading(true);
     
-    setTrees(prev => [...prev, newTree]);
-    onSlugChange(newSlug);
-    onTreeCreated?.(newSlug);
-    setIsCreating(false);
-    setNewSlug("");
-    setSlugError(null);
-    
-    toast.success("Tree created!", {
-      description: `Your tree is available at /${newSlug}`,
-    });
+    try {
+      // GLOBAL CHECK: Check if slug is available across ALL users
+      const availability = await checkSlugAvailability(newSlug);
+      if (!availability.available) {
+        const message = availability.owner === pubkey
+          ? "You already have a tree with this slug"
+          : "This slug is already taken by another user";
+        setSlugError(message);
+        toast.error("Slug unavailable", { description: message });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Create the tree data
+      const dTag = slugToDTag(newSlug);
+      const newTreeData = {
+        version: "2.0" as const,
+        treeMeta: {
+          slug: newSlug,
+          title: newSlug, // Use slug as default title, user can change later
+          isDefault: false,
+          createdAt: Math.floor(Date.now() / 1000),
+        },
+        links: [],
+        socials: [],
+        theme: {
+          mode: "light" as const,
+          colors: {
+            background: "#ffffff",
+            foreground: "#000000",
+            primary: "#5E47B8",
+            radius: "0.5rem",
+          },
+          font: "Inter",
+        },
+      };
+      
+      // Publish to Nostr IMMEDIATELY
+      const event = createNostreeEvent(newTreeData, pubkey, dTag);
+      const result = await publishEvent(event);
+      
+      if (!result.success || result.relaysAccepted === 0) {
+        toast.error("Failed to create tree", {
+          description: "Could not publish to any relays. Please try again.",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Add to local list and switch to it
+      const newTree: TreeInfo = {
+        slug: newSlug,
+        dTag: dTag,
+        createdAt: Math.floor(Date.now() / 1000),
+      };
+      
+      setTrees(prev => [...prev, newTree]);
+      onSlugChange(newSlug);
+      onTreeCreated?.(newSlug);
+      setIsCreating(false);
+      setNewSlug("");
+      setSlugError(null);
+      
+      toast.success("Tree created!", {
+        description: `Published to ${result.relaysAccepted} relays. Available at /${newSlug}`,
+      });
+    } catch (err) {
+      console.error("Failed to create tree:", err);
+      toast.error("Failed to create tree", {
+        description: "An error occurred. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCopyUrl = () => {

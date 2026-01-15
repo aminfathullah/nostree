@@ -7,38 +7,39 @@
 
 @theme {
   /* ----------------------------------------
-     Surface Colors (Semantic)
+     Surface Colors (Majapahit Light Theme)
      ---------------------------------------- */
-  --color-canvas: #09090b; /* zinc-950 - Main background */
-  --color-card: #18181b; /* zinc-900 - Card surfaces */
-  --color-card-hover: #27272a; /* zinc-800 - Card hover state */
+  --color-canvas: #f5f5f7; /* Light gray - Main background */
+  --color-card: #ffffff; /* White - Card surfaces */
+  --color-card-hover: #f9fafb; /* Subtle gray - Card hover state */
 
   /* ----------------------------------------
-     Brand Colors
+     Brand Colors (Majapahit Purple)
      ---------------------------------------- */
-  --color-brand: #8b5cf6; /* violet-500 - Primary brand */
-  --color-brand-hover: #7c3aed; /* violet-600 - Brand hover */
+  --color-brand: #5e47b8; /* Majapahit purple - Primary brand */
+  --color-brand-hover: #4c3a9c; /* Darker purple - Brand hover */
   --color-brand-fg: #ffffff; /* Brand foreground text */
+  --color-accent: #f97316; /* Orange accent for highlights */
 
   /* ----------------------------------------
-     Text Colors
+     Text Colors (Dark on Light)
      ---------------------------------------- */
-  --color-txt-main: #f4f4f5; /* zinc-100 - Primary text */
-  --color-txt-muted: #a1a1aa; /* zinc-400 - Secondary text */
-  --color-txt-dim: #71717a; /* zinc-500 - Dimmed text */
+  --color-txt-main: #1f2937; /* Dark gray - Primary text */
+  --color-txt-muted: #6b7280; /* Medium gray - Secondary text */
+  --color-txt-dim: #9ca3af; /* Light gray - Dimmed text */
 
   /* ----------------------------------------
      Semantic Colors
      ---------------------------------------- */
   --color-success: #22c55e; /* green-500 */
-  --color-warning: #f59e0b; /* amber-500 */
+  --color-warning: #f97316; /* Majapahit orange */
   --color-error: #ef4444; /* red-500 */
 
   /* ----------------------------------------
-     Border Colors
+     Border Colors (Light Theme)
      ---------------------------------------- */
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-border-hover: rgba(255, 255, 255, 0.2);
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-hover: rgba(0, 0, 0, 0.15);
 
   /* ----------------------------------------
      Radius Tokens
@@ -63,13 +64,13 @@
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* ----------------------------------------
-     Shadow Tokens
+     Shadow Tokens (Light Theme)
      ---------------------------------------- */
-  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
-    0 2px 4px -2px rgba(0, 0, 0, 0.2);
-  --shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.4),
-    0 4px 6px -4px rgba(0, 0, 0, 0.3);
-  --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 0 20px rgba(94, 71, 184, 0.25);
 }
 
 /* ============================================
@@ -113,7 +114,7 @@
     box-shadow: var(--shadow-glow);
   }
   50% {
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+    box-shadow: 0 0 30px rgba(94, 71, 184, 0.4);
   }
 }
 
@@ -148,17 +149,17 @@
   animation: spin 1s linear infinite;
 }
 
-/* Glassmorphism utilities */
+/* Glassmorphism utilities (Light Theme) */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .glass-hover:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
 /* ============================================
@@ -194,7 +195,7 @@ body {
   color: var(--color-brand-fg);
 }
 
-/* Scrollbar styling (WebKit) */
+/* Scrollbar styling (WebKit - Light Theme) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -205,10 +206,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-txt-dim);
+  background: #CBD5E1;
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-txt-muted);
+  background: #94A3B8;
 }
