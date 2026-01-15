@@ -1,4 +1,4 @@
-import * as React from "react";
+
 import type { Link, Social, NostreeData } from "../../schemas/nostr";
 import { BadgeCheck, ExternalLink } from "lucide-react";
 
@@ -20,7 +20,7 @@ interface MobilePreviewProps {
  */
 export function MobilePreview({ profile, data, links }: MobilePreviewProps) {
   // Tree title takes precedence over profile name
-  const displayName = data?.treeMeta?.title || data?.profile?.name || profile?.name || "Your Name";
+  const displayName = (data && 'treeMeta' in data && data.treeMeta?.title) || data?.profile?.name || profile?.name || "Your Name";
   const displayBio = data?.profile?.bio || profile?.about || "";
   const showVerification = data?.profile?.show_verification ?? true;
   const visibleLinks = links.filter(l => l.visible);
@@ -28,10 +28,18 @@ export function MobilePreview({ profile, data, links }: MobilePreviewProps) {
   const theme = data?.theme;
 
   // Apply theme if present
-  const bgColor = theme?.colors.background || "#ffffff";
+  const bgValue = theme?.colors.background || "#ffffff";
+  const isBackgroundImage = bgValue.startsWith("url(");
+  const bgColor = isBackgroundImage ? "#1a1a1a" : bgValue;
+  const bgImage = isBackgroundImage ? bgValue : undefined;
   const fgColor = theme?.colors.foreground || "#1f2937";
   const primaryColor = theme?.colors.primary || "#5E47B8";
   const borderRadius = theme?.colors.radius || "1rem";
+  const font = theme?.font || "Inter";
+  const textColor = isBackgroundImage ? "#ffffff" : fgColor;
+  
+  // Font family CSS
+  const fontFamily = font === "Serif" ? "Georgia, serif" : font === "Mono" ? "monospace" : `${font}, system-ui, sans-serif`;
 
   return (
     <div className="sticky top-6">
@@ -41,8 +49,8 @@ export function MobilePreview({ profile, data, links }: MobilePreviewProps) {
       
       {/* Phone Frame */}
       <div 
-        className="w-[375px] h-[700px] border-8 border-zinc-800 rounded-[3rem] shadow-2xl overflow-hidden mx-auto"
-        style={{ backgroundColor: bgColor }}
+        className="w-[375px] h-[700px] border-8 border-zinc-800 rounded-[3rem] shadow-2xl overflow-hidden mx-auto bg-cover bg-center"
+        style={{ backgroundColor: bgColor, backgroundImage: bgImage, fontFamily, color: textColor }}
       >
         {/* Content */}
         <div className="h-full overflow-y-auto scrollbar-hide">
@@ -52,10 +60,10 @@ export function MobilePreview({ profile, data, links }: MobilePreviewProps) {
               {/* Avatar */}
               <div className="relative mb-4">
                 <div 
-                  className="w-20 h-20 rounded-full overflow-hidden ring-4"
+                  className="w-20 h-20 rounded-full overflow-hidden"
                   style={{ 
                     backgroundColor: bgColor,
-                    ringColor: bgColor,
+                    boxShadow: `0 0 0 4px ${bgColor}`,
                   }}
                 >
                   <img 

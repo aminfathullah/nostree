@@ -231,21 +231,34 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
   const theme = treeData?.theme;
 
   // Theme colors with fallbacks
-  const bgColor = theme?.colors.background || "#f5f5f7";
+  const bgValue = theme?.colors.background || "#f5f5f7";
+  const isBackgroundImage = bgValue.startsWith("url(");
+  const bgColor = isBackgroundImage ? "rgba(0,0,0,0.7)" : bgValue; // Dark overlay for image backgrounds
+  const bgImage = isBackgroundImage ? bgValue : undefined;
   const fgColor = theme?.colors.foreground || "#1f2937";
   const primaryColor = theme?.colors.primary || "#5E47B8";
   const borderRadius = theme?.colors.radius || "1rem";
+  const font = theme?.font || "Inter";
   
   // Computed styles for theme
-  const cardBg = `${fgColor}10`; // 10% opacity of foreground
-  const cardBorder = `${fgColor}20`; // 20% opacity
-  const cardHoverBorder = `${fgColor}30`;
-  const dimColor = `${fgColor}99`; // 60% opacity
+  const cardBg = isBackgroundImage ? "rgba(255,255,255,0.15)" : `${fgColor}10`; // Glass effect for image bg
+  const cardBorder = isBackgroundImage ? "rgba(255,255,255,0.2)" : `${fgColor}20`;
+  const cardHoverBorder = isBackgroundImage ? "rgba(255,255,255,0.4)" : `${fgColor}30`;
+  const dimColor = isBackgroundImage ? "rgba(255,255,255,0.7)" : `${fgColor}99`;
+  const textColor = isBackgroundImage ? "#ffffff" : fgColor; // White text on image
+  
+  // Font family CSS
+  const fontFamily = font === "Serif" ? "Georgia, serif" : font === "Mono" ? "monospace" : `${font}, system-ui, sans-serif`;
 
   return (
     <main 
-      className="min-h-screen flex flex-col items-center px-4 py-12 pb-20 transition-colors"
-      style={{ backgroundColor: bgColor, color: fgColor }}
+      className="min-h-screen flex flex-col items-center px-4 py-12 pb-20 transition-colors bg-cover bg-center bg-fixed"
+      style={{ 
+        backgroundColor: isBackgroundImage ? "#1a1a1a" : bgColor,
+        backgroundImage: bgImage,
+        color: textColor, 
+        fontFamily,
+      }}
     >
       <div className="w-full max-w-md mx-auto">
         {/* Profile Header */}
