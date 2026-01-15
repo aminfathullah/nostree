@@ -1,0 +1,60 @@
+---
+/**
+ * 404 Page
+ * Not Found error page
+ */
+
+import "../styles/global.css";
+import { Button } from "../components/ui/Button";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 - Profile Not Found | Nostree</title>
+    <meta name="robots" content="noindex" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <meta name="theme-color" content="#09090b" />
+  </head>
+
+  <body
+    class="min-h-screen bg-canvas text-txt-main antialiased flex items-center justify-center"
+  >
+    <main class="text-center px-4">
+      <!-- 404 Icon -->
+      <div class="text-8xl mb-6 animate-pop">🌲</div>
+
+      <!-- Error Code -->
+      <h1 class="text-6xl font-bold text-brand mb-4">404</h1>
+
+      <!-- Message -->
+      <h2 class="text-2xl font-semibold mb-2">Profile Not Found</h2>
+      <p class="text-txt-muted mb-8 max-w-md mx-auto">
+        This Nostr profile doesn't exist or hasn't created a Nostree page yet.
+        The trees are quiet here...
+      </p>
+
+      <!-- Actions -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <Button variant="solid" size="lg">
+          <a href="/">Go Home</a>
+        </Button>
+
+        <Button variant="outline" size="lg">
+          <a href="/admin">Create Your Profile</a>
+        </Button>
+      </div>
+    </main>
+  </body>
+</html>

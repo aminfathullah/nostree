@@ -1,0 +1,49 @@
+---
+/**
+ * Profile Viewer Page (Client-Side)
+ * A static page that uses JS to extract npub from URL and fetch data
+ */
+
+import "../../styles/global.css";
+import ProfileViewerApp from "../../components/client/ProfileViewerApp";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Nostree Profile</title>
+    <meta
+      name="description"
+      content="View this profile on Nostree - decentralized link-in-bio powered by Nostr"
+    />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <meta name="theme-color" content="#09090b" />
+  </head>
+
+  <body class="min-h-screen bg-canvas text-txt-main antialiased">
+    {/* Full client-side React app */}
+    <ProfileViewerApp client:only="react" />
+
+    <!-- Footer -->
+    <footer
+      class="fixed bottom-0 left-0 right-0 py-4 text-center text-xs text-txt-dim bg-canvas/80 backdrop-blur-sm"
+    >
+      <a href="/" class="hover:text-brand transition-colors">
+        Powered by Nostree 🌳
+      </a>
+    </footer>
+  </body>
+</html>

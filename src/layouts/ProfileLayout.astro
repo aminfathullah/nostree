@@ -1,0 +1,100 @@
+---
+/**
+ * ProfileLayout
+ * Base layout for profile pages with SEO and Open Graph tags
+ * Optimized for zero-JS viewer experience
+ */
+
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  npub?: string;
+}
+
+const {
+  title,
+  description = "Link-in-bio powered by Nostr - decentralized and censorship-resistant.",
+  image,
+  npub,
+} = Astro.props;
+
+const siteUrl = Astro.url.origin;
+const canonicalUrl = npub ? `${siteUrl}/${npub}` : Astro.url.href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary Meta Tags -->
+    <title>{title} | Nostree</title>
+    <meta name="title" content={`${title} | Nostree`} />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="profile" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {image && <meta property="og:image" content={image} />}
+
+    <!-- Twitter Card -->
+    <meta
+      name="twitter:card"
+      content={image ? "summary_large_image" : "summary"}
+    />
+    <meta name="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {image && <meta name="twitter:image" content={image} />}
+
+    <!-- Nostr Protocol -->
+    {npub && <meta name="nostr:pubkey" content={npub} />}
+
+    <!-- Performance: Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Google Fonts: Inter -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#09090b" />
+
+    <!-- Prevent zoom on input focus (iOS) -->
+    <meta name="format-detection" content="telephone=no" />
+  </head>
+
+  <body class="min-h-screen bg-canvas text-txt-main antialiased">
+    <slot />
+
+    <!-- Footer -->
+    <footer
+      class="fixed bottom-0 left-0 right-0 py-4 text-center text-xs text-txt-dim"
+    >
+      <a href="/" class="hover:text-brand transition-colors">
+        Powered by Nostree 🌳
+      </a>
+    </footer>
+  </body>
+</html>

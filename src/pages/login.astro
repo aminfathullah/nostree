@@ -1,0 +1,10 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { LoginForm } from "../components/client/LoginForm";
+---
+
+<BaseLayout title="Login - Nostree">
+  <div class="h-full w-full">
+    <LoginForm client:only="react" />
+  </div>
+</BaseLayout>

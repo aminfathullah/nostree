@@ -1,0 +1,102 @@
+---
+/**
+ * LinkCard Component
+ * Individual link card with hover effects
+ * Pure server-rendered component (zero JS for viewers)
+ */
+
+import { ExternalLink } from "lucide-react";
+
+interface Props {
+  link: {
+    title: string;
+    url: string;
+    emoji?: string;
+  };
+  showExternalIcon?: boolean;
+  className?: string;
+}
+
+const { link, showExternalIcon = false, className = "" } = Astro.props;
+
+// Ensure URL is valid and not JavaScript
+const isValidUrl = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+};
+
+const safeUrl = isValidUrl(link.url) ? link.url : "#";
+---
+
+<a
+  href={safeUrl}
+  target="_blank"
+  rel="noopener noreferrer nofollow"
+  class:list={[
+    "link-card block w-full p-4 rounded-xl",
+    "transition-all duration-200",
+    "bg-card hover:bg-card-hover",
+    "border border-border hover:border-border-hover",
+    "hover:scale-[1.02] active:scale-[0.98]",
+    "hover:shadow-card",
+    "group",
+    className,
+  ]}
+>
+  <div class="flex items-center gap-3">
+    {/* Emoji Icon */}
+    {
+      link.emoji && (
+        <span class="text-xl flex-shrink-0" aria-hidden="true">
+          {link.emoji}
+        </span>
+      )
+    }
+
+    {/* Title */}
+    <span class="font-medium text-center flex-1 text-txt-main">
+      {link.title}
+    </span>
+
+    {/* External Link Icon */}
+    {
+      showExternalIcon && (
+        <span class="text-txt-dim group-hover:text-txt-muted transition-colors flex-shrink-0">
+          <ExternalLink className="w-4 h-4" />
+        </span>
+      )
+    }
+  </div>
+</a>
+
+<style>
+  .link-card {
+    /* Ensure consistent height */
+    min-height: 56px;
+
+    /* Add subtle gradient overlay on hover */
+    position: relative;
+    overflow: hidden;
+  }
+
+  .link-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .link-card:hover::before {
+    opacity: 1;
+  }
+</style>

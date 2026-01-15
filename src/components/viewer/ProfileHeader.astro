@@ -1,0 +1,100 @@
+---
+/**
+ * ProfileHeader Component
+ * Displays user avatar, name, bio, and verification badge
+ * Server-rendered for optimal performance
+ */
+
+import { BadgeCheck } from "lucide-react";
+
+interface Props {
+  name: string;
+  bio?: string;
+  avatar?: string;
+  banner?: string;
+  nip05?: string;
+  showVerification?: boolean;
+}
+
+const {
+  name,
+  bio,
+  avatar,
+  banner,
+  nip05,
+  showVerification = true,
+} = Astro.props;
+
+// Default avatar if none provided
+const avatarUrl =
+  avatar || `https://api.dicebear.com/7.x/shapes/svg?seed=${name}`;
+
+// Parse NIP-05 for display
+const nip05Display = nip05
+  ? nip05.startsWith("_@")
+    ? nip05.slice(2)
+    : nip05
+  : null;
+---
+
+<header class="flex flex-col items-center text-center mb-8">
+  {/* Banner Image (if provided) */}
+  {
+    banner && (
+      <div class="w-full h-32 -mb-16 rounded-xl overflow-hidden">
+        <img
+          src={banner}
+          alt=""
+          class="w-full h-full object-cover"
+          loading="eager"
+        />
+      </div>
+    )
+  }
+
+  {/* Avatar */}
+  <div class="relative mb-4">
+    <div
+      class="w-24 h-24 rounded-full overflow-hidden ring-4 ring-canvas bg-card"
+    >
+      <img
+        src={avatarUrl}
+        alt={`${name}'s avatar`}
+        class="w-full h-full object-cover"
+        loading="eager"
+        width="96"
+        height="96"
+      />
+    </div>
+
+    {/* Verification Badge */}
+    {
+      showVerification && nip05Display && (
+        <div
+          class="absolute -bottom-1 -right-1 bg-brand text-brand-fg p-1 rounded-full"
+          title={`Verified: ${nip05Display}`}
+        >
+          <BadgeCheck className="w-4 h-4" />
+        </div>
+      )
+    }
+  </div>
+
+  {/* Name */}
+  <h1 class="text-2xl font-bold text-txt-main mb-1">
+    {name}
+  </h1>
+
+  {/* NIP-05 Verification */}
+  {
+    showVerification && nip05Display && (
+      <p class="text-sm text-brand mb-2 flex items-center gap-1">
+        <span>✓</span>
+        <span>{nip05Display}</span>
+      </p>
+    )
+  }
+
+  {/* Bio */}
+  {bio && <p class="text-txt-muted max-w-sm text-sm leading-relaxed">{bio}</p>}
+</header>

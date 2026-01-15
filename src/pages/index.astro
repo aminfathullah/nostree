@@ -1,0 +1,171 @@
+---
+/**
+ * Landing Page
+ * Nostree homepage with hero section and CTA
+ */
+
+import "../styles/global.css";
+import { Button } from "../components/ui/Button";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Nostree - Decentralized Link-in-Bio on Nostr</title>
+    <meta
+      name="description"
+      content="Own your links. Own your audience. Nostree is the decentralized Linktree alternative built on Nostr protocol."
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Nostree - Decentralized Link-in-Bio" />
+    <meta
+      property="og:description"
+      content="Own your links. Own your audience. The censorship-resistant Linktree alternative."
+    />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Nostree - Decentralized Link-in-Bio" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <meta name="theme-color" content="#09090b" />
+  </head>
+
+  <body class="min-h-screen bg-canvas text-txt-main antialiased">
+    <!-- Hero Section -->
+    <main
+      class="min-h-screen flex flex-col items-center justify-center px-4 py-16 text-center"
+    >
+      <!-- Logo / Brand -->
+      <div class="mb-8 animate-pop">
+        <span class="text-6xl">🌳</span>
+      </div>
+
+      <!-- Headline -->
+      <h1
+        class="text-4xl md:text-6xl font-extrabold mb-4 bg-gradient-to-r from-brand via-purple-400 to-pink-400 bg-clip-text text-transparent"
+      >
+        Nostree
+      </h1>
+
+      <!-- Tagline -->
+      <p class="text-xl md:text-2xl text-txt-muted mb-2">
+        Own your links. Own your audience.
+      </p>
+      <p class="text-lg text-txt-dim max-w-md mx-auto mb-8">
+        The decentralized Linktree alternative built on
+        <a
+          href="https://nostr.com"
+          target="_blank"
+          rel="noopener"
+          class="text-brand hover:underline">Nostr</a
+        >. Censorship-resistant. Zero platform fees.
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 mb-12">
+        <Button variant="solid" size="lg">
+          <a href="/admin" class="flex items-center gap-2">
+            <span>🔐</span>
+            <span>Create Your Profile</span>
+          </a>
+        </Button>
+
+        <Button variant="outline" size="lg">
+          <a href="#features" class="flex items-center gap-2">
+            <span>Learn More</span>
+            <span>↓</span>
+          </a>
+        </Button>
+      </div>
+
+      <!-- Features Grid -->
+      <section id="features" class="w-full max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold mb-8">Why Nostree?</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Feature 1 -->
+          <div
+            class="p-6 rounded-2xl bg-card border border-border text-left hover:border-brand/50 transition-colors"
+          >
+            <div class="text-3xl mb-3">🔐</div>
+            <h3 class="text-lg font-semibold mb-2">Sovereign Data</h3>
+            <p class="text-txt-muted text-sm">
+              Your links live on Nostr relays, not our database. You own your
+              data completely.
+            </p>
+          </div>
+
+          <!-- Feature 2 -->
+          <div
+            class="p-6 rounded-2xl bg-card border border-border text-left hover:border-brand/50 transition-colors"
+          >
+            <div class="text-3xl mb-3">⚡</div>
+            <h3 class="text-lg font-semibold mb-2">Lightning Fast</h3>
+            <p class="text-txt-muted text-sm">
+              Zero JavaScript on viewer pages. Your profile loads instantly with
+              perfect SEO.
+            </p>
+          </div>
+
+          <!-- Feature 3 -->
+          <div
+            class="p-6 rounded-2xl bg-card border border-border text-left hover:border-brand/50 transition-colors"
+          >
+            <div class="text-3xl mb-3">🛡️</div>
+            <h3 class="text-lg font-semibold mb-2">Censorship Resistant</h3>
+            <p class="text-txt-muted text-sm">
+              We cannot ban you. The Nostr network is open and permissionless.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer
+      class="py-8 text-center text-sm text-txt-dim border-t border-border"
+    >
+      <p>
+        Built with ❤️ for the
+        <a
+          href="https://nostr.com"
+          target="_blank"
+          rel="noopener"
+          class="text-brand hover:underline"
+        >
+          Nostr Republic
+        </a>
+      </p>
+      <p class="mt-2">
+        <a
+          href="https://github.com/nostree"
+          target="_blank"
+          rel="noopener"
+          class="hover:text-txt-muted transition-colors"
+        >
+          GitHub
+        </a>
+        <span class="mx-2">•</span>
+        <a href="/docs" class="hover:text-txt-muted transition-colors">
+          Docs
+        </a>
+      </p>
+    </footer>
+  </body>
+</html>

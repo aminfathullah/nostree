@@ -1,0 +1,50 @@
+---
+/**
+ * LinkList Component
+ * Renders a list of LinkCard components with stagger animation
+ */
+
+import LinkCard from "./LinkCard.astro";
+import type { Link } from "../../schemas/nostr";
+
+interface Props {
+  links: Link[];
+  showExternalIcons?: boolean;
+}
+
+const { links, showExternalIcons = false } = Astro.props;
+
+// Filter to only visible links that are currently scheduled (if scheduling is set)
+const now = Date.now() / 1000; // Convert to unix timestamp
+const visibleLinks = links.filter((link) => {
+  if (!link.visible) return false;
+
+  // Check scheduling if present
+  if (link.schedule) {
+    if (link.schedule.start && now < link.schedule.start) return false;
+    if (link.schedule.end && now > link.schedule.end) return false;
+  }
+
+  return true;
+});
+---
+
+{
+  visibleLinks.length > 0 ? (
+    <nav class="flex flex-col gap-3" aria-label="Links">
+      {visibleLinks.map((link, index) => (
+        <div
+          class="animate-slide-up"
+          style={`animation-delay: ${index * 50}ms;`}
+        >
+          <LinkCard link={link} showExternalIcon={showExternalIcons} />
+        </div>
+      ))}
+    </nav>
+  ) : (
+    <div class="text-center py-8 text-txt-muted">
+      <p class="text-lg">No links yet</p>
+      <p class="text-sm mt-1">This profile hasn't added any links.</p>
+    </div>
+  )
+}

@@ -1,0 +1,21 @@
+---
+export const prerender = false;
+
+/**
+ * Dynamic route for custom tree slugs at root level
+ * Handles: /myslug, /portfolio, /links, etc.
+ *
+ * Searches for Kind 30078 events with matching slug across all users
+ */
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { SlugTreeViewer } from "../components/client/SlugTreeViewer";
+
+const slug = Astro.params.slug || "";
+---
+
+<BaseLayout title="Loading... - Nostree">
+  <div class="h-full w-full">
+    <SlugTreeViewer slug={slug} client:only="react" />
+  </div>
+</BaseLayout>
