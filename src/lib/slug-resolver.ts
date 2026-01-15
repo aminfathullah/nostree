@@ -159,6 +159,23 @@ export async function fetchUserTrees(pubkey: string): Promise<Array<{
     if (dTag && isNostreeDTag(dTag)) {
       const slug = dTagToSlug(dTag);
       if (slug) {
+        // Check if tree is deleted by parsing content
+        try {
+          if (event.content) {
+            const data = JSON.parse(event.content);
+            // Skip trees that have been marked as deleted
+            if (data?.treeMeta?.deletedAt) {
+              continue;
+            }
+            // Also skip trees with empty links array AND no other meaningful data
+            if (data?.links?.length === 0 && data?.treeMeta?.deletedAt !== undefined) {
+              continue;
+            }
+          }
+        } catch {
+          // If we can't parse content, include the tree anyway
+        }
+        
         trees.push({
           slug,
           dTag,

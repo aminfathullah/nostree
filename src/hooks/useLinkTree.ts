@@ -1,4 +1,4 @@
-import { useState, useCallback, useOptimistic, startTransition } from "react";
+import { useState, useCallback, useOptimistic, startTransition, useEffect } from "react";
 import { slugToDTag, DEFAULT_SLUG } from "../lib/slug-resolver";
 import type { Link, NostreeData } from "../schemas/nostr";
 import { NostreeDataSchema } from "../schemas/nostr";
@@ -94,6 +94,47 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     authoritativeLinks,
     linkReducer
   );
+
+  // Auto-fetch when slug or pubkey changes
+  useEffect(() => {
+    if (pubkey) {
+      // Clear old data first to prevent showing stale links
+      setData(null);
+      setIsLoading(true);
+      
+      // Fetch new data for this tree
+      (async () => {
+        try {
+          const events = await fetchEventsWithTimeout({
+            kinds: [30078],
+            authors: [pubkey],
+            "#d": [dTag],
+          }, 10000);
+
+          if (events.size > 0) {
+            const sorted = Array.from(events).sort(
+              (a, b) => (b.created_at || 0) - (a.created_at || 0)
+            );
+            const latest = sorted[0];
+            
+            if (latest?.content) {
+              const parsed = JSON.parse(latest.content);
+              const validated = NostreeDataSchema.safeParse(parsed);
+              
+              if (validated.success) {
+                setData(validated.data);
+              }
+            }
+          }
+        } catch (err) {
+          setError("Failed to fetch data from relays");
+          console.error("useLinkTree fetch error:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      })();
+    }
+  }, [pubkey, dTag]);
 
   /**
    * Fetch data from relays
@@ -217,20 +258,23 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
       visible: linkData.visible ?? true,
     };
     
-    const newLinks = [...authoritativeLinks, newLink];
+    // Use current data.links to avoid stale closure issues on tree switch
+    const currentLinks = data?.links || [];
+    const newLinks = [...currentLinks, newLink];
     
     startTransition(() => {
       applyOptimistic({ type: "add", link: newLink });
     });
     
     await publishData(newLinks);
-  }, [authoritativeLinks, applyOptimistic, publishData]);
+  }, [data, applyOptimistic, publishData]);
 
   /**
    * Update a link
    */
   const updateLink = useCallback(async (link: Link) => {
-    const newLinks = authoritativeLinks.map(l => 
+    const currentLinks = data?.links || [];
+    const newLinks = currentLinks.map(l => 
       l.id === link.id ? link : l
     );
     
@@ -239,26 +283,28 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     });
     
     await publishData(newLinks);
-  }, [authoritativeLinks, applyOptimistic, publishData]);
+  }, [data, applyOptimistic, publishData]);
 
   /**
    * Delete a link
    */
   const deleteLink = useCallback(async (id: string) => {
-    const newLinks = authoritativeLinks.filter(l => l.id !== id);
+    const currentLinks = data?.links || [];
+    const newLinks = currentLinks.filter(l => l.id !== id);
     
     startTransition(() => {
       applyOptimistic({ type: "delete", id });
     });
     
     await publishData(newLinks);
-  }, [authoritativeLinks, applyOptimistic, publishData]);
+  }, [data, applyOptimistic, publishData]);
 
   /**
    * Toggle visibility
    */
   const toggleVisibility = useCallback(async (id: string) => {
-    const newLinks = authoritativeLinks.map(l => 
+    const currentLinks = data?.links || [];
+    const newLinks = currentLinks.map(l => 
       l.id === id ? { ...l, visible: !l.visible } : l
     );
     
@@ -267,7 +313,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     });
     
     await publishData(newLinks);
-  }, [authoritativeLinks, applyOptimistic, publishData]);
+  }, [data, applyOptimistic, publishData]);
 
   return {
     links: optimisticLinks,

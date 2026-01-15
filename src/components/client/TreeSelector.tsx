@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { fetchUserTrees, slugToDTag, DEFAULT_SLUG } from "../../lib/slug-resolver";
+import { publishEvent, createNostreeEvent } from "../../lib/ndk";
 import { Button } from "../ui/Button";
 import { Plus, ChevronDown, Trash2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -115,6 +116,74 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
     toast.success("URL copied!");
   };
 
+  const handleDeleteTree = (slug: string) => {
+    if (slug === DEFAULT_SLUG) {
+      toast.error("Cannot delete the default tree");
+      return;
+    }
+    
+    // Confirm deletion
+    if (!window.confirm(`Delete tree "/${slug}"? This will permanently remove all links in this tree.`)) {
+      return;
+    }
+    
+    console.log("Deleting tree:", slug);
+    
+    // Remove from local list IMMEDIATELY
+    setTrees(prev => {
+      console.log("Previous trees:", prev);
+      const filtered = prev.filter(t => t.slug !== slug);
+      console.log("Filtered trees:", filtered);
+      return filtered;
+    });
+    
+    // If we deleted the currently active tree, switch to default
+    if (slug === currentSlug) {
+      onSlugChange(DEFAULT_SLUG);
+    }
+    
+    toast.success(`Tree "/${slug}" deleted`);
+    
+    // Try to publish empty data to Nostr in background (fire and forget)
+    try {
+      const dTag = slugToDTag(slug);
+      const emptyData = {
+        version: "2.0" as const,
+        treeMeta: {
+          slug,
+          isDefault: false,
+          deletedAt: Math.floor(Date.now() / 1000),
+        },
+        links: [],
+        socials: [],
+        theme: {
+          mode: "light" as const,
+          colors: {
+            background: "#ffffff",
+            foreground: "#000000",
+            primary: "#000000",
+            radius: "0.5rem",
+          },
+          font: "Inter",
+        },
+      };
+      
+      const event = createNostreeEvent(emptyData, pubkey, dTag);
+      // Don't await - let it run in background
+      publishEvent(event).then(result => {
+        if (result.success) {
+          console.log(`Tree deletion published to ${result.relaysAccepted} relays`);
+        } else {
+          console.warn("Could not publish tree deletion to relays");
+        }
+      }).catch(err => {
+        console.error("Failed to publish tree deletion:", err);
+      });
+    } catch (err) {
+      console.error("Failed to create delete event:", err);
+    }
+  };
+
   const currentTreeLabel = currentSlug === DEFAULT_SLUG ? "Default Tree" : `/${currentSlug}`;
 
   if (isLoading) {
@@ -169,23 +238,45 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
           {/* Tree list */}
           <div className="max-h-48 overflow-y-auto">
             {trees.map((tree) => (
-              <button
+              <div
                 key={tree.slug}
-                onClick={() => {
-                  onSlugChange(tree.slug);
-                  setIsDropdownOpen(false);
-                }}
-                className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-card-hover transition-colors ${
+                className={`flex items-center justify-between px-4 py-3 hover:bg-card-hover transition-colors ${
                   tree.slug === currentSlug ? 'bg-brand/10' : ''
                 }`}
               >
-                <span className="text-sm font-medium text-txt-main">
-                  {tree.slug === DEFAULT_SLUG ? "Default Tree" : `/${tree.slug}`}
-                </span>
-                {tree.slug === currentSlug && (
-                  <span className="text-xs text-brand">Active</span>
+                <button
+                  onClick={() => {
+                    onSlugChange(tree.slug);
+                    setIsDropdownOpen(false);
+                  }}
+                  className="flex-1 text-left"
+                >
+                  <span className="text-sm font-medium text-txt-main">
+                    {tree.slug === DEFAULT_SLUG ? "Default Tree" : `/${tree.slug}`}
+                  </span>
+                  {tree.slug === currentSlug && (
+                    <span className="ml-2 text-xs text-brand">Active</span>
+                  )}
+                </button>
+                {/* Delete button - not for default tree */}
+                {tree.slug !== DEFAULT_SLUG && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      const slugToDelete = tree.slug;
+                      // Close dropdown first
+                      setIsDropdownOpen(false);
+                      // Call delete directly - confirm is inside the function
+                      handleDeleteTree(slugToDelete);
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors group"
+                    title={`Delete /${tree.slug}`}
+                  >
+                    <Trash2 className="w-4 h-4 text-txt-dim group-hover:text-red-400" />
+                  </button>
                 )}
-              </button>
+              </div>
             ))}
           </div>
           

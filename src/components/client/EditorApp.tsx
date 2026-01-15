@@ -36,6 +36,60 @@ export function EditorApp() {
 }
 
 /**
+ * Link tree editor that remounts when slug changes
+ * This ensures useLinkTree hook gets fresh state for each tree
+ */
+function LinkTreeEditor({ 
+  pubkey, 
+  slug, 
+  profile 
+}: { 
+  pubkey: string; 
+  slug: string; 
+  profile: UserProfile;
+}) {
+  const linkTree = useLinkTree({ 
+    pubkey,
+    slug,
+    initialData: undefined,
+  });
+
+  if (linkTree.isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-brand" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
+      {/* Left: Editor */}
+      <div className="space-y-6">
+        <LinkEditor
+          links={linkTree.links}
+          isSaving={linkTree.isSaving}
+          onReorder={linkTree.reorderLinks}
+          onAdd={linkTree.addLink}
+          onUpdate={linkTree.updateLink}
+          onDelete={linkTree.deleteLink}
+          onToggleVisibility={linkTree.toggleVisibility}
+        />
+      </div>
+
+      {/* Right: Preview */}
+      <div className="hidden lg:block">
+        <MobilePreview
+          profile={profile}
+          data={linkTree.data}
+          links={linkTree.links}
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
  * Editor content - protected by auth
  */
 function EditorContent() {
@@ -43,13 +97,6 @@ function EditorContent() {
   const [profile, setProfile] = useState<UserProfile>({});
   const [profileLoading, setProfileLoading] = useState(false);
   const [slug, setSlug] = useState("default");
-
-  // Link management hook
-  const linkTree = useLinkTree({ 
-    pubkey: pubkey || "",
-    slug: slug,
-    initialData: undefined,
-  });
 
   // Fetch profile on auth
   useEffect(() => {
@@ -87,7 +134,6 @@ function EditorContent() {
     }
 
     fetchProfile();
-    linkTree.refresh();
   }, [pubkey, isAuthenticated]);
 
   // Auth loading state
@@ -127,9 +173,8 @@ function EditorContent() {
                currentSlug={slug}
                onSlugChange={(newSlug) => {
                  setSlug(newSlug);
-                 linkTree.refresh();
                }}
-               onTreeCreated={(newSlug) => {
+               onTreeCreated={() => {
                  // Tree created, will be saved on first link add
                }}
              />
@@ -159,35 +204,19 @@ function EditorContent() {
 
       {/* Main Content - Split Pane */}
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
-          {/* Left: Editor */}
-          <div className="space-y-6">
-            {linkTree.isLoading || profileLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-brand" />
-              </div>
-            ) : (
-              <LinkEditor
-                links={linkTree.links}
-                isSaving={linkTree.isSaving}
-                onReorder={linkTree.reorderLinks}
-                onAdd={linkTree.addLink}
-                onUpdate={linkTree.updateLink}
-                onDelete={linkTree.deleteLink}
-                onToggleVisibility={linkTree.toggleVisibility}
-              />
-            )}
+        {profileLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-brand" />
           </div>
-
-          {/* Right: Preview */}
-          <div className="hidden lg:block">
-            <MobilePreview
-              profile={profile}
-              data={linkTree.data}
-              links={linkTree.links}
-            />
-          </div>
-        </div>
+        ) : (
+          // KEY prop forces remount when slug changes, giving fresh useLinkTree state
+          <LinkTreeEditor 
+            key={slug} 
+            pubkey={pubkey || ""} 
+            slug={slug} 
+            profile={profile}
+          />
+        )}
       </main>
     </div>
   );
