@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "../../context/AuthContext";
 import { useLinkTree } from "../../hooks/useLinkTree";
@@ -89,7 +88,7 @@ function LinkTreeEditor({
             disabled={linkTree.isSaving}
           />
           <TreeTitleEditor
-            title={linkTree.data?.treeMeta?.title || slug}
+            title={(linkTree.data && 'treeMeta' in linkTree.data && linkTree.data.treeMeta?.title) || slug}
             onTitleChange={(title) => linkTree.updateTreeMeta({ title })}
             disabled={linkTree.isSaving}
           />
@@ -112,7 +111,7 @@ function EditorContent() {
   const { isAuthenticated, isLoading: authLoading, pubkey, npub, logout } = useAuth();
   const [profile, setProfile] = useState<UserProfile>({});
   const [profileLoading, setProfileLoading] = useState(false);
-  const [slug, setSlug] = useState("default");
+  const [slug, setSlug] = useState<string | null>(null);
 
   // Fetch profile on auth
   useEffect(() => {
@@ -224,7 +223,7 @@ function EditorContent() {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-brand" />
           </div>
-        ) : (
+        ) : slug ? (
           // KEY prop forces remount when slug changes, giving fresh useLinkTree state
           <LinkTreeEditor 
             key={slug} 
@@ -232,6 +231,18 @@ function EditorContent() {
             slug={slug} 
             profile={profile}
           />
+        ) : (
+          // No trees - show empty state
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="text-6xl mb-4">🌲</div>
+            <h2 className="text-xl font-semibold text-txt-main mb-2">No Trees Yet</h2>
+            <p className="text-txt-muted mb-6 max-w-md">
+              Create your first link tree to get started. Pick a unique slug that will be your public URL.
+            </p>
+            <p className="text-sm text-txt-dim">
+              Click "No Tree Selected" above to create your first tree.
+            </p>
+          </div>
         )}
       </main>
     </div>

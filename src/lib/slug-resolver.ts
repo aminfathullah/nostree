@@ -159,6 +159,11 @@ export async function fetchUserTrees(pubkey: string): Promise<Array<{
     if (dTag && isNostreeDTag(dTag)) {
       const slug = dTagToSlug(dTag);
       if (slug) {
+        // Skip legacy "default" trees - they're hidden from the UI now
+        if (slug === "default") {
+          continue;
+        }
+        
         // Check if tree is deleted by parsing content
         try {
           if (event.content) {
@@ -185,10 +190,8 @@ export async function fetchUserTrees(pubkey: string): Promise<Array<{
     }
   }
   
-  // Sort by creation time (oldest first) or slug alphabetically
+  // Sort by creation time (oldest first)
   trees.sort((a, b) => {
-    if (a.slug === DEFAULT_SLUG) return -1;
-    if (b.slug === DEFAULT_SLUG) return 1;
     return (a.createdAt || 0) - (b.createdAt || 0);
   });
   

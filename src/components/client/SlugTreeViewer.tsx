@@ -81,20 +81,11 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
         // Search for tree by slug d-tag (across all users)
         const dTag = slugToDTag(slug);
         
-        // Try both d-tags in parallel for default tree
-        let treeEvents: Set<any>;
-        if (slug === "default") {
-          const [newEvents, legacyEvents] = await Promise.all([
-            fetchEventsWithTimeout({ kinds: [30078], "#d": [dTag] }, 2000),
-            fetchEventsWithTimeout({ kinds: [30078], "#d": ["nostree-data-v1"] }, 2000),
-          ]);
-          treeEvents = new Set([...newEvents, ...legacyEvents]);
-        } else {
-          treeEvents = await fetchEventsWithTimeout({
-            kinds: [30078],
-            "#d": [dTag],
-          }, 2000); // 2s timeout (cache handles slow networks)
-        }
+        // Search by d-tag (no special case for "default" - all trees use same format)
+        const treeEvents = await fetchEventsWithTimeout({
+          kinds: [30078],
+          "#d": [dTag],
+        }, 2000); // 2s timeout (cache handles slow networks)
         
         if (cancelled) return;
         

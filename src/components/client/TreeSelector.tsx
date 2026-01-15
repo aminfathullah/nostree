@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { fetchUserTrees, slugToDTag, DEFAULT_SLUG, checkSlugAvailability } from "../../lib/slug-resolver";
+import { fetchUserTrees, slugToDTag, checkSlugAvailability } from "../../lib/slug-resolver";
 import { publishEvent, createNostreeEvent } from "../../lib/ndk";
 import { Button } from "../ui/Button";
 import { Plus, ChevronDown, Trash2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
@@ -14,8 +14,8 @@ interface TreeInfo {
 
 interface TreeSelectorProps {
   pubkey: string;
-  currentSlug: string;
-  onSlugChange: (slug: string) => void;
+  currentSlug: string | null;
+  onSlugChange: (slug: string | null) => void;
   onTreeCreated?: (slug: string) => void;
 }
 
@@ -37,7 +37,7 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
     async function loadTrees() {
       if (!pubkey) {
         setIsLoading(false);
-        setTrees([{ slug: DEFAULT_SLUG, dTag: slugToDTag(DEFAULT_SLUG) }]);
+        setTrees([]);
         return;
       }
       
@@ -47,14 +47,18 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
         const userTrees = await fetchUserTrees(pubkey);
         setTrees(userTrees);
         
-        // If no trees exist, start with default
-        if (userTrees.length === 0) {
-          setTrees([{ slug: DEFAULT_SLUG, dTag: slugToDTag(DEFAULT_SLUG) }]);
+        // If user has trees but none selected, select the first one
+        if (userTrees.length > 0 && !currentSlug) {
+          onSlugChange(userTrees[0].slug);
+        } else if (userTrees.length === 0) {
+          // No trees exist - user starts with 0 trees
+          onSlugChange(null);
         }
       } catch (err) {
         console.error("Failed to fetch trees:", err);
-        // Start with default on error
-        setTrees([{ slug: DEFAULT_SLUG, dTag: slugToDTag(DEFAULT_SLUG) }]);
+        // Start with no trees on error
+        setTrees([]);
+        onSlugChange(null);
       } finally {
         setIsLoading(false);
       }
@@ -74,8 +78,8 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
     if (trees.some(t => t.slug === slug)) {
       return "You already have a tree with this slug";
     }
-    // Reserved slugs
-    const reserved = ["admin", "login", "profile", "api", "u", "settings", "help", "about"];
+    // Reserved slugs (including "default" which was previously auto-created)
+    const reserved = ["admin", "login", "profile", "api", "u", "settings", "help", "about", "default"];
     if (reserved.includes(slug)) {
       return "This slug is reserved";
     }
@@ -177,10 +181,8 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
   };
 
   const handleDeleteTree = (slug: string) => {
-    if (slug === DEFAULT_SLUG) {
-      toast.error("Cannot delete the default tree");
-      return;
-    }
+    // Note: No longer have a "default" tree that can't be deleted
+    // All user-created trees can be deleted
     
     // Confirm deletion
     if (!window.confirm(`Delete tree "/${slug}"? This will permanently remove all links in this tree.`)) {
@@ -197,9 +199,10 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
       return filtered;
     });
     
-    // If we deleted the currently active tree, switch to default
+    // If we deleted the currently active tree, switch to first available or null
     if (slug === currentSlug) {
-      onSlugChange(DEFAULT_SLUG);
+      const remaining = trees.filter(t => t.slug !== slug);
+      onSlugChange(remaining.length > 0 ? remaining[0].slug : null);
     }
     
     toast.success(`Tree "/${slug}" deleted`);
@@ -244,7 +247,7 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
     }
   };
 
-  const currentTreeLabel = currentSlug === DEFAULT_SLUG ? "Default Tree" : `/${currentSlug}`;
+  const currentTreeLabel = currentSlug ? `/${currentSlug}` : "No Tree Selected";
 
   if (isLoading) {
     return (
@@ -312,14 +315,14 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
                   className="flex-1 text-left"
                 >
                   <span className="text-sm font-medium text-txt-main">
-                    {tree.slug === DEFAULT_SLUG ? "Default Tree" : `/${tree.slug}`}
+                    {`/${tree.slug}`}
                   </span>
                   {tree.slug === currentSlug && (
                     <span className="ml-2 text-xs text-brand">Active</span>
                   )}
                 </button>
-                {/* Delete button - not for default tree */}
-                {tree.slug !== DEFAULT_SLUG && (
+                {/* Delete button */}
+                {(
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
