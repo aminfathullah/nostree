@@ -17,6 +17,6 @@ export default defineConfig({
     outDir: 'dist',
   },
   server: {
-    port: 4322,
+    port: 4321,
   },
 })

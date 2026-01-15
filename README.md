@@ -1,43 +1,59 @@
-# Astro Starter Kit: Minimal
+# Nostree 🌲
 
-```sh
-pnpm create astro@latest -- --template minimal
+> **Decentralized, censorship-resistant link-in-bio platform built on the Nostr protocol.**
+
+Nostree allows you to create a "Linktree-style" profile where you own 100% of your data. Your links, theme, and profile metadata are signed by your private key and stored on decentralized relays, not our servers.
+
+## ✨ Features
+
+- **Sovereign Identity**: Log in with your Nostr extension (NIP-07). No email, no passwords.
+- **Censorship Resistant**: Your data lives on relays you choose. We cannot ban you or delete your links.
+- **Client-Side Rendering**: Built with React & Vite for a snappy, app-like experience.
+- **Extensible Themes**: Customize your page with verified themes stored on-chain.
+- **NIP-05 & Lightning Support**: Verified identities and native tipping via Bitcoin Lightning.
+
+## 🛠️ Tech Stack
+
+- **Frontend**: React 19, Vite, Tailwind CSS v4
+- **Nostr**: `@nostr-dev-kit/ndk`
+- **UI**: Motion (Framer), Lucide Icons
+- **Type Safety**: TypeScript, Zod
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm (recommended) or npm/yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/aminfathullah/nostree.git
+cd nostree
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Visit `http://localhost:4321` to see the app.
 
-## 🚀 Project Structure
+## 🏗️ Building for Production
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+npm run build
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+The output will be in the `dist/` folder, ready for deployment to any static host (Cloudflare Pages, Vercel, Netlify).
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## 🤝 Contributing
 
-Any static assets, like images, can be placed in the `public/` directory.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 🧞 Commands
+## 📄 License
 
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
