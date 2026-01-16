@@ -38,25 +38,10 @@ function ShareButtonComponent({
     }
   }, [url]);
 
-  const handleShare = useCallback(async () => {
-    // Detect if this is a mobile device with touch support
-    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    
-    // Use native share API only on mobile if available
-    if (isMobile && navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Check out my links',
-          url: url,
-        });
-        return;
-      } catch {
-        // User cancelled or share failed, fall through to menu
-      }
-    }
-    // Show menu on desktop or if native share not available
+  const handleShare = useCallback(() => {
+    // Always show our custom menu instead of native share
     setShowMenu(prev => !prev);
-  }, [url]);
+  }, []);
 
 
   return (
