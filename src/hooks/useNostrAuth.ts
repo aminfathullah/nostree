@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
-import NDK, { NDKNip07Signer, NDKUser } from "@nostr-dev-kit/ndk";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { NDKNip07Signer, NDKUser } from "@nostr-dev-kit/ndk";
 import { getNDK } from "../lib/ndk";
 
 /**
@@ -32,6 +32,19 @@ interface UseNostrAuthReturn {
 }
 
 const STORAGE_KEY = "nostree-auth-pubkey";
+const ASYNC_TIMEOUT_MS = 5000; // 5 second timeout for async operations
+
+/**
+ * Helper to add timeout to promises
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(message)), ms)
+    ),
+  ]);
+}
 
 /**
  * Custom hook for NIP-07 browser extension authentication
@@ -44,9 +57,14 @@ export function useNostrAuth(): UseNostrAuthReturn {
   const [user, setUser] = useState<NDKUser | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasExtension, setHasExtension] = useState(false);
+  
+  // Track if component is mounted to prevent state updates after unmount
+  const isMountedRef = useRef(true);
 
   // Check for extension and restore session on mount
   useEffect(() => {
+    isMountedRef.current = true;
+    
     // Only run in browser
     if (typeof window === "undefined") {
       setStatus("idle");
@@ -55,77 +73,113 @@ export function useNostrAuth(): UseNostrAuthReturn {
 
     // Check for window.nostr
     const checkExtension = () => {
-      setHasExtension(!!window.nostr);
+      if (isMountedRef.current) {
+        setHasExtension(!!window.nostr);
+      }
     };
 
     // Initial check
     checkExtension();
 
     // Also check after a delay (some extensions inject later)
-    setTimeout(checkExtension, 500);
+    const extensionTimeout = setTimeout(checkExtension, 500);
 
     // Restore session from localStorage
     const storedPubkey = localStorage.getItem(STORAGE_KEY);
     if (storedPubkey) {
       // We have a stored session, wait for extension to load then verify
-      // If extension doesn't load quickly, we might be stuck in checking
-      // So we'll poll for a bit
       let attempts = 0;
       const checkInterval = setInterval(() => {
+        if (!isMountedRef.current) {
+          clearInterval(checkInterval);
+          return;
+        }
         attempts++;
         if (window.nostr) {
           clearInterval(checkInterval);
-          restoreSession(storedPubkey);
+          restoreSession(storedPubkey).catch(() => {
+            if (isMountedRef.current) setStatus("idle");
+          });
         } else if (attempts > 10) { // 1 second timeout
           clearInterval(checkInterval);
-          setStatus("idle"); // Give up
+          if (isMountedRef.current) setStatus("idle");
         }
       }, 100);
+      
+      // Cleanup interval on unmount
+      return () => {
+        isMountedRef.current = false;
+        clearInterval(checkInterval);
+        clearTimeout(extensionTimeout);
+      };
     } else {
       setStatus("idle");
+      return () => {
+        isMountedRef.current = false;
+        clearTimeout(extensionTimeout);
+      };
     }
   }, []);
 
   // Restore existing session
   const restoreSession = async (storedPubkey: string) => {
     try {
-      setStatus("checking");
+      if (isMountedRef.current) setStatus("checking");
       
       if (!window.nostr) {
-        setStatus("idle");
+        if (isMountedRef.current) setStatus("idle");
         return;
       }
 
-      // Verify with extension (silent check)
-      const currentPubkey = await window.nostr.getPublicKey();
+      // Verify with extension (silent check) - with timeout
+      const currentPubkey = await withTimeout(
+        window.nostr.getPublicKey(),
+        ASYNC_TIMEOUT_MS,
+        "Extension timeout"
+      );
+      
+      if (!isMountedRef.current) return;
       
       if (currentPubkey === storedPubkey) {
         await setupSession(currentPubkey);
       } else {
         // Stored pubkey doesn't match, clear it
         localStorage.removeItem(STORAGE_KEY);
-        setStatus("idle");
+        if (isMountedRef.current) setStatus("idle");
       }
     } catch {
       // Silent fail on restore
       localStorage.removeItem(STORAGE_KEY);
-      setStatus("idle");
+      if (isMountedRef.current) setStatus("idle");
     }
   };
 
   // Setup session with authenticated pubkey
   const setupSession = async (pubkeyHex: string) => {
-    const ndk = getNDK();
-    const signer = new NDKNip07Signer();
-    ndk.signer = signer;
+    try {
+      const ndk = getNDK();
+      const signer = new NDKNip07Signer();
+      ndk.signer = signer;
 
-    const ndkUser = await signer.user();
-    
-    setPubkey(pubkeyHex);
-    setNpub(ndkUser.npub);
-    setUser(ndkUser);
-    setStatus("authenticated");
-    localStorage.setItem(STORAGE_KEY, pubkeyHex);
+      // Add timeout to signer.user() to prevent infinite hang
+      const ndkUser = await withTimeout(
+        signer.user(),
+        ASYNC_TIMEOUT_MS,
+        "Signer timeout"
+      );
+      
+      if (!isMountedRef.current) return;
+      
+      setPubkey(pubkeyHex);
+      setNpub(ndkUser.npub);
+      setUser(ndkUser);
+      setStatus("authenticated");
+      localStorage.setItem(STORAGE_KEY, pubkeyHex);
+    } catch (err) {
+      // If setupSession fails, fall back to idle
+      console.warn("Session setup failed:", err);
+      if (isMountedRef.current) setStatus("idle");
+    }
   };
 
   // Login function
