@@ -13,7 +13,7 @@ import { Button } from "../ui/Button";
 import { LoadingOverlay } from "../ui/LoadingOverlay";
 import { KeyboardShortcutsHelp, KeyboardShortcutsButton } from "../ui/KeyboardShortcutsHelp";
 import { ThemeToggle } from "../ui/ThemeToggle";
-import { Toaster } from "sonner";
+
 import { Loader2, LogOut, User } from "lucide-react";
 import { fetchEventsWithTimeout } from "../../lib/ndk";
 
@@ -31,12 +31,7 @@ interface UserProfile {
 export function EditorApp() {
   return (
     <AuthProvider>
-      <Toaster 
-        position="top-center" 
-        toastOptions={{
-          className: "bg-card border border-border text-txt-main",
-        }}
-      />
+
       <EditorContent />
     </AuthProvider>
   );

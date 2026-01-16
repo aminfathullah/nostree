@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNostrAuth } from "../../hooks/useNostrAuth";
 import { Button } from "../ui/Button";
 import { Loader2, Key, ExternalLink, AlertCircle, CheckCircle2 } from "lucide-react";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 
 /**
  * LoginForm - NIP-07 authentication component
@@ -38,12 +38,7 @@ export function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <Toaster 
-        position="top-center" 
-        toastOptions={{
-          className: "bg-card border border-border text-txt-main",
-        }}
-      />
+
       
       <div className="w-full max-w-sm">
         {/* Logo */}
