@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { motion } from "motion/react";
 import { AuthProvider, useAuth } from "../../context/AuthContext";
 import { useLinkTree } from "../../hooks/useLinkTree";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { LinkEditor } from "./LinkEditor";
 import { MobilePreview } from "./MobilePreview";
 import { TreeSelector } from "./TreeSelector";
@@ -8,6 +10,8 @@ import { ThemeSelector } from "./ThemeSelector";
 import { CustomThemeEditor } from "./CustomThemeEditor";
 import { EmptyState } from "./EmptyState";
 import { Button } from "../ui/Button";
+import { LoadingOverlay } from "../ui/LoadingOverlay";
+import { KeyboardShortcutsHelp, KeyboardShortcutsButton } from "../ui/KeyboardShortcutsHelp";
 import { Toaster } from "sonner";
 import { Loader2, LogOut, User } from "lucide-react";
 import { fetchEventsWithTimeout } from "../../lib/ndk";
@@ -44,7 +48,7 @@ export function EditorApp() {
 function LinkTreeEditor({ 
   pubkey, 
   slug, 
-  profile 
+  profile,
 }: { 
   pubkey: string; 
   slug: string; 
@@ -59,7 +63,14 @@ function LinkTreeEditor({
   if (linkTree.isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-brand" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <Loader2 className="w-8 h-8 animate-spin text-brand" />
+          <p className="text-sm text-txt-muted">Loading your tree...</p>
+        </motion.div>
       </div>
     );
   }
@@ -118,6 +129,13 @@ function EditorContent() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [slug, setSlug] = useState<string | null>(null);
   const [openTreeSelector, setOpenTreeSelector] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+
+  // Global keyboard shortcuts
+  useKeyboardShortcuts({
+    "mod+/": () => setShowKeyboardHelp(true),
+    "escape": () => setShowKeyboardHelp(false),
+  }, isAuthenticated && !authLoading);
 
   // Fetch profile on auth
   useEffect(() => {
@@ -157,13 +175,9 @@ function EditorContent() {
     fetchProfile();
   }, [pubkey, isAuthenticated]);
 
-  // Auth loading state
+  // Auth loading state - enhanced overlay
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand" />
-      </div>
-    );
+    return <LoadingOverlay message="Connecting..." showProgress />;
   }
 
   // Not authenticated - redirect to login
@@ -218,12 +232,18 @@ function EditorContent() {
               </span>
             </div>
             
+            {/* Keyboard shortcuts help button */}
+            <KeyboardShortcutsButton onClick={() => setShowKeyboardHelp(true)} />
+            
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </header>
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsHelp isOpen={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
 
       {/* Main Content - Split Pane */}
       <main className="max-w-7xl mx-auto px-4 py-8">
