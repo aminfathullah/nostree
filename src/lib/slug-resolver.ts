@@ -152,41 +152,51 @@ export async function fetchUserTrees(pubkey: string): Promise<Array<{
     authors: [pubkey],
   }, 5000);
   
-  const trees: Array<{ slug: string; dTag: string; createdAt?: number }> = [];
+  // Group events by d-tag to handle multiple versions (take latest)
+  const eventsByDTag = new Map<string, any>();
   
   for (const event of events) {
     const dTag = event.tags.find(t => t[0] === "d")?.[1];
     if (dTag && isNostreeDTag(dTag)) {
-      const slug = dTagToSlug(dTag);
-      if (slug) {
-        // Skip legacy "default" trees - they're hidden from the UI now
-        if (slug === "default") {
-          continue;
-        }
-        
-        // Check if tree is deleted by parsing content
-        try {
-          if (event.content) {
-            const data = JSON.parse(event.content);
-            // Skip trees that have been marked as deleted
-            if (data?.treeMeta?.deletedAt) {
-              continue;
-            }
-            // Also skip trees with empty links array AND no other meaningful data
-            if (data?.links?.length === 0 && data?.treeMeta?.deletedAt !== undefined) {
-              continue;
-            }
-          }
-        } catch {
-          // If we can't parse content, include the tree anyway
-        }
-        
-        trees.push({
-          slug,
-          dTag,
-          createdAt: event.created_at,
-        });
+      const existing = eventsByDTag.get(dTag);
+      if (!existing || (event.created_at || 0) > (existing.created_at || 0)) {
+        eventsByDTag.set(dTag, event);
       }
+    }
+  }
+
+  const trees: Array<{ slug: string; dTag: string; createdAt?: number }> = [];
+  
+  for (const [dTag, event] of eventsByDTag.entries()) {
+    const slug = dTagToSlug(dTag);
+    if (slug) {
+      // Skip legacy "default" trees - they're hidden from the UI now
+      if (slug === "default") {
+        continue;
+      }
+      
+      // Check if tree is deleted by parsing content
+      try {
+        if (event.content) {
+          const data = JSON.parse(event.content);
+          // Skip trees that have been marked as deleted
+          if (data?.treeMeta?.deletedAt) {
+            continue;
+          }
+          // Also skip trees with empty links array AND no other meaningful data
+          if (data?.links?.length === 0 && data?.treeMeta?.deletedAt !== undefined) {
+            continue;
+          }
+        }
+      } catch {
+        // If we can't parse content, include the tree anyway
+      }
+      
+      trees.push({
+        slug,
+        dTag,
+        createdAt: event.created_at,
+      });
     }
   }
   

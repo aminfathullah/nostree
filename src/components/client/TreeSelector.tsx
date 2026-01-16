@@ -326,10 +326,11 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
                       e.stopPropagation();
                       e.preventDefault();
                       const slugToDelete = tree.slug;
-                      // Close dropdown first
-                      setIsDropdownOpen(false);
+                      // Don't close dropdown here, let handleDeleteTree handle it or do it after
                       // Call delete directly - confirm is inside the function
                       handleDeleteTree(slugToDelete);
+                      // Close dropdown after the specific action is initiated/confirmed
+                      setIsDropdownOpen(false);
                     }}
                     className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors group"
                     title={`Delete /${tree.slug}`}
