@@ -120,9 +120,12 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
           return;
         }
         
-        // Update with fresh data and cache it
-        setTreeData(result.data);
-        setStatus("ready");
+        // Update with fresh data and cache it (only if different from cache to prevent re-render)
+        const isDifferent = JSON.stringify(result.data) !== JSON.stringify(cachedTree);
+        if (isDifferent || !cachedTree) {
+          setTreeData(result.data);
+          setStatus("ready");
+        }
         setCachedTree(slug, result.data);
         
         // Then load profile in background (non-blocking)

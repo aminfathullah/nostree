@@ -234,11 +234,11 @@
 }
 
 .animate-fade-in {
-  animation: fade-in 0.3s var(--ease-smooth);
+  animation: fade-in 0.3s var(--ease-smooth) both;
 }
 
 .animate-slide-up {
-  animation: slide-up 0.4s var(--ease-smooth);
+  animation: slide-up 0.4s var(--ease-smooth) both;
 }
 
 .animate-pulse-glow {
