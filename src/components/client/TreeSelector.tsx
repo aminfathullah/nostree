@@ -17,13 +17,17 @@ interface TreeSelectorProps {
   currentSlug: string | null;
   onSlugChange: (slug: string | null) => void;
   onTreeCreated?: (slug: string) => void;
+  /** External control to force open the dropdown */
+  forceOpen?: boolean;
+  /** Callback when dropdown open state changes */
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
  * TreeSelector - Tree management component for the editor
  * Allows users to create, select, and manage multiple trees
  */
-export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated }: TreeSelectorProps) {
+export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated, forceOpen, onOpenChange }: TreeSelectorProps) {
   const [trees, setTrees] = useState<TreeInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -31,6 +35,28 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
   const [newSlug, setNewSlug] = useState("");
   const [slugError, setSlugError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Sync external forceOpen state
+  useEffect(() => {
+    if (forceOpen !== undefined && forceOpen !== isDropdownOpen) {
+      setIsDropdownOpen(forceOpen);
+      // When force opening, go directly to create mode if no trees exist
+      if (forceOpen && trees.length === 0) {
+        setIsCreating(true);
+      }
+    }
+  }, [forceOpen]);
+
+  // Wrapper to handle dropdown state changes
+  const handleDropdownChange = (open: boolean) => {
+    setIsDropdownOpen(open);
+    onOpenChange?.(open);
+    if (!open) {
+      setIsCreating(false);
+      setNewSlug("");
+      setSlugError(null);
+    }
+  };
 
   // Fetch user's trees on mount
   useEffect(() => {
@@ -261,7 +287,7 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
       {/* Main selector button */}
       <div className="flex items-center gap-2">
         <button
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          onClick={() => handleDropdownChange(!isDropdownOpen)}
           className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-lg hover:border-border-hover transition-colors"
         >
           <span className="text-sm font-medium text-txt-main">{currentTreeLabel}</span>
@@ -308,7 +334,7 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
                 <button
                   onClick={() => {
                     onSlugChange(tree.slug);
-                    setIsDropdownOpen(false);
+                    handleDropdownChange(false);
                   }}
                   className="flex-1 text-left"
                 >
@@ -330,7 +356,7 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
                       // Call delete directly - confirm is inside the function
                       handleDeleteTree(slugToDelete);
                       // Close dropdown after the specific action is initiated/confirmed
-                      setIsDropdownOpen(false);
+                      handleDropdownChange(false);
                     }}
                     className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors group"
                     title={`Delete /${tree.slug}`}
@@ -406,7 +432,7 @@ export function TreeSelector({ pubkey, currentSlug, onSlugChange, onTreeCreated 
       {isDropdownOpen && (
         <div 
           className="fixed inset-0 z-40" 
-          onClick={() => setIsDropdownOpen(false)}
+          onClick={() => handleDropdownChange(false)}
         />
       )}
     </div>

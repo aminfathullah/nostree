@@ -6,6 +6,7 @@ import { MobilePreview } from "./MobilePreview";
 import { TreeSelector } from "./TreeSelector";
 import { ThemeSelector } from "./ThemeSelector";
 import { CustomThemeEditor } from "./CustomThemeEditor";
+import { EmptyState } from "./EmptyState";
 import { Button } from "../ui/Button";
 import { Toaster } from "sonner";
 import { Loader2, LogOut, User } from "lucide-react";
@@ -116,6 +117,7 @@ function EditorContent() {
   const [profile, setProfile] = useState<UserProfile>({});
   const [profileLoading, setProfileLoading] = useState(false);
   const [slug, setSlug] = useState<string | null>(null);
+  const [openTreeSelector, setOpenTreeSelector] = useState(false);
 
   // Fetch profile on auth
   useEffect(() => {
@@ -196,6 +198,8 @@ function EditorContent() {
                onTreeCreated={() => {
                  // Tree created, will be saved on first link add
                }}
+               forceOpen={openTreeSelector}
+               onOpenChange={setOpenTreeSelector}
              />
 
             {/* User info */}
@@ -236,17 +240,8 @@ function EditorContent() {
             profile={profile}
           />
         ) : (
-          // No trees - show empty state
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="text-6xl mb-4">🌲</div>
-            <h2 className="text-xl font-semibold text-txt-main mb-2">No Trees Yet</h2>
-            <p className="text-txt-muted mb-6 max-w-md">
-              Create your first link tree to get started. Pick a unique slug that will be your public URL.
-            </p>
-            <p className="text-sm text-txt-dim">
-              Click "No Tree Selected" above to create your first tree.
-            </p>
-          </div>
+          // No trees - show enhanced empty state
+          <EmptyState onCreateTree={() => setOpenTreeSelector(true)} />
         )}
       </main>
     </div>
