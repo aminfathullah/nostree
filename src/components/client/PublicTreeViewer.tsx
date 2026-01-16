@@ -1,9 +1,10 @@
 import { useState, memo, useMemo } from 'react';
 import type { NostreeDataV2 } from '../../schemas/nostr';
-import { BadgeCheck, ExternalLink } from 'lucide-react';
+import { BadgeCheck } from 'lucide-react';
 import TreeSkeleton from '../ui/TreeSkeleton';
 import ShareButton from '../ui/ShareButton';
 import QRCodeModal from '../ui/QRCodeModal';
+import { TiltLinkCard } from './TiltLinkCard';
 
 interface UserProfile {
   pubkey: string;
@@ -196,7 +197,7 @@ function PublicTreeViewerComponent({
                 className="w-24 h-24 rounded-full overflow-hidden ring-4 transition-transform hover:scale-105"
                 style={{ 
                   backgroundColor: cardBg, 
-                  ringColor: bgColor,
+                  ['--tw-ring-color' as string]: bgColor,
                 }}
               >
                 <img 
@@ -265,47 +266,19 @@ function PublicTreeViewerComponent({
           {links.length > 0 && (
             <nav className="flex flex-col gap-3" aria-label="Links">
               {links.map((link, index) => (
-                <a
+                <TiltLinkCard
                   key={link.id}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="group block w-full p-4 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] animate-slide-up backdrop-blur-sm"
-                  style={{ 
-                    backgroundColor: cardBg,
-                    border: `1px solid ${cardBorder}`,
-                    borderRadius: borderRadius,
-                    animationDelay: `${150 + index * 60}ms`,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = cardHoverBg;
-                    e.currentTarget.style.borderColor = cardHoverBorder;
-                    e.currentTarget.style.boxShadow = `0 8px 25px ${fgColor}15`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = cardBg;
-                    e.currentTarget.style.borderColor = cardBorder;
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    {link.emoji && (
-                      <span className="text-xl group-hover:scale-110 transition-transform">
-                        {link.emoji}
-                      </span>
-                    )}
-                    <span 
-                      className="font-medium text-center flex-1" 
-                      style={{ color: textColor }}
-                    >
-                      {link.title}
-                    </span>
-                    <ExternalLink 
-                      className="w-4 h-4 opacity-40 group-hover:opacity-70 transition-all group-hover:translate-x-0.5" 
-                      style={{ color: dimColor }} 
-                    />
-                  </div>
-                </a>
+                  link={link}
+                  index={index}
+                  cardBg={cardBg}
+                  cardBorder={cardBorder}
+                  cardHoverBg={cardHoverBg}
+                  cardHoverBorder={cardHoverBorder}
+                  fgColor={fgColor}
+                  textColor={textColor}
+                  dimColor={dimColor}
+                  borderRadius={borderRadius}
+                />
               ))}
             </nav>
           )}

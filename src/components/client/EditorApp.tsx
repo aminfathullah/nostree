@@ -12,6 +12,7 @@ import { EmptyState } from "./EmptyState";
 import { Button } from "../ui/Button";
 import { LoadingOverlay } from "../ui/LoadingOverlay";
 import { KeyboardShortcutsHelp, KeyboardShortcutsButton } from "../ui/KeyboardShortcutsHelp";
+import { ThemeToggle } from "../ui/ThemeToggle";
 import { Toaster } from "sonner";
 import { Loader2, LogOut, User } from "lucide-react";
 import { fetchEventsWithTimeout } from "../../lib/ndk";
@@ -234,6 +235,9 @@ function EditorContent() {
             
             {/* Keyboard shortcuts help button */}
             <KeyboardShortcutsButton onClick={() => setShowKeyboardHelp(true)} />
+            
+            {/* Theme toggle */}
+            <ThemeToggle />
             
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="w-4 h-4" />
