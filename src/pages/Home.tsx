@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { motion } from 'motion/react'
 import { ArrowRight, Zap, Palette, Lock, Sparkles, Users, Globe } from 'lucide-react'
+import logo from '../assets/logo.png'
 
 const features = [
   {
@@ -69,9 +70,13 @@ export default function HomePage() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="text-8xl mb-6 animate-float"
+            className="mb-8 animate-float flex justify-center"
           >
-            🌲
+            <img 
+              src={logo} 
+              alt="Nostree Logo" 
+              className="h-56 w-auto mx-auto object-contain drop-shadow-2xl filter" 
+            />
           </motion.div>
 
           {/* Title */}
@@ -230,7 +235,7 @@ export default function HomePage() {
       <footer className="py-8 px-4 border-t border-border">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-txt-muted">
-            <span className="text-xl">🌲</span>
+            <img src={logo} alt="Nostree Logo" className="w-8 h-8 object-contain" />
             <span className="font-medium">Nostree</span>
           </div>
           <p className="text-sm text-txt-dim">

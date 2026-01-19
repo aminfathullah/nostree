@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { Plus, Sparkles, Link2, Palette, Share2 } from "lucide-react";
 import { Button } from "../ui/Button";
+import logo from "../../assets/logo.png";
 
 interface EmptyStateProps {
   onCreateTree: () => void;
@@ -45,7 +46,7 @@ export function EmptyState({ onCreateTree }: EmptyStateProps) {
         transition={{ type: "spring", stiffness: 200, damping: 15 }}
         className="relative mb-6"
       >
-        <div className="text-8xl animate-float">🌲</div>
+        <img src={logo} alt="Nostree Logo" className="w-24 h-24 object-contain animate-float" />
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}

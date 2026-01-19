@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
+import logo from "../../assets/logo.png";
 import { AuthProvider, useAuth } from "../../context/AuthContext";
 import { useLinkTree } from "../../hooks/useLinkTree";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
@@ -194,7 +195,7 @@ function EditorContent() {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🌲</span>
+            <img src={logo} alt="Nostree Logo" className="w-8 h-8 object-contain" />
             <h1 className="text-lg font-bold text-txt-main">Nostree Editor</h1>
           </div>
           

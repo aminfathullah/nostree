@@ -4,6 +4,7 @@ import { getNDK, fetchEventsWithTimeout } from "../../lib/ndk";
 import { npubToHex, isNpub, shortenNpub } from "../../lib/utils/nip19";
 import { NostreeDataSchema, type NostreeData, type Link, type Social } from "../../schemas/nostr";
 import { BadgeCheck, ExternalLink, Loader2 } from "lucide-react";
+import logo from "../../assets/logo.png";
 
 interface NostreeProfile {
   pubkey: string;

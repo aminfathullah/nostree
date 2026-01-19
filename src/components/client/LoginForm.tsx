@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
+import logo from "../../assets/logo.png";
 import { useNostrAuth } from "../../hooks/useNostrAuth";
 import { Button } from "../ui/Button";
 import { Loader2, Key, ExternalLink, AlertCircle, CheckCircle2 } from "lucide-react";
@@ -43,7 +44,9 @@ export function LoginForm() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🌲</div>
+          <div className="mb-4 flex justify-center">
+            <img src={logo} alt="Nostree Logo" className="w-20 h-20 object-contain drop-shadow-lg" />
+          </div>
           <h1 className="text-3xl font-bold text-txt-main mb-2">Nostree</h1>
           <p className="text-txt-muted">Own your links. Own your graph.</p>
         </div>

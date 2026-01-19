@@ -1,6 +1,7 @@
 import { useState, memo, useMemo } from 'react';
 import type { NostreeDataV2 } from '../../schemas/nostr';
 import { BadgeCheck } from 'lucide-react';
+import logo from '../../assets/logo.png';
 import TreeSkeleton from '../ui/TreeSkeleton';
 import ShareButton from '../ui/ShareButton';
 import QRCodeModal from '../ui/QRCodeModal';
@@ -125,7 +126,9 @@ function PublicTreeViewerComponent({
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12 text-center bg-canvas">
         <div className="animate-bounce-in">
-          <div className="text-6xl mb-4">🌲</div>
+          <div className="mb-4 flex justify-center">
+            <img src={logo} alt="Logo" className="w-24 h-24 object-contain" />
+          </div>
           <h1 className="text-2xl font-bold text-brand mb-2">Not Found</h1>
           <p className="text-txt-muted max-w-md mb-6">{error || 'Tree not found'}</p>
           <a 
@@ -363,7 +366,7 @@ function PublicTreeViewerComponent({
           <a href="/" className="transition-opacity hover:opacity-80 inline-flex items-center gap-1.5">
             <span>Powered by</span>
             <span className="font-medium">Nostree</span>
-            <span>🌲</span>
+            <img src={logo} alt="Logo" className="w-4 h-4 object-contain" />
           </a>
         </footer>
       </main>

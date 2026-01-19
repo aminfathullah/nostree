@@ -1,4 +1,5 @@
 import { ProfileViewerApp } from '../components/client/ProfileViewerApp'
+import logo from '../assets/logo.png'
 
 // UserProfilePage - This page is accessed via /u/:username
 // ProfileViewerApp extracts npub from URL query/hash, so we need to redirect
@@ -11,7 +12,9 @@ export default function UserProfilePage() {
   // For profile viewing, redirect to /profile?npub=... pattern
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 text-center">
-      <div className="text-6xl mb-4">🌲</div>
+      <div className="mb-4 flex justify-center">
+        <img src={logo} alt="Logo" className="w-24 h-24 object-contain" />
+      </div>
       <h1 className="text-2xl font-bold mb-2">Profile Viewer</h1>
       <p className="text-txt-muted max-w-md mb-4">
         To view a profile, use the /profile page with an npub parameter.

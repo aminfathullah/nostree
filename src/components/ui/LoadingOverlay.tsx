@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import logo from '../../assets/logo.png';
 
 interface LoadingOverlayProps {
   message?: string;
@@ -39,7 +40,7 @@ export function LoadingOverlay({
           }}
           className="inline-block"
         >
-          🌲
+          <img src={logo} alt="Nostree Logo" className="w-24 h-24 object-contain" />
         </motion.span>
       </motion.div>
 

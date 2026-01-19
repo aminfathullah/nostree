@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import ProfileViewer from "./ProfileViewer";
+import logo from "../../assets/logo.png";
 
 /**
  * ProfileViewerApp - Wrapper that extracts npub from URL
@@ -40,7 +41,9 @@ export function ProfileViewerApp() {
   if (notFound) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 text-center">
-        <div className="text-6xl mb-4">🌲</div>
+        <div className="mb-4 flex justify-center">
+          <img src={logo} alt="Logo" className="w-24 h-24 object-contain" />
+        </div>
         <h1 className="text-2xl font-bold mb-2">No Profile Specified</h1>
         <p className="text-txt-muted max-w-md mb-4">
           Please provide an npub to view a profile.
