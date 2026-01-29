@@ -82,6 +82,40 @@ export const LinkSchema = z.object({
 });
 
 /**
+ * Link group schema - for organizing multiple links together
+ */
+export const LinkGroupSchema = z.object({
+  /** Unique identifier for the group */
+  id: z.string().uuid(),
+  
+  /** Type identifier to distinguish from regular links */
+  type: z.literal("group"),
+  
+  /** Display title for the group */
+  title: z.string().min(1, "Group title is required").max(64, "Title too long"),
+  
+  /** Optional emoji icon for the group */
+  emoji: z.string().optional(),
+  
+  /** Whether the group is collapsed by default */
+  collapsed: z.boolean().default(false),
+  
+  /** Whether the group is visible on the public profile */
+  visible: z.boolean().default(true),
+  
+  /** Links within this group */
+  links: z.array(LinkSchema).max(30, "Maximum 30 links per group"),
+});
+
+/**
+ * Link item - can be either a regular link or a group
+ */
+export const LinkItemSchema = z.union([
+  LinkSchema,
+  LinkGroupSchema,
+]);
+
+/**
  * Social media link schema
  */
 export const SocialSchema = z.object({
@@ -176,8 +210,8 @@ export const NostreeDataSchemaV2 = z.object({
   /** Optional profile overrides */
   profile: ProfileOverrideSchema.optional(),
   
-  /** Array of links (max 50) */
-  links: z.array(LinkSchema).max(50, "Maximum 50 links allowed"),
+  /** Array of links and groups (max 50 items total) */
+  links: z.array(LinkItemSchema).max(50, "Maximum 50 links/groups allowed"),
   
   /** Array of social links (max 10) */
   socials: z.array(SocialSchema).max(10, "Maximum 10 social links allowed"),
@@ -192,7 +226,7 @@ export const NostreeDataSchemaV2 = z.object({
 export const NostreeDataSchemaV1 = z.object({
   version: z.literal("1.0"),
   profile: ProfileOverrideSchema.optional(),
-  links: z.array(LinkSchema).max(50),
+  links: z.array(LinkItemSchema).max(50),
   socials: z.array(SocialSchema).max(10),
   theme: ThemeSchema,
 });
@@ -214,6 +248,8 @@ export type Font = z.infer<typeof FontEnum>;
 export type Radius = z.infer<typeof RadiusEnum>;
 
 export type Link = z.infer<typeof LinkSchema>;
+export type LinkGroup = z.infer<typeof LinkGroupSchema>;
+export type LinkItem = z.infer<typeof LinkItemSchema>;
 export type Social = z.infer<typeof SocialSchema>;
 export type Theme = z.infer<typeof ThemeSchema>;
 export type ProfileOverride = z.infer<typeof ProfileOverrideSchema>;

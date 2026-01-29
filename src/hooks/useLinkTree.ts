@@ -1,6 +1,6 @@
 import { useState, useCallback, useOptimistic, startTransition, useEffect } from "react";
 import { slugToDTag, DEFAULT_SLUG } from "../lib/slug-resolver";
-import type { Link, NostreeData, Theme, TreeMeta, ProfileOverride } from "../schemas/nostr";
+import type { Link, LinkItem, LinkGroup, NostreeData, Theme, TreeMeta, ProfileOverride } from "../schemas/nostr";
 import { NostreeDataSchema } from "../schemas/nostr";
 import { 
   getNDK, 
@@ -14,28 +14,131 @@ import { toast } from "sonner";
  * Link action types for optimistic reducer
  */
 type LinkAction = 
-  | { type: "reorder"; links: Link[] }
+  | { type: "reorder"; links: LinkItem[] }
   | { type: "add"; link: Link }
+  | { type: "add_group"; group: LinkGroup }
   | { type: "delete"; id: string }
   | { type: "update"; link: Link }
-  | { type: "toggle_visibility"; id: string };
+  | { type: "update_group"; group: LinkGroup }
+  | { type: "toggle_visibility"; id: string }
+  | { type: "toggle_group_collapse"; groupId: string }
+  | { type: "move_to_group"; linkId: string; groupId: string | null }
+  | { type: "reorder_within_group"; groupId: string; links: Link[] };
 
 /**
  * Reducer for optimistic link updates
  */
-function linkReducer(state: Link[], action: LinkAction): Link[] {
+function linkReducer(state: LinkItem[], action: LinkAction): LinkItem[] {
   switch (action.type) {
     case "reorder":
       return action.links;
     case "add":
       return [...state, action.link];
+    case "add_group":
+      return [...state, action.group];
     case "delete":
-      return state.filter(l => l.id !== action.id);
+      return state.filter(item => {
+        if ('type' in item && item.type === 'group') {
+          // Don't delete groups by link deletion
+          return true;
+        }
+        return item.id !== action.id;
+      }).map(item => {
+        // Also remove from groups
+        if ('type' in item && item.type === 'group') {
+          return {
+            ...item,
+            links: item.links.filter(l => l.id !== action.id)
+          };
+        }
+        return item;
+      });
     case "update":
-      return state.map(l => l.id === action.link.id ? action.link : l);
+      return state.map(item => {
+        if ('type' in item && item.type === 'group') {
+          // Update link within group
+          return {
+            ...item,
+            links: item.links.map(l => l.id === action.link.id ? action.link : l)
+          };
+        }
+        return item.id === action.link.id ? action.link : item;
+      });
+    case "update_group":
+      return state.map(item => 
+        ('type' in item && item.type === 'group' && item.id === action.group.id) 
+          ? action.group 
+          : item
+      );
     case "toggle_visibility":
-      return state.map(l => 
-        l.id === action.id ? { ...l, visible: !l.visible } : l
+      return state.map(item => {
+        if ('type' in item && item.type === 'group') {
+          if (item.id === action.id) {
+            return { ...item, visible: !item.visible };
+          }
+          return {
+            ...item,
+            links: item.links.map(l => 
+              l.id === action.id ? { ...l, visible: !l.visible } : l
+            )
+          };
+        }
+        return item.id === action.id ? { ...item, visible: !item.visible } : item;
+      });
+    case "toggle_group_collapse":
+      return state.map(item => 
+        ('type' in item && item.type === 'group' && item.id === action.groupId)
+          ? { ...item, collapsed: !item.collapsed }
+          : item
+      );
+    case "move_to_group": {
+      // Find and extract the link
+      let linkToMove: Link | null = null;
+      
+      // Remove link from current position
+      const withoutLink = state.filter(item => {
+        if ('type' in item && item.type === 'group') {
+          return true; // Keep groups for now
+        }
+        if (item.id === action.linkId) {
+          linkToMove = item as Link;
+          return false;
+        }
+        return true;
+      }).map(item => {
+        if ('type' in item && item.type === 'group') {
+          const foundInGroup = item.links.find(l => l.id === action.linkId);
+          if (foundInGroup) {
+            linkToMove = foundInGroup;
+            return {
+              ...item,
+              links: item.links.filter(l => l.id !== action.linkId)
+            };
+          }
+        }
+        return item;
+      });
+      
+      if (!linkToMove) return state;
+      
+      // Add to target (group or root)
+      if (action.groupId === null) {
+        // Move to root level
+        return [...withoutLink, linkToMove];
+      } else {
+        // Move to specific group
+        return withoutLink.map(item => 
+          ('type' in item && item.type === 'group' && item.id === action.groupId)
+            ? { ...item, links: [...item.links, linkToMove!] }
+            : item
+        );
+      }
+    }
+    case "reorder_within_group":
+      return state.map(item =>
+        ('type' in item && item.type === 'group' && item.id === action.groupId)
+          ? { ...item, links: action.links }
+          : item
       );
     default:
       return state;
@@ -50,7 +153,7 @@ interface UseLinkTreeOptions {
 
 interface UseLinkTreeReturn {
   /** Links with optimistic updates applied */
-  links: Link[];
+  links: LinkItem[];
   /** Full Nostree data */
   data: NostreeData | null;
   /** Loading state for initial fetch */
@@ -60,15 +163,27 @@ interface UseLinkTreeReturn {
   /** Error message */
   error: string | null;
   /** Reorder links */
-  reorderLinks: (newOrder: Link[]) => Promise<void>;
+  reorderLinks: (newOrder: LinkItem[]) => Promise<void>;
   /** Add a new link */
   addLink: (link: Omit<Link, "id">) => Promise<void>;
+  /** Add a new group */
+  addGroup: (group: Omit<LinkGroup, "id" | "type" | "links">) => Promise<void>;
   /** Update an existing link */
   updateLink: (link: Link) => Promise<void>;
+  /** Update a group */
+  updateGroup: (group: LinkGroup) => Promise<void>;
   /** Delete a link */
   deleteLink: (id: string) => Promise<void>;
+  /** Delete a group */
+  deleteGroup: (id: string) => Promise<void>;
   /** Toggle link visibility */
   toggleVisibility: (id: string) => Promise<void>;
+  /** Toggle group collapse state */
+  toggleGroupCollapse: (groupId: string) => Promise<void>;
+  /** Move link to a group (or root if groupId is null) */
+  moveToGroup: (linkId: string, groupId: string | null) => Promise<void>;
+  /** Reorder links within a group */
+  reorderWithinGroup: (groupId: string, links: Link[]) => Promise<void>;
   /** Update theme */
   updateTheme: (theme: Theme) => Promise<void>;
   /** Update tree metadata (title, etc.) */
@@ -184,7 +299,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
   /**
    * Publish updated data to relays
    */
-  const publishData = useCallback(async (newLinks: Link[]): Promise<boolean> => {
+  const publishData = useCallback(async (newLinks: LinkItem[]): Promise<boolean> => {
     // allow saving even if data is null (creating new)
     const currentData: NostreeData = data || { 
       version: "2.0",
@@ -244,7 +359,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
   /**
    * Reorder links
    */
-  const reorderLinks = useCallback(async (newOrder: Link[]) => {
+  const reorderLinks = useCallback(async (newOrder: LinkItem[]) => {
     // Apply optimistic update immediately
     startTransition(() => {
       applyOptimistic({ type: "reorder", links: newOrder });
@@ -280,9 +395,17 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
    */
   const updateLink = useCallback(async (link: Link) => {
     const currentLinks = data?.links || [];
-    const newLinks = currentLinks.map(l => 
-      l.id === link.id ? link : l
-    );
+    
+    // Update link in root or within groups
+    const newLinks = currentLinks.map(item => {
+      if ('type' in item && item.type === 'group') {
+        return {
+          ...item,
+          links: item.links.map(l => l.id === link.id ? link : l)
+        };
+      }
+      return item.id === link.id ? link : item;
+    });
     
     startTransition(() => {
       applyOptimistic({ type: "update", link });
@@ -296,10 +419,183 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
    */
   const deleteLink = useCallback(async (id: string) => {
     const currentLinks = data?.links || [];
-    const newLinks = currentLinks.filter(l => l.id !== id);
+    
+    // Remove from root or from groups
+    const newLinks = currentLinks.filter(item => {
+      if ('type' in item && item.type === 'group') {
+        return true; // Keep groups
+      }
+      return item.id !== id;
+    }).map(item => {
+      if ('type' in item && item.type === 'group') {
+        return {
+          ...item,
+          links: item.links.filter(l => l.id !== id)
+        };
+      }
+      return item;
+    });
     
     startTransition(() => {
       applyOptimistic({ type: "delete", id });
+    });
+    
+    await publishData(newLinks);
+  }, [data, applyOptimistic, publishData]);
+
+  /**
+   * Add a new group
+   */
+  const addGroup = useCallback(async (groupData: Omit<LinkGroup, "id" | "type" | "links">) => {
+    const newGroup: LinkGroup = {
+      ...groupData,
+      id: crypto.randomUUID(),
+      type: "group",
+      links: [],
+      visible: true,
+      collapsed: groupData.collapsed ?? false,
+    };
+    
+    const currentLinks = data?.links || [];
+    const newLinks = [...currentLinks, newGroup];
+    
+    startTransition(() => {
+      applyOptimistic({ type: "add_group", group: newGroup });
+    });
+    
+    await publishData(newLinks);
+  }, [data, applyOptimistic, publishData]);
+
+  /**
+   * Update a group
+   */
+  const updateGroup = useCallback(async (group: LinkGroup) => {
+    const currentLinks = data?.links || [];
+    const newLinks = currentLinks.map(item => 
+      ('type' in item && item.type === 'group' && item.id === group.id) 
+        ? group 
+        : item
+    );
+    
+    startTransition(() => {
+      applyOptimistic({ type: "update_group", group });
+    });
+    
+    await publishData(newLinks);
+  }, [data, applyOptimistic, publishData]);
+
+  /**
+   * Delete a group (moves its links to root)
+   */
+  const deleteGroup = useCallback(async (id: string) => {
+    const currentLinks = data?.links || [];
+    
+    // Find the group and extract its links
+    let linksToMove: Link[] = [];
+    const newLinks = currentLinks.filter(item => {
+      if ('type' in item && item.type === 'group' && item.id === id) {
+        linksToMove = item.links;
+        return false; // Remove the group
+      }
+      return true;
+    });
+    
+    // Add the group's links to the root level
+    const finalLinks = [...newLinks, ...linksToMove];
+    
+    startTransition(() => {
+      applyOptimistic({ type: "delete", id });
+    });
+    
+    await publishData(finalLinks);
+  }, [data, applyOptimistic, publishData]);
+
+  /**
+   * Toggle group collapse state
+   */
+  const toggleGroupCollapse = useCallback(async (groupId: string) => {
+    const currentLinks = data?.links || [];
+    const newLinks = currentLinks.map(item =>
+      ('type' in item && item.type === 'group' && item.id === groupId)
+        ? { ...item, collapsed: !item.collapsed }
+        : item
+    );
+    
+    startTransition(() => {
+      applyOptimistic({ type: "toggle_group_collapse", groupId });
+    });
+    
+    await publishData(newLinks);
+  }, [data, applyOptimistic, publishData]);
+
+  /**
+   * Move a link to a group (or root if groupId is null)
+   */
+  const moveToGroup = useCallback(async (linkId: string, groupId: string | null) => {
+    const currentLinks = data?.links || [];
+    
+    // Find and extract the link
+    let linkToMove: Link | null = null;
+    
+    const withoutLink = currentLinks.filter(item => {
+      if ('type' in item && item.type === 'group') {
+        return true; // Keep groups for now
+      }
+      if (item.id === linkId) {
+        linkToMove = item as Link;
+        return false;
+      }
+      return true;
+    }).map(item => {
+      if ('type' in item && item.type === 'group') {
+        const foundInGroup = item.links.find(l => l.id === linkId);
+        if (foundInGroup) {
+          linkToMove = foundInGroup;
+          return {
+            ...item,
+            links: item.links.filter(l => l.id !== linkId)
+          };
+        }
+      }
+      return item;
+    });
+    
+    if (!linkToMove) return;
+    
+    // Add to target (group or root)
+    let newLinks: LinkItem[];
+    if (groupId === null) {
+      // Move to root level
+      newLinks = [...withoutLink, linkToMove];
+    } else {
+      // Move to specific group
+      newLinks = withoutLink.map(item => 
+        ('type' in item && item.type === 'group' && item.id === groupId)
+          ? { ...item, links: [...item.links, linkToMove!] }
+          : item
+      );
+    }
+    
+    startTransition(() => {
+      applyOptimistic({ type: "move_to_group", linkId, groupId });
+    });
+    
+    await publishData(newLinks);
+  }, [data, applyOptimistic, publishData]);
+
+  /**
+   * Reorder links within a specific group
+   */
+  const reorderWithinGroup = useCallback(async (groupId: string, links: Link[]) => {
+    const currentLinks = data?.links || [];
+    const newLinks = currentLinks.map(item =>
+      ('type' in item && item.type === 'group' && item.id === groupId)
+        ? { ...item, links }
+        : item
+    );
+    
+    startTransition(() => {
+      applyOptimistic({ type: "reorder_within_group", groupId, links });
     });
     
     await publishData(newLinks);
@@ -310,9 +606,23 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
    */
   const toggleVisibility = useCallback(async (id: string) => {
     const currentLinks = data?.links || [];
-    const newLinks = currentLinks.map(l => 
-      l.id === id ? { ...l, visible: !l.visible } : l
-    );
+    
+    // Handle both links and groups
+    const newLinks = currentLinks.map(item => {
+      if ('type' in item && item.type === 'group') {
+        if (item.id === id) {
+          return { ...item, visible: !item.visible };
+        }
+        // Also check links within groups
+        return {
+          ...item,
+          links: item.links.map(l => 
+            l.id === id ? { ...l, visible: !l.visible } : l
+          )
+        };
+      }
+      return item.id === id ? { ...item, visible: !item.visible } : item;
+    });
     
     startTransition(() => {
       applyOptimistic({ type: "toggle_visibility", id });
@@ -507,9 +817,15 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     error,
     reorderLinks,
     addLink,
+    addGroup,
     updateLink,
+    updateGroup,
     deleteLink,
+    deleteGroup,
     toggleVisibility,
+    toggleGroupCollapse,
+    moveToGroup,
+    reorderWithinGroup,
     updateTheme,
     updateTreeMeta,
     updateProfile,

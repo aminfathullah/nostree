@@ -5,7 +5,7 @@ import logo from "../../assets/logo.png";
 import { AuthProvider, useAuth } from "../../context/AuthContext";
 import { useLinkTree } from "../../hooks/useLinkTree";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
-import { LinkEditor } from "./LinkEditor";
+import { LinkEditorV2 } from "./LinkEditorV2";
 import { MobilePreview } from "./MobilePreview";
 import { TreeSelector } from "./TreeSelector";
 import { ThemeSelector } from "./ThemeSelector";
@@ -77,14 +77,20 @@ function LinkTreeEditor({
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
       {/* Left: Editor */}
       <div className="space-y-6">
-        <LinkEditor
+        <LinkEditorV2
           links={linkTree.links}
           isSaving={linkTree.isSaving}
           onReorder={linkTree.reorderLinks}
           onAdd={linkTree.addLink}
+          onAddGroup={linkTree.addGroup}
           onUpdate={linkTree.updateLink}
+          onUpdateGroup={linkTree.updateGroup}
           onDelete={linkTree.deleteLink}
+          onDeleteGroup={linkTree.deleteGroup}
           onToggleVisibility={linkTree.toggleVisibility}
+          onToggleGroupCollapse={linkTree.toggleGroupCollapse}
+          onMoveToGroup={linkTree.moveToGroup}
+          onReorderWithinGroup={linkTree.reorderWithinGroup}
         />
       </div>
 
