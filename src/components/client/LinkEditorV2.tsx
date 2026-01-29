@@ -258,21 +258,21 @@ function LinkGroupEditor({
     <motion.div
       layout
       className={`
-        bg-card-hover border-2 border-dashed rounded-xl overflow-hidden transition-colors
-        ${group.visible ? 'border-border' : 'border-border/50 opacity-60'}
+        bg-card border-2 rounded-2xl overflow-hidden transition-all shadow-sm
+        ${group.visible ? 'border-brand/30 border-l-4 border-l-brand' : 'border-border/50 opacity-60 border-l-4 border-l-border'}
       `}
     >
       {/* Group Header */}
-      <div className="flex items-center gap-2 p-3 bg-card-hover/50 border-b border-border">
+      <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-brand/5 to-transparent border-b border-border/50">
         <button
           onClick={() => onToggleCollapse(group.id)}
-          className="p-1 hover:bg-card rounded transition-colors"
+          className="p-1.5 hover:bg-brand/10 rounded-lg transition-colors"
           title={group.collapsed ? "Expand group" : "Collapse group"}
         >
           {group.collapsed ? (
-            <ChevronRight className="w-4 h-4 text-txt-muted" />
+            <ChevronRight className="w-4 h-4 text-brand" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-txt-muted" />
+            <ChevronDown className="w-4 h-4 text-brand" />
           )}
         </button>
 
@@ -337,7 +337,7 @@ function LinkGroupEditor({
 
       {/* Group Links */}
       {!group.collapsed && (
-        <div className="p-3 pt-2">
+        <div className="p-3 pt-2 border-l-4 border-l-brand/20 ml-2">
           {group.links.length > 0 ? (
             <Reorder.Group
               axis="y"

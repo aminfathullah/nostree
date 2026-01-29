@@ -343,27 +343,29 @@ function PublicTreeViewerComponent({
                     {/* Group Header */}
                     <button
                       onClick={() => toggleGroupCollapse(group.id)}
-                      className="w-full px-5 py-4 flex items-center gap-3 rounded-xl backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] mb-2"
+                      className="w-full px-5 py-4 flex items-center gap-3 rounded-2xl backdrop-blur-sm transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] mb-3 shadow-sm"
                       style={{
-                        backgroundColor: cardBg,
+                        backgroundColor: isBackgroundImage ? 'rgba(255,255,255,0.08)' : cardBg,
                         border: `2px solid ${cardBorder}`,
+                        borderLeftWidth: '4px',
+                        borderLeftColor: primaryColor,
                       }}
                     >
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 p-1.5 rounded-lg" style={{ backgroundColor: `${primaryColor}20` }}>
                         {isCollapsed ? (
-                          <ChevronRight className="w-5 h-5" style={{ color: dimColor }} />
+                          <ChevronRight className="w-4 h-4" style={{ color: primaryColor }} />
                         ) : (
-                          <ChevronDown className="w-5 h-5" style={{ color: dimColor }} />
+                          <ChevronDown className="w-4 h-4" style={{ color: primaryColor }} />
                         )}
                       </div>
                       {group.emoji && (
                         <span className="text-2xl flex-shrink-0">{group.emoji}</span>
                       )}
                       <div className="flex-1 text-left">
-                        <h3 className="font-semibold" style={{ color: textColor }}>
+                        <h3 className="font-bold text-base" style={{ color: textColor }}>
                           {group.title}
                         </h3>
-                        <p className="text-xs" style={{ color: dimColor }}>
+                        <p className="text-xs font-medium mt-0.5" style={{ color: dimColor }}>
                           {group.links.length} {group.links.length === 1 ? 'link' : 'links'}
                         </p>
                       </div>
@@ -371,21 +373,36 @@ function PublicTreeViewerComponent({
                     
                     {/* Group Links */}
                     {!isCollapsed && group.links.length > 0 && (
-                      <div className="flex flex-col gap-2 ml-4 pl-4 border-l-2" style={{ borderColor: cardBorder }}>
+                      <div 
+                        className="flex flex-col gap-2.5 pl-6 pb-3 mb-2 border-l-4 rounded-bl-xl" 
+                        style={{ 
+                          borderColor: `${primaryColor}30`,
+                          marginLeft: '12px',
+                        }}
+                      >
                         {group.links.map((link, linkIndex) => (
-                          <TiltLinkCard
-                            key={link.id}
-                            link={link}
-                            index={rootLinks.length + groupIndex + linkIndex}
-                            cardBg={cardBg}
-                            cardBorder={cardBorder}
-                            cardHoverBg={cardHoverBg}
-                            cardHoverBorder={cardHoverBorder}
-                            fgColor={fgColor}
-                            textColor={textColor}
-                            dimColor={dimColor}
-                            borderRadius={borderRadius}
-                          />
+                          <div key={link.id} className="relative">
+                            {/* Connection line */}
+                            <div 
+                              className="absolute -left-6 top-1/2 w-4 h-0.5"
+                              style={{ 
+                                backgroundColor: `${primaryColor}30`,
+                                transform: 'translateY(-50%)'
+                              }}
+                            />
+                            <TiltLinkCard
+                              link={link}
+                              index={rootLinks.length + groupIndex + linkIndex}
+                              cardBg={cardBg}
+                              cardBorder={cardBorder}
+                              cardHoverBg={cardHoverBg}
+                              cardHoverBorder={cardHoverBorder}
+                              fgColor={fgColor}
+                              textColor={textColor}
+                              dimColor={dimColor}
+                              borderRadius={borderRadius}
+                            />
+                          </div>
                         ))}
                       </div>
                     )}
