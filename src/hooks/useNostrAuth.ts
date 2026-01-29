@@ -43,6 +43,7 @@ interface UseNostrAuthReturn {
 const STORAGE_KEY = "nostree-auth-pubkey";
 const STORAGE_METHOD_KEY = "nostree-auth-method";
 const STORAGE_ENCRYPTED_KEY = "nostree-auth-encrypted";
+const STORAGE_SKIP_AUTO_LOGIN = "nostree-skip-auto-login";
 const AUTO_GENERATED_PASSWORD = "nostree-auto-generated-v1"; // Fixed password for auto-generated accounts
 const ASYNC_TIMEOUT_MS = 5000; // 5 second timeout for async operations
 
@@ -220,7 +221,14 @@ export function useNostrAuth(): UseNostrAuthReturn {
 
   // Attempt automatic login
   const attemptAutoLogin = async () => {
-    if (!isMountedRef.current) return;
+    // Check if user explicitly logged out or is switching accounts
+    const skipAutoLogin = localStorage.getItem(STORAGE_SKIP_AUTO_LOGIN) === 'true';
+    
+    if (!isMountedRef.current || skipAutoLogin) {
+      // User explicitly logged out or is switching accounts
+      setStatus("idle");
+      return;
+    }
     
     setStatus("checking");
 
@@ -347,6 +355,7 @@ export function useNostrAuth(): UseNostrAuthReturn {
   // Extension login function
   const login = useCallback(async (): Promise<boolean> => {
     setError(null);
+    localStorage.removeItem(STORAGE_SKIP_AUTO_LOGIN); // User is manually logging in
 
     // Check for extension
     setStatus("checking");
@@ -392,6 +401,7 @@ export function useNostrAuth(): UseNostrAuthReturn {
   const loginWithKey = useCallback(async (privateKey: string, password: string): Promise<boolean> => {
     setError(null);
     setStatus("checking");
+    localStorage.removeItem(STORAGE_SKIP_AUTO_LOGIN); // User is manually logging in
 
     try {
       // Validate password
@@ -430,6 +440,9 @@ export function useNostrAuth(): UseNostrAuthReturn {
     setError(null);
     setAuthMethod(null);
     clearAuthStorage();
+    
+    // Prevent auto-login after explicit logout
+    localStorage.setItem(STORAGE_SKIP_AUTO_LOGIN, 'true');
   }, []);
 
   return {
