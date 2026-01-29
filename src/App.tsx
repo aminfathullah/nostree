@@ -12,9 +12,9 @@ import NotFoundPage from './pages/NotFound'
 
 // Protected route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { pubkey, isLoading } = useAuth()
+  const { pubkey, isLoading, status } = useAuth()
   
-  if (isLoading) {
+  if (isLoading || status === "checking") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-2 border-brand border-t-transparent rounded-full" />
@@ -22,7 +22,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     )
   }
   
-  if (!pubkey) {
+  // With auto-login, pubkey should always be available
+  // Only redirect if there's an error
+  if (!pubkey && status === "error") {
     return <Navigate to="/login" replace />
   }
   

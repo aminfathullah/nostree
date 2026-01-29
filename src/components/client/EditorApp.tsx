@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
+import { Link } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { AuthProvider, useAuth } from "../../context/AuthContext";
 import { useLinkTree } from "../../hooks/useLinkTree";
@@ -15,7 +16,7 @@ import { LoadingOverlay } from "../ui/LoadingOverlay";
 import { KeyboardShortcutsHelp, KeyboardShortcutsButton } from "../ui/KeyboardShortcutsHelp";
 import { ThemeToggle } from "../ui/ThemeToggle";
 
-import { Loader2, LogOut, User } from "lucide-react";
+import { Loader2, LogOut, User, ChevronDown, RefreshCw } from "lucide-react";
 import { fetchEventsWithTimeout } from "../../lib/ndk";
 
 interface UserProfile {
@@ -121,12 +122,22 @@ function LinkTreeEditor({
  * Editor content - protected by auth
  */
 function EditorContent() {
-  const { isAuthenticated, isLoading: authLoading, pubkey, npub, logout } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, pubkey, npub, logout, authMethod } = useAuth();
   const [profile, setProfile] = useState<UserProfile>({});
   const [profileLoading, setProfileLoading] = useState(false);
   const [slug, setSlug] = useState<string | null>(null);
   const [openTreeSelector, setOpenTreeSelector] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(false);
+
+  // Check if this is a newly auto-generated account
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem("nostree-seen-welcome");
+    if (authMethod === "local" && !hasSeenWelcome) {
+      setShowWelcomeBanner(true);
+    }
+  }, [authMethod]);
 
   // Global keyboard shortcuts
   useKeyboardShortcuts({
@@ -213,20 +224,94 @@ function EditorContent() {
                onOpenChange={setOpenTreeSelector}
              />
 
-            {/* User info */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card border border-border">
-              {profile.picture ? (
-                <img 
-                  src={profile.picture} 
-                  alt="" 
-                  className="w-6 h-6 rounded-full"
-                />
-              ) : (
-                <User className="w-4 h-4 text-txt-muted" />
+            {/* User info with dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowAccountMenu(!showAccountMenu)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card border border-border hover:border-border-hover transition-colors"
+              >
+                {profile.picture ? (
+                  <img 
+                    src={profile.picture} 
+                    alt="" 
+                    className="w-6 h-6 rounded-full"
+                  />
+                ) : (
+                  <User className="w-4 h-4 text-txt-muted" />
+                )}
+                <span className="text-sm text-txt-muted font-mono">
+                  {npub?.slice(0, 8)}...
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-txt-dim" />
+              </button>
+
+              {/* Account Menu Dropdown */}
+              {showAccountMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowAccountMenu(false)}
+                  />
+                  <div className="absolute top-full right-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
+                    {/* Account Info */}
+                    <div className="p-4 border-b border-border">
+                      <div className="flex items-center gap-3 mb-2">
+                        {profile.picture ? (
+                          <img 
+                            src={profile.picture} 
+                            alt="" 
+                            className="w-10 h-10 rounded-full"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-card-hover flex items-center justify-center">
+                            <User className="w-5 h-5 text-txt-muted" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-txt-main truncate">
+                            {profile.name || "Anonymous"}
+                          </p>
+                          <p className="text-xs text-txt-dim font-mono truncate">
+                            {npub}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-1 rounded-full bg-card-hover text-txt-muted">
+                          {authMethod === "extension" ? "🔐 Extension" : "🔑 Local Key"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="p-2">
+                      <Link
+                        to="/login"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-txt-main w-full text-left"
+                        onClick={() => {
+                          logout();
+                          setShowAccountMenu(false);
+                        }}
+                      >
+                        <RefreshCw className="w-4 h-4 text-txt-muted" />
+                        <span className="text-sm">Switch Account</span>
+                      </Link>
+
+                      <button
+                        onClick={() => {
+                          logout();
+                          setShowAccountMenu(false);
+                          window.location.href = "/";
+                        }}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-red-500 w-full text-left"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-sm">Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
-              <span className="text-sm text-txt-muted font-mono">
-                {npub?.slice(0, 8)}...
-              </span>
             </div>
             
             {/* Keyboard shortcuts help button */}
@@ -234,10 +319,6 @@ function EditorContent() {
             
             {/* Theme toggle */}
             <ThemeToggle />
-            
-            <Button variant="ghost" size="sm" onClick={logout}>
-              <LogOut className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       </header>
@@ -247,6 +328,57 @@ function EditorContent() {
 
       {/* Main Content - Split Pane */}
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Welcome Banner for Auto-Generated Accounts */}
+        {showWelcomeBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-2xl">
+                🎉
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-txt-main mb-1">
+                  Welcome to Nostree!
+                </h3>
+                <p className="text-sm text-txt-muted mb-3">
+                  We've created a secure account for you automatically. Your identity: <span className="font-mono text-brand">{npub?.slice(0, 16)}...</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      localStorage.setItem("nostree-seen-welcome", "true");
+                      setShowWelcomeBanner(false);
+                    }}
+                    className="px-4 py-2 bg-brand text-white rounded-lg text-sm font-medium hover:bg-brand/90 transition-colors"
+                  >
+                    Got it, let's start!
+                  </button>
+                  <a
+                    href="https://nostr.how/get-started"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-card border border-border rounded-lg text-sm font-medium hover:border-border-hover transition-colors text-txt-main"
+                  >
+                    Learn about Nostr
+                  </a>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  localStorage.setItem("nostree-seen-welcome", "true");
+                  setShowWelcomeBanner(false);
+                }}
+                className="text-txt-dim hover:text-txt-main transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {profileLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-brand" />

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { NDKUser } from "@nostr-dev-kit/ndk";
-import { useNostrAuth, type AuthStatus } from "../hooks/useNostrAuth";
+import { useNostrAuth, type AuthStatus, type AuthMethod } from "../hooks/useNostrAuth";
 
 /**
  * Auth context value shape
@@ -23,8 +23,12 @@ interface AuthContextValue {
   error: string | null;
   /** Whether extension is available */
   hasExtension: boolean;
-  /** Login function */
+  /** Current authentication method */
+  authMethod: AuthMethod | null;
+  /** Extension login function */
   login: () => Promise<boolean>;
+  /** Local key login function */
+  loginWithKey: (privateKey: string, password: string) => Promise<boolean>;
   /** Logout function */
   logout: () => void;
 }

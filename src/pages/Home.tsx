@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { motion } from 'motion/react'
 import { ArrowRight, Zap, Palette, Lock, Sparkles, Users, Globe } from 'lucide-react'
@@ -35,7 +35,24 @@ const stats = [
 ]
 
 export default function HomePage() {
-  const { pubkey } = useAuth()
+  const { pubkey, isLoading, status } = useAuth()
+
+  // Auto-redirect authenticated users to admin
+  if (pubkey && !isLoading && status === "authenticated") {
+    return <Navigate to="/admin" replace />
+  }
+
+  // Show loading during auto-login
+  if (isLoading || status === "checking") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-3 border-brand border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-txt-muted">Setting up your account...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <main className="min-h-screen overflow-hidden">
