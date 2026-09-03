@@ -35,30 +35,15 @@ const stats = [
 ]
 
 export default function HomePage() {
-  const { pubkey, isLoading, status } = useAuth()
+  const { pubkey, status } = useAuth()
 
-  // Auto-redirect authenticated users to admin
-  if (pubkey && !isLoading && status === "authenticated") {
+  if (pubkey && status === "authenticated") {
     return <Navigate to="/admin" replace />
   }
 
-  // Show loading during auto-login
-  if (isLoading || status === "checking") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-3 border-brand border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-txt-muted">Setting up your account...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <main className="min-h-screen overflow-hidden">
-      {/* Hero Section */}
+    <main className="min-h-screen overflow-hidden bg-canvas">
       <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-4 py-20">
-        {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand/20 rounded-full blur-3xl animate-float" />
           <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
@@ -71,7 +56,6 @@ export default function HomePage() {
           transition={{ duration: 0.6 }}
           className="relative z-10 text-center max-w-3xl"
         >
-          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -82,7 +66,6 @@ export default function HomePage() {
             <span>Powered by Nostr</span>
           </motion.div>
 
-          {/* Tree Icon */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -96,19 +79,17 @@ export default function HomePage() {
             />
           </motion.div>
 
-          {/* Title */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-5xl md:text-7xl font-bold mb-6"
+            className="text-5xl md:text-7xl font-bold mb-6 tracking-tight"
           >
             <span className="bg-gradient-to-r from-brand via-purple-500 to-brand bg-clip-text text-transparent animate-gradient">
               Nostree
             </span>
           </motion.h1>
 
-          {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -126,7 +107,6 @@ export default function HomePage() {
             Own your links. Own your graph. No middlemen.
           </motion.p>
 
-          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -135,7 +115,7 @@ export default function HomePage() {
           >
             <Link
               to={pubkey ? "/admin" : "/login"}
-              className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand hover:bg-brand-hover text-brand-fg font-semibold rounded-2xl transition-all shadow-lg hover:shadow-xl hover:shadow-brand/25 animate-pulse-glow"
+              className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand hover:bg-brand-hover text-brand-fg font-semibold rounded-2xl transition-all shadow-lg hover:shadow-xl hover:shadow-brand/25"
             >
               <span>{pubkey ? "Go to Editor" : "Get Started Free"}</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -153,7 +133,6 @@ export default function HomePage() {
           </motion.div>
         </motion.div>
 
-        {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -175,7 +154,6 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* Features Section */}
       <section className="relative py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <motion.div
@@ -218,7 +196,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Social Proof / CTA Section */}
       <section className="relative py-20 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <motion.div
@@ -248,7 +225,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-8 px-4 border-t border-border">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-txt-muted">

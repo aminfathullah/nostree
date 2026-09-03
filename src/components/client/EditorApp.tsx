@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.png";
-import { AuthProvider, useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { useLinkTree } from "../../hooks/useLinkTree";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { LinkEditorV2 } from "./LinkEditorV2";
@@ -15,9 +15,25 @@ import { Button } from "../ui/Button";
 import { LoadingOverlay } from "../ui/LoadingOverlay";
 import { KeyboardShortcutsHelp, KeyboardShortcutsButton } from "../ui/KeyboardShortcutsHelp";
 import { ThemeToggle } from "../ui/ThemeToggle";
-
-import { Loader2, LogOut, User, ChevronDown, RefreshCw } from "lucide-react";
+import { 
+  Loader2, 
+  LogOut, 
+  User, 
+  ChevronDown, 
+  RefreshCw, 
+  Key, 
+  Laptop, 
+  Copy, 
+  Check, 
+  Download, 
+  Eye, 
+  EyeOff, 
+  X,
+  ExternalLink,
+  ShieldCheck
+} from "lucide-react";
 import { fetchEventsWithTimeout } from "../../lib/ndk";
+import { toast } from "sonner";
 
 interface UserProfile {
   name?: string;
@@ -27,22 +43,6 @@ interface UserProfile {
   lud16?: string;
 }
 
-/**
- * Main editor app wrapped in auth context
- */
-export function EditorApp() {
-  return (
-    <AuthProvider>
-
-      <EditorContent />
-    </AuthProvider>
-  );
-}
-
-/**
- * Link tree editor that remounts when slug changes
- * This ensures useLinkTree hook gets fresh state for each tree
- */
 function LinkTreeEditor({ 
   pubkey, 
   slug, 
@@ -62,7 +62,7 @@ function LinkTreeEditor({
     return (
       <div className="flex items-center justify-center py-12">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center gap-4"
         >
@@ -75,7 +75,6 @@ function LinkTreeEditor({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
-      {/* Left: Editor */}
       <div className="space-y-6">
         <LinkEditorV2
           links={linkTree.links}
@@ -94,9 +93,7 @@ function LinkTreeEditor({
         />
       </div>
 
-      {/* Right: Preview + Theme */}
       <div className="hidden lg:block space-y-4">
-        {/* Theme Controls Only - Other edits are inline on preview */}
         <div className="flex flex-wrap items-center justify-center gap-2">
           <ThemeSelector
             currentTheme={linkTree.data?.theme}
@@ -113,7 +110,7 @@ function LinkTreeEditor({
         <MobilePreview
           profile={profile}
           data={linkTree.data}
-          links={linkTree.links}
+          links={linkTree.links as any}
           onAvatarChange={(picture) => linkTree.updateProfile({ picture })}
           onHeaderChange={(headerImage) => linkTree.updateProfile({ headerImage })}
           onTitleChange={(title) => linkTree.updateTreeMeta({ title })}
@@ -124,34 +121,188 @@ function LinkTreeEditor({
   );
 }
 
-/**
- * Editor content - protected by auth
- */
+function KeyBackupModal({
+  isOpen,
+  onClose,
+  privateKey,
+  npub,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  privateKey: string | null;
+  npub: string | null;
+}) {
+  const [showKey, setShowKey] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  if (!isOpen || !privateKey) return null;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(privateKey);
+      setCopied(true);
+      toast.success("Secret key copied to clipboard");
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      toast.error("Failed to copy key");
+    }
+  };
+
+  const handleDownload = () => {
+    const payload = {
+      description: "Nostree account secret key backup",
+      warning: "Keep this secret and never share it. Anyone with this key can edit your profile.",
+      npub,
+      nsec: privateKey,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `nostree-backup-${npub?.slice(0, 10) || "key"}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Backup file saved");
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+        className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-elevated overflow-hidden"
+      >
+        <div className="p-6 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center">
+              <Key className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-txt-main">Secret Backup Key</h3>
+              <p className="text-xs text-txt-muted">Use this to sign in from any other browser or device</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card-hover transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-txt-main space-y-1">
+            <p className="font-semibold text-amber-600 dark:text-amber-400">
+              Keep this key private
+            </p>
+            <p className="text-txt-muted leading-relaxed">
+              Anyone with this key can manage your links. Save it somewhere safe so you never lose access if you clear your browser history.
+            </p>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-medium text-txt-muted">Your Secret Key (nsec)</label>
+              <button
+                onClick={() => setShowKey(!showKey)}
+                className="inline-flex items-center gap-1 text-xs text-brand hover:underline"
+              >
+                {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                <span>{showKey ? "Hide" : "Reveal"}</span>
+              </button>
+            </div>
+            <div className="relative">
+              <input
+                type={showKey ? "text" : "password"}
+                readOnly
+                value={privateKey}
+                className="w-full px-3.5 py-2.5 text-xs bg-canvas border border-border rounded-xl font-mono text-txt-main select-all focus:outline-none focus:border-brand"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2.5 pt-2">
+            <Button
+              onClick={handleCopy}
+              variant="solid"
+              size="md"
+              className="flex-1 text-xs"
+              prefixIcon={copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            >
+              {copied ? "Copied to Clipboard" : "Copy Key"}
+            </Button>
+            <Button
+              onClick={handleDownload}
+              variant="outline"
+              size="md"
+              className="flex-1 text-xs"
+              prefixIcon={<Download className="w-4 h-4" />}
+            >
+              Download Backup
+            </Button>
+          </div>
+
+          <div className="pt-3 border-t border-border flex items-center justify-between text-xs text-txt-dim">
+            <span>Want automatic sync across devices?</span>
+            <a
+              href="https://getalby.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-brand hover:underline font-medium"
+            >
+              <span>Install Alby</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+
+        <div className="px-6 py-4 bg-card-hover border-t border-border flex justify-end">
+          <Button onClick={onClose} variant="outline" size="sm" className="text-xs">
+            Done
+          </Button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function EditorContent() {
-  const { isAuthenticated, isLoading: authLoading, pubkey, npub, logout, authMethod } = useAuth();
+  const { 
+    isAuthenticated, 
+    isLoading: authLoading, 
+    pubkey, 
+    npub, 
+    logout, 
+    authMethod, 
+    getLocalKey, 
+    hasExtension, 
+    login 
+  } = useAuth();
+
   const [profile, setProfile] = useState<UserProfile>({});
   const [profileLoading, setProfileLoading] = useState(false);
   const [slug, setSlug] = useState<string | null>(null);
   const [openTreeSelector, setOpenTreeSelector] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
-  const [showWelcomeBanner, setShowWelcomeBanner] = useState(false);
+  const [showBackupModal, setShowBackupModal] = useState(false);
+  const [dismissedLocalWarning, setDismissedLocalWarning] = useState(() => {
+    return localStorage.getItem("nostree-dismissed-local-warning") === "true";
+  });
 
-  // Check if this is a newly auto-generated account
-  useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem("nostree-seen-welcome");
-    if (authMethod === "local" && !hasSeenWelcome) {
-      setShowWelcomeBanner(true);
-    }
-  }, [authMethod]);
-
-  // Global keyboard shortcuts
   useKeyboardShortcuts({
     "mod+/": () => setShowKeyboardHelp(true),
-    "escape": () => setShowKeyboardHelp(false),
+    "escape": () => {
+      setShowKeyboardHelp(false);
+      setShowBackupModal(false);
+    },
   }, isAuthenticated && !authLoading);
 
-  // Fetch profile on auth
   useEffect(() => {
     if (!pubkey || !isAuthenticated) return;
 
@@ -161,7 +312,7 @@ function EditorContent() {
         const events = await fetchEventsWithTimeout({
           kinds: [0],
           authors: [pubkey!],
-        }, 10000);
+        }, 8000);
 
         if (events.size > 0) {
           const sorted = Array.from(events).sort(
@@ -189,12 +340,10 @@ function EditorContent() {
     fetchProfile();
   }, [pubkey, isAuthenticated]);
 
-  // Auth loading state - enhanced overlay
   if (authLoading) {
     return <LoadingOverlay message="Connecting..." showProgress />;
   }
 
-  // Not authenticated - redirect to login
   if (!isAuthenticated) {
     if (typeof window !== "undefined") {
       window.location.href = "/login";
@@ -206,10 +355,11 @@ function EditorContent() {
     );
   }
 
+  const localPrivateKey = getLocalKey();
+
   return (
     <div className="min-h-screen bg-canvas">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-border bg-card/70 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={logo} alt="Nostree Logo" className="w-8 h-8 object-contain" />
@@ -220,17 +370,12 @@ function EditorContent() {
              <TreeSelector
                pubkey={pubkey || ""}
                currentSlug={slug}
-               onSlugChange={(newSlug) => {
-                 setSlug(newSlug);
-               }}
-               onTreeCreated={() => {
-                 // Tree created, will be saved on first link add
-               }}
+               onSlugChange={(newSlug) => setSlug(newSlug)}
+               onTreeCreated={() => {}}
                forceOpen={openTreeSelector}
                onOpenChange={setOpenTreeSelector}
              />
 
-            {/* User info with dropdown */}
             <div className="relative">
               <button
                 onClick={() => setShowAccountMenu(!showAccountMenu)}
@@ -240,33 +385,36 @@ function EditorContent() {
                   <img 
                     src={profile.picture} 
                     alt="" 
-                    className="w-6 h-6 rounded-full"
+                    className="w-6 h-6 rounded-full object-cover"
                   />
                 ) : (
                   <User className="w-4 h-4 text-txt-muted" />
                 )}
-                <span className="text-sm text-txt-muted font-mono">
+                <span className="text-xs text-txt-muted font-mono">
                   {npub?.slice(0, 8)}...
                 </span>
+                {authMethod === "local" ? (
+                  <span className="w-2 h-2 rounded-full bg-amber-500" title="Saved in browser only" />
+                ) : (
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" title="Extension connected" />
+                )}
                 <ChevronDown className="w-3.5 h-3.5 text-txt-dim" />
               </button>
 
-              {/* Account Menu Dropdown */}
               {showAccountMenu && (
                 <>
                   <div 
                     className="fixed inset-0 z-40" 
                     onClick={() => setShowAccountMenu(false)}
                   />
-                  <div className="absolute top-full right-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
-                    {/* Account Info */}
+                  <div className="absolute top-full right-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-elevated z-50 overflow-hidden">
                     <div className="p-4 border-b border-border">
                       <div className="flex items-center gap-3 mb-2">
                         {profile.picture ? (
                           <img 
                             src={profile.picture} 
                             alt="" 
-                            className="w-10 h-10 rounded-full"
+                            className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-card-hover flex items-center justify-center">
@@ -274,33 +422,68 @@ function EditorContent() {
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-txt-main truncate">
+                          <p className="font-medium text-txt-main truncate text-sm">
                             {profile.name || "Anonymous"}
                           </p>
-                          <p className="text-xs text-txt-dim font-mono truncate">
+                          <p className="text-[11px] text-txt-dim font-mono truncate">
                             {npub}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs px-2 py-1 rounded-full bg-card-hover text-txt-muted">
-                          {authMethod === "extension" ? "🔐 Extension" : "🔑 Local Key"}
-                        </span>
+                      
+                      <div className="mt-2">
+                        {authMethod === "local" ? (
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-medium">
+                            <Laptop className="w-3 h-3" />
+                            <span>This Browser Only</span>
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-medium">
+                            <ShieldCheck className="w-3 h-3" />
+                            <span>Extension Synced</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Menu Items */}
-                    <div className="p-2">
+                    <div className="p-2 space-y-1">
+                      {authMethod === "local" && (
+                        <button
+                          onClick={() => {
+                            setShowAccountMenu(false);
+                            setShowBackupModal(true);
+                          }}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium"
+                        >
+                          <Key className="w-4 h-4 text-brand" />
+                          <span>Backup Secret Key</span>
+                        </button>
+                      )}
+
+                      {authMethod === "local" && hasExtension && (
+                        <button
+                          onClick={async () => {
+                            setShowAccountMenu(false);
+                            const ok = await login();
+                            if (ok) toast.success("Switched to extension session!");
+                          }}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium"
+                        >
+                          <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                          <span>Switch to Alby Extension</span>
+                        </button>
+                      )}
+
                       <Link
-                        to="/login"
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-txt-main w-full text-left"
+                        to="/login?switch=true"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs"
                         onClick={() => {
                           logout();
                           setShowAccountMenu(false);
                         }}
                       >
                         <RefreshCw className="w-4 h-4 text-txt-muted" />
-                        <span className="text-sm">Switch Account</span>
+                        <span>Switch Account</span>
                       </Link>
 
                       <button
@@ -309,10 +492,10 @@ function EditorContent() {
                           setShowAccountMenu(false);
                           window.location.href = "/";
                         }}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-red-500 w-full text-left"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-red-500 w-full text-left text-xs"
                       >
                         <LogOut className="w-4 h-4" />
-                        <span className="text-sm">Logout</span>
+                        <span>Logout</span>
                       </button>
                     </div>
                   </div>
@@ -320,66 +503,83 @@ function EditorContent() {
               )}
             </div>
             
-            {/* Keyboard shortcuts help button */}
             <KeyboardShortcutsButton onClick={() => setShowKeyboardHelp(true)} />
-            
-            {/* Theme toggle */}
             <ThemeToggle />
           </div>
         </div>
       </header>
 
-      {/* Keyboard Shortcuts Modal */}
       <KeyboardShortcutsHelp isOpen={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
 
-      {/* Main Content - Split Pane */}
+      <AnimatePresence>
+        {showBackupModal && (
+          <KeyBackupModal
+            isOpen={showBackupModal}
+            onClose={() => setShowBackupModal(false)}
+            privateKey={localPrivateKey}
+            npub={npub}
+          />
+        )}
+      </AnimatePresence>
+
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Welcome Banner for Auto-Generated Accounts */}
-        {showWelcomeBanner && (
+        {authMethod === "local" && !dismissedLocalWarning && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20"
+            exit={{ opacity: 0, y: -10 }}
+            className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
           >
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-2xl">
-                🎉
+              <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                <Laptop className="w-5 h-5" />
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-txt-main mb-1">
-                  Welcome to Nostree!
-                </h3>
-                <p className="text-sm text-txt-muted mb-3">
-                  We've created a secure account for you automatically. Your identity: <span className="font-mono text-brand">{npub?.slice(0, 16)}...</span>
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => {
-                      localStorage.setItem("nostree-seen-welcome", "true");
-                      setShowWelcomeBanner(false);
-                    }}
-                    className="px-4 py-2 bg-brand text-white rounded-lg text-sm font-medium hover:bg-brand/90 transition-colors"
-                  >
-                    Got it, let's start!
-                  </button>
-                  <a
-                    href="https://nostr.how/get-started"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 bg-card border border-border rounded-lg text-sm font-medium hover:border-border-hover transition-colors text-txt-main"
-                  >
-                    Learn about Nostr
-                  </a>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-txt-main">
+                    This account is saved only in this browser
+                  </p>
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                    Not Synced
+                  </span>
                 </div>
+                <p className="text-xs text-txt-muted mt-0.5 leading-relaxed">
+                  To edit your tree from another computer or phone, back up your secret key or connect a Nostr extension like Alby.
+                </p>
               </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+              {hasExtension && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    const ok = await login();
+                    if (ok) toast.success("Connected with extension!");
+                  }}
+                  className="text-xs"
+                >
+                  Connect Alby
+                </Button>
+              )}
+              <Button
+                size="sm"
+                onClick={() => setShowBackupModal(true)}
+                prefixIcon={<Key className="w-3.5 h-3.5" />}
+                className="text-xs font-semibold"
+              >
+                Backup Key
+              </Button>
               <button
                 onClick={() => {
-                  localStorage.setItem("nostree-seen-welcome", "true");
-                  setShowWelcomeBanner(false);
+                  setDismissedLocalWarning(true);
+                  localStorage.setItem("nostree-dismissed-local-warning", "true");
                 }}
-                className="text-txt-dim hover:text-txt-main transition-colors"
+                className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card/50 transition-colors ml-auto sm:ml-0"
+                title="Dismiss warning"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
           </motion.div>
@@ -390,7 +590,6 @@ function EditorContent() {
             <Loader2 className="w-8 h-8 animate-spin text-brand" />
           </div>
         ) : slug ? (
-          // KEY prop forces remount when slug changes, giving fresh useLinkTree state
           <LinkTreeEditor 
             key={slug} 
             pubkey={pubkey || ""} 
@@ -398,12 +597,15 @@ function EditorContent() {
             profile={profile}
           />
         ) : (
-          // No trees - show enhanced empty state
           <EmptyState onCreateTree={() => setOpenTreeSelector(true)} />
         )}
       </main>
     </div>
   );
+}
+
+export function EditorApp() {
+  return <EditorContent />;
 }
 
 export default EditorApp;
