@@ -4,28 +4,30 @@ import NDK, {
   type NDKSigner,
   NDKEvent as NDKEventClass,
 } from "@nostr-dev-kit/ndk";
+import defaultRelaysConfig from "./relays.json";
 
-const DEFAULT_RELAYS = [
-  "wss://nos.lol",
-  "wss://relay.damus.io",
-  "wss://relay.primal.net",
-  "wss://offchain.pub",
-];
+export interface RelayConfig {
+  updatedAt: string;
+  readRelays: string[];
+  fastestWriteRelay: string;
+  asyncWriteRelays: string[];
+}
 
-const WRITE_RELAYS = [
-  "wss://nos.lol",
-  "wss://relay.damus.io",
-  "wss://relay.primal.net",
-  "wss://offchain.pub",
-];
+const relaysConfig: RelayConfig = defaultRelaysConfig;
 
 let ndkInstance: NDK | null = null;
 let connectionPromise: Promise<void> | null = null;
 
 export function getNDK(): NDK {
   if (!ndkInstance) {
+    const activeRelays = Array.from(new Set([
+      ...relaysConfig.readRelays,
+      relaysConfig.fastestWriteRelay,
+      ...relaysConfig.asyncWriteRelays,
+    ]));
+
     ndkInstance = new NDK({
-      explicitRelayUrls: DEFAULT_RELAYS,
+      explicitRelayUrls: activeRelays,
     });
   }
   return ndkInstance;
@@ -49,8 +51,8 @@ export async function connectNDK(): Promise<void> {
 
 export async function fetchEventsWithTimeout(
   filter: NDKFilter,
-  timeoutMs: number = 2000,
-  debounceMs: number = 120
+  timeoutMs: number = 1800,
+  debounceMs: number = 100
 ): Promise<Set<NDKEvent>> {
   const ndk = getNDK();
 
@@ -83,7 +85,15 @@ export async function fetchEventsWithTimeout(
 
     const hardTimer = setTimeout(cleanup, timeoutMs);
 
-    const subscription = ndk.subscribe(filter, { closeOnEose: false });
+    const relayPool = ndk.pool.relays;
+    const targetRelays = relaysConfig.readRelays
+      .map(url => relayPool.get(url))
+      .filter((r): r is NonNullable<typeof r> => Boolean(r));
+
+    const subscription = ndk.subscribe(filter, { 
+      closeOnEose: false,
+      relaySet: targetRelays.length > 0 ? new Set(targetRelays) as any : undefined,
+    });
 
     subscription.on("event", (event: NDKEvent) => {
       events.add(event);
@@ -116,26 +126,62 @@ export async function publishEvent(event: NDKEvent): Promise<PublishResult> {
   if (ndk.pool.connectedRelays().length === 0) {
     await connectNDK();
   }
-  
+
+  const primaryRelayUrl = relaysConfig.fastestWriteRelay;
+  const secondaryRelayUrls = relaysConfig.asyncWriteRelays.filter(url => url !== primaryRelayUrl);
+  const totalWriteCount = 1 + secondaryRelayUrls.length;
+
+  let syncAccepted = false;
+
   try {
-    const relays = await event.publish();
-    const accepted = relays.size;
-    const total = WRITE_RELAYS.length;
-    const quorum = Math.ceil(total / 2);
-    
-    return {
-      success: accepted >= quorum || accepted > 0,
-      relaysAccepted: accepted,
-      relaysTotal: total,
-    };
-  } catch (err) {
-    console.error("Failed to publish event:", err);
-    return {
-      success: false,
-      relaysAccepted: 0,
-      relaysTotal: WRITE_RELAYS.length,
-    };
+    const primaryRelay = ndk.pool.getRelayById(primaryRelayUrl);
+    if (primaryRelay) {
+      await Promise.race([
+        event.publish(new Set([primaryRelay]) as any),
+        new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Primary write timeout")), 1500))
+      ]);
+      syncAccepted = true;
+    }
+  } catch {}
+
+  if (!syncAccepted) {
+    try {
+      const fallbackUrl = secondaryRelayUrls[0];
+      const fallbackRelay = fallbackUrl ? ndk.pool.getRelayById(fallbackUrl) : null;
+      if (fallbackRelay) {
+        await Promise.race([
+          event.publish(new Set([fallbackRelay]) as any),
+          new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Fallback write timeout")), 1500))
+        ]);
+        syncAccepted = true;
+      }
+    } catch {}
   }
+
+  if (!syncAccepted) {
+    try {
+      const relays = await event.publish();
+      syncAccepted = relays.size > 0;
+    } catch {}
+  }
+
+  (async () => {
+    try {
+      const asyncRelays = secondaryRelayUrls
+        .map(url => ndk.pool.getRelayById(url))
+        .filter((r): r is NonNullable<typeof r> => Boolean(r));
+
+      if (asyncRelays.length > 0) {
+        await event.publish(new Set(asyncRelays) as any);
+      }
+    } catch {}
+  })();
+
+  return {
+    success: syncAccepted,
+    relaysAccepted: syncAccepted ? 1 : 0,
+    relaysTotal: totalWriteCount,
+  };
 }
 
 export function createNostreeEvent(content: object, pubkey: string, dTag: string = "nostree-data-v1"): NDKEvent {

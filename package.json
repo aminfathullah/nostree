@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && wrangler pages deploy dist"
+    "deploy": "vite build && wrangler pages deploy dist",
+    "select-relays": "node scripts/select-relays.mjs"
   },
   "dependencies": {
     "@nostr-dev-kit/ndk": "^2.18.1",
