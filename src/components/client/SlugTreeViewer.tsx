@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { slugToDTag } from "../../lib/slug-resolver";
 import { parseNostreeData } from "../../lib/migration";
@@ -6,13 +5,11 @@ import { fetchEventsWithTimeout } from "../../lib/ndk";
 import type { NostreeDataV2 } from "../../schemas/nostr";
 import PublicTreeViewer from "./PublicTreeViewer";
 
-// Profile cache for performance
-const profileCache = new Map<string, { data: any; ts: number }>();
-const CACHE_TTL = 60000; // 1 minute
+const profileCache = new Map<string, { data: UserProfile; ts: number }>();
+const PROFILE_CACHE_TTL = 600000;
 
-// Tree cache in localStorage for instant loading
 const TREE_CACHE_KEY = 'nostree_tree_cache';
-const TREE_CACHE_TTL = 30000; // 30 seconds
+const TREE_CACHE_TTL = 600000;
 
 function getCachedTree(slug: string): NostreeDataV2 | null {
   try {
@@ -28,9 +25,8 @@ function getCachedTree(slug: string): NostreeDataV2 | null {
 function setCachedTree(slug: string, data: NostreeDataV2): void {
   try {
     const cache = JSON.parse(localStorage.getItem(TREE_CACHE_KEY) || '{}');
-    // Limit cache size - keep only last 10 trees
     const keys = Object.keys(cache);
-    if (keys.length >= 10) {
+    if (keys.length >= 20) {
       const oldest = keys.sort((a, b) => cache[a].ts - cache[b].ts)[0];
       delete cache[oldest];
     }
@@ -53,10 +49,6 @@ interface SlugTreeViewerProps {
   slug: string;
 }
 
-/**
- * SlugTreeViewer - Looks up a tree by its global custom slug
- * Searches across all users for a Kind 30078 with matching d-tag
- */
 export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
@@ -65,32 +57,28 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
 
   useEffect(() => {
     let cancelled = false;
+    let loadComplete = false;
     
     async function loadTree() {
       try {
-        // Check cache first for instant display
         const cachedTree = getCachedTree(slug);
         if (cachedTree) {
           setTreeData(cachedTree);
           setStatus("ready");
-          // Continue to fetch fresh data in background
         } else {
           setStatus("loading");
         }
         
-        // Search for tree by slug d-tag (across all users)
         const dTag = slugToDTag(slug);
         
-        // Search by d-tag (no special case for "default" - all trees use same format)
         const treeEvents = await fetchEventsWithTimeout({
           kinds: [30078],
           "#d": [dTag],
-        }, 2000); // 2s timeout (cache handles slow networks)
+        }, 1800, 100);
         
         if (cancelled) return;
         
         if (treeEvents.size === 0) {
-          // Only show error if we don't have cached data
           if (!cachedTree) {
             setError(`Tree "${slug}" not found`);
             setStatus("error");
@@ -98,48 +86,44 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
           return;
         }
         
-        // Get the most recent event
         const sorted = Array.from(treeEvents).sort(
           (a, b) => (b.created_at || 0) - (a.created_at || 0)
         );
         const event = sorted[0];
         
         if (!event?.content) {
-          setError("Invalid tree data");
-          setStatus("error");
+          if (!cachedTree) {
+            setError("Invalid tree data");
+            setStatus("error");
+          }
           return;
         }
         
-        // Parse tree data
         const parsedContent = JSON.parse(event.content);
         const result = parseNostreeData(parsedContent, slug);
         
         if (!result.success) {
-          setError("Failed to parse tree data");
-          setStatus("error");
+          if (!cachedTree) {
+            setError("Failed to parse tree data");
+            setStatus("error");
+          }
           return;
         }
         
-        // Update with fresh data and cache it (only if different from cache to prevent re-render)
-        const isDifferent = JSON.stringify(result.data) !== JSON.stringify(cachedTree);
-        if (isDifferent || !cachedTree) {
-          setTreeData(result.data);
-          setStatus("ready");
-        }
+        setTreeData(result.data);
+        setStatus("ready");
         setCachedTree(slug, result.data);
         
-        // Then load profile in background (non-blocking)
         const ownerPubkey = event.pubkey;
-        const cached = profileCache.get(ownerPubkey);
+        const cachedProfile = profileCache.get(ownerPubkey);
         
-        if (cached && Date.now() - cached.ts < CACHE_TTL) {
-          setProfile(cached.data);
+        if (cachedProfile && Date.now() - cachedProfile.ts < PROFILE_CACHE_TTL) {
+          setProfile(cachedProfile.data);
         } else {
-          // Fire and forget - don't block rendering
           fetchEventsWithTimeout({
             kinds: [0],
             authors: [ownerPubkey],
-          }, 2000).then(profileEvents => {
+          }, 1200, 80).then(profileEvents => {
             if (cancelled || profileEvents.size === 0) return;
             
             const profileSorted = Array.from(profileEvents).sort(
@@ -164,35 +148,25 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
             }
           });
         }
-        
       } catch (err) {
-        console.error("SlugTreeViewer error:", err);
-        if (!cancelled) {
+        if (!cancelled && !getCachedTree(slug)) {
           setError("Failed to load tree");
           setStatus("error");
         }
+      } finally {
+        loadComplete = true;
       }
     }
     
     if (slug) {
-      // Track completion with mutable flag (React state is stale in closures)
-      let loadComplete = false;
+      loadTree();
       
-      // Wrap loadTree to track completion
-      const runLoad = async () => {
-        await loadTree();
-        loadComplete = true;
-      };
-      
-      // Overall timeout protection - only fire if not completed
       const timeout = setTimeout(() => {
-        if (!loadComplete && !cancelled) {
+        if (!loadComplete && !cancelled && !getCachedTree(slug)) {
           setError(`Tree "${slug}" not found`);
           setStatus("error");
         }
-      }, 6000); // 6s max
-      
-      runLoad();
+      }, 2500);
       
       return () => {
         cancelled = true;

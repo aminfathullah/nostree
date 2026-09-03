@@ -5,27 +5,23 @@ import NDK, {
   NDKEvent as NDKEventClass,
 } from "@nostr-dev-kit/ndk";
 
-// Default relays for bootstrapping
 const DEFAULT_RELAYS = [
-  "wss://relay.damus.io",
   "wss://nos.lol",
-  "wss://relay.nostr.band",
-  "wss://purplepag.es",
+  "wss://relay.damus.io",
+  "wss://relay.primal.net",
+  "wss://offchain.pub",
 ];
 
-// Write relays (subset that accept writes)
 const WRITE_RELAYS = [
-  "wss://relay.damus.io",
   "wss://nos.lol",
-  "wss://relay.nostr.band",
+  "wss://relay.damus.io",
+  "wss://relay.primal.net",
+  "wss://offchain.pub",
 ];
 
-// Singleton NDK instance for client-side use
 let ndkInstance: NDK | null = null;
+let connectionPromise: Promise<void> | null = null;
 
-/**
- * Get or create the NDK singleton instance
- */
 export function getNDK(): NDK {
   if (!ndkInstance) {
     ndkInstance = new NDK({
@@ -35,83 +31,81 @@ export function getNDK(): NDK {
   return ndkInstance;
 }
 
-/**
- * Set the signer for the NDK instance (for authenticated operations)
- */
 export function setNDKSigner(signer: NDKSigner | undefined): void {
   const ndk = getNDK();
   ndk.signer = signer;
 }
 
-/**
- * Connect to relays
- */
 export async function connectNDK(): Promise<void> {
   const ndk = getNDK();
-  await ndk.connect();
+  if (!connectionPromise) {
+    connectionPromise = Promise.race([
+      ndk.connect(1000),
+      new Promise<void>(r => setTimeout(r, 600))
+    ]);
+  }
+  await connectionPromise;
 }
-
-/**
- * Fetch events with a timeout
- */
-let connectionPromise: Promise<void> | null = null;
 
 export async function fetchEventsWithTimeout(
   filter: NDKFilter,
-  timeoutMs: number = 4000
+  timeoutMs: number = 2000,
+  debounceMs: number = 120
 ): Promise<Set<NDKEvent>> {
   const ndk = getNDK();
-  
-  // Connect once, cache the promise
+
   if (!connectionPromise) {
     connectionPromise = Promise.race([
-      ndk.connect(),
-      new Promise<void>(r => setTimeout(r, 800))
+      ndk.connect(1000),
+      new Promise<void>(r => setTimeout(r, 600))
     ]);
   }
-  
+
   await connectionPromise;
-  
+
   return new Promise((resolve) => {
     const events = new Set<NDKEvent>();
     let resolved = false;
-    
-    const timeout = setTimeout(() => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let eoseCount = 0;
+
+    const cleanup = () => {
       if (!resolved) {
         resolved = true;
+        if (debounceTimer) clearTimeout(debounceTimer);
+        clearTimeout(hardTimer);
+        try {
+          subscription.stop();
+        } catch {}
         resolve(events);
       }
-    }, timeoutMs);
-    
-    const subscription = ndk.subscribe(filter, { closeOnEose: true });
-    
+    };
+
+    const hardTimer = setTimeout(cleanup, timeoutMs);
+
+    const subscription = ndk.subscribe(filter, { closeOnEose: false });
+
     subscription.on("event", (event: NDKEvent) => {
       events.add(event);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(cleanup, debounceMs);
     });
-    
+
     subscription.on("eose", () => {
-      if (!resolved) {
-        resolved = true;
-        clearTimeout(timeout);
-        resolve(events);
+      eoseCount++;
+      if (events.size > 0 || eoseCount >= 2) {
+        cleanup();
       }
     });
   });
 }
 
-/**
- * Publish event result
- */
 export interface PublishResult {
   success: boolean;
   relaysAccepted: number;
   relaysTotal: number;
 }
 
-/**
- * Publish an event to relays
- * Requires a signer to be set on the NDK instance
- */
 export async function publishEvent(event: NDKEvent): Promise<PublishResult> {
   const ndk = getNDK();
   
@@ -119,17 +113,12 @@ export async function publishEvent(event: NDKEvent): Promise<PublishResult> {
     throw new Error("No signer set. User must be authenticated.");
   }
   
-  // Connect if needed
   if (ndk.pool.connectedRelays().length === 0) {
-    await ndk.connect();
-    await new Promise(r => setTimeout(r, 500));
+    await connectNDK();
   }
   
   try {
-    // Publish and wait for confirmations
     const relays = await event.publish();
-    
-    // Count successful publishes (using write quorum)
     const accepted = relays.size;
     const total = WRITE_RELAYS.length;
     const quorum = Math.ceil(total / 2);
@@ -149,9 +138,6 @@ export async function publishEvent(event: NDKEvent): Promise<PublishResult> {
   }
 }
 
-/**
- * Create a Kind 30078 event for Nostree data
- */
 export function createNostreeEvent(content: object, pubkey: string, dTag: string = "nostree-data-v1"): NDKEvent {
   const ndk = getNDK();
   
@@ -166,6 +152,5 @@ export function createNostreeEvent(content: object, pubkey: string, dTag: string
   return event;
 }
 
-// Export types
 export { NDK, NDKEventClass };
 export type { NDKEvent, NDKFilter, NDKSigner };
