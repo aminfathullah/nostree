@@ -262,7 +262,7 @@ function PublicTreeViewerComponent({
         }}
       >
         <div 
-          className="w-full sm:max-w-[450px] mx-auto sm:my-auto rounded-none sm:rounded-[36px] border-0 sm:border overflow-hidden transition-all duration-300 flex flex-col justify-between relative shadow-none sm:shadow-2xl min-h-screen sm:min-h-[580px]"
+          className="w-full sm:max-w-[450px] mx-auto sm:my-auto rounded-none sm:rounded-[36px] border-0 sm:border overflow-hidden transition-all duration-300 flex flex-col justify-between relative shadow-none sm:shadow-2xl min-h-screen sm:min-h-0"
           style={{ 
             backgroundColor: isBackgroundImage ? 'rgba(10, 10, 14, 0.96)' : bgColor,
             backgroundImage: bgImage,

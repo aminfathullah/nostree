@@ -34,7 +34,7 @@ function TiltLinkCardComponent({
       href={link.url}
       target="_blank"
       rel="noopener noreferrer nofollow"
-      className="group relative block w-full px-4 py-3 sm:px-5 sm:py-3.5 animate-slide-up backdrop-blur-md transition-all duration-200 active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+      className="group relative block w-full px-4 py-3 sm:px-5 sm:py-3.5 animate-slide-up backdrop-blur-md transition-all duration-150 ease-out hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       style={{
         backgroundColor: isHovered ? cardHoverBg : cardBg,
         border: `1px solid ${isHovered ? cardHoverBorder : cardBorder}`,

@@ -17,11 +17,10 @@ function TreeSkeletonComponent({
       style={{ backgroundColor: bgColor }}
     >
       <div 
-        className="w-full max-w-md sm:max-w-[440px] md:max-w-[460px] mx-auto my-auto sm:my-8 rounded-none sm:rounded-[36px] sm:border overflow-hidden p-5 sm:p-7 min-h-[580px] flex flex-col justify-between animate-fade-in"
+        className="w-full sm:max-w-[450px] mx-auto sm:my-auto rounded-none sm:rounded-[36px] border-0 sm:border overflow-hidden p-5 sm:p-7 min-h-screen sm:min-h-0 flex flex-col justify-between animate-fade-in shadow-none sm:shadow-2xl"
         style={{
           backgroundColor: cardBg,
           borderColor: 'rgba(255,255,255,0.1)',
-          boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.35)',
         }}
       >
         <div>
