@@ -60,21 +60,21 @@ function LinkTreeEditor({
 
   if (linkTree.isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-20">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center gap-4"
+          className="flex flex-col items-center gap-3"
         >
-          <Loader2 className="w-8 h-8 animate-spin text-brand" />
-          <p className="text-sm text-txt-muted">Loading your tree...</p>
+          <Loader2 className="w-7 h-7 animate-spin text-brand" />
+          <p className="text-xs text-txt-muted font-medium">Loading your links...</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
       <div className="space-y-6">
         <LinkEditorV2
           links={linkTree.links}
@@ -169,21 +169,21 @@ function KeyBackupModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        transition={{ duration: 0.18, ease: "easeOut" }}
+        transition={{ duration: 0.16, ease: [0.23, 1, 0.32, 1] }}
         className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-elevated overflow-hidden"
       >
-        <div className="p-6 border-b border-border flex items-center justify-between">
+        <div className="p-5 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center">
-              <Key className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-brand/10 text-brand flex items-center justify-center">
+              <Key className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-txt-main">Secret Backup Key</h3>
+              <h3 className="text-sm font-semibold text-txt-main">Secret Backup Key</h3>
               <p className="text-xs text-txt-muted">Use this to sign in from any other browser or device</p>
             </div>
           </div>
@@ -191,11 +191,11 @@ function KeyBackupModal({
             onClick={onClose}
             className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card-hover transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-5 space-y-4">
           <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-txt-main space-y-1">
             <p className="font-semibold text-amber-600 dark:text-amber-400">
               Keep this key private
@@ -221,34 +221,34 @@ function KeyBackupModal({
                 type={showKey ? "text" : "password"}
                 readOnly
                 value={privateKey}
-                className="w-full px-3.5 py-2.5 text-xs bg-canvas border border-border rounded-xl font-mono text-txt-main select-all focus:outline-none focus:border-brand"
+                className="w-full px-3.5 py-2 text-xs bg-canvas border border-border rounded-xl font-mono text-txt-main select-all focus:outline-none focus:border-brand"
               />
             </div>
           </div>
 
-          <div className="flex gap-2.5 pt-2">
+          <div className="flex gap-2.5 pt-1">
             <Button
               onClick={handleCopy}
               variant="solid"
               size="md"
               className="flex-1 text-xs"
-              prefixIcon={copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              prefixIcon={copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             >
-              {copied ? "Copied to Clipboard" : "Copy Key"}
+              {copied ? "Copied" : "Copy Key"}
             </Button>
             <Button
               onClick={handleDownload}
               variant="outline"
               size="md"
               className="flex-1 text-xs"
-              prefixIcon={<Download className="w-4 h-4" />}
+              prefixIcon={<Download className="w-3.5 h-3.5" />}
             >
               Download Backup
             </Button>
           </div>
 
-          <div className="pt-3 border-t border-border flex items-center justify-between text-xs text-txt-dim">
-            <span>Want automatic sync across devices?</span>
+          <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-txt-dim">
+            <span>Want multi-device sync?</span>
             <a
               href="https://getalby.com"
               target="_blank"
@@ -261,7 +261,7 @@ function KeyBackupModal({
           </div>
         </div>
 
-        <div className="px-6 py-4 bg-card-hover border-t border-border flex justify-end">
+        <div className="px-5 py-3 bg-card-hover border-t border-border flex justify-end">
           <Button onClick={onClose} variant="outline" size="sm" className="text-xs">
             Done
           </Button>
@@ -350,7 +350,7 @@ function EditorContent() {
     }
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-txt-muted">Redirecting to login...</p>
+        <p className="text-txt-muted text-sm">Redirecting...</p>
       </div>
     );
   }
@@ -359,73 +359,87 @@ function EditorContent() {
 
   return (
     <div className="min-h-screen bg-canvas">
-      <header className="border-b border-border bg-card/70 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <header className="border-b border-border bg-card/85 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Nostree Logo" className="w-8 h-8 object-contain" />
-            <h1 className="text-lg font-bold text-txt-main">Nostree Editor</h1>
+            <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-85">
+              <img src={logo} alt="Nostree" className="w-7 h-7 object-contain" />
+              <span className="text-base font-bold text-txt-main tracking-tight hidden sm:inline">Nostree</span>
+            </Link>
+
+            {slug && (
+              <a
+                href={`/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-canvas border border-border text-txt-muted hover:text-txt-main hover:border-brand/40 transition-colors"
+              >
+                <span>/{slug}</span>
+                <ExternalLink className="w-3 h-3 opacity-60" />
+              </a>
+            )}
           </div>
           
-          <div className="flex items-center gap-3">
-             <TreeSelector
-               pubkey={pubkey || ""}
-               currentSlug={slug}
-               onSlugChange={(newSlug) => setSlug(newSlug)}
-               onTreeCreated={() => {}}
-               forceOpen={openTreeSelector}
-               onOpenChange={setOpenTreeSelector}
-             />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <TreeSelector
+              pubkey={pubkey || ""}
+              currentSlug={slug}
+              onSlugChange={(newSlug) => setSlug(newSlug)}
+              onTreeCreated={() => {}}
+              forceOpen={openTreeSelector}
+              onOpenChange={setOpenTreeSelector}
+            />
 
             <div className="relative">
               <button
                 onClick={() => setShowAccountMenu(!showAccountMenu)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card border border-border hover:border-border-hover transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border hover:border-border-hover transition-colors shadow-xs active:scale-[0.98]"
               >
                 {profile.picture ? (
                   <img 
                     src={profile.picture} 
                     alt="" 
-                    className="w-6 h-6 rounded-full object-cover"
+                    className="w-5 h-5 rounded-full object-cover"
                   />
                 ) : (
                   <User className="w-4 h-4 text-txt-muted" />
                 )}
-                <span className="text-xs text-txt-muted font-mono">
+                <span className="text-xs text-txt-muted font-mono hidden md:inline">
                   {npub?.slice(0, 8)}...
                 </span>
                 {authMethod === "local" ? (
-                  <span className="w-2 h-2 rounded-full bg-amber-500" title="Saved in browser only" />
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" title="This browser only" />
                 ) : (
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" title="Extension connected" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="Extension synced" />
                 )}
-                <ChevronDown className="w-3.5 h-3.5 text-txt-dim" />
+                <ChevronDown className="w-3 h-3 text-txt-dim" />
               </button>
 
               {showAccountMenu && (
                 <>
                   <div 
                     className="fixed inset-0 z-40" 
-                    onClick={() => setShowAccountMenu(false)}
+                    onClick={() => setShowAccountMenu(false)} 
                   />
-                  <div className="absolute top-full right-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-elevated z-50 overflow-hidden">
+                  <div className="absolute top-full right-0 mt-2 w-64 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden animate-pop">
                     <div className="p-4 border-b border-border">
                       <div className="flex items-center gap-3 mb-2">
                         {profile.picture ? (
                           <img 
                             src={profile.picture} 
                             alt="" 
-                            className="w-10 h-10 rounded-full object-cover"
+                            className="w-9 h-9 rounded-full object-cover"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-card-hover flex items-center justify-center">
-                            <User className="w-5 h-5 text-txt-muted" />
+                          <div className="w-9 h-9 rounded-full bg-card-hover flex items-center justify-center">
+                            <User className="w-4 h-4 text-txt-muted" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-txt-main truncate text-sm">
+                          <p className="font-semibold text-txt-main truncate text-xs">
                             {profile.name || "Anonymous"}
                           </p>
-                          <p className="text-[11px] text-txt-dim font-mono truncate">
+                          <p className="text-[10px] text-txt-dim font-mono truncate">
                             {npub}
                           </p>
                         </div>
@@ -433,12 +447,12 @@ function EditorContent() {
                       
                       <div className="mt-2">
                         {authMethod === "local" ? (
-                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-medium">
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-medium">
                             <Laptop className="w-3 h-3" />
                             <span>This Browser Only</span>
                           </div>
                         ) : (
-                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-medium">
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium">
                             <ShieldCheck className="w-3 h-3" />
                             <span>Extension Synced</span>
                           </div>
@@ -446,16 +460,16 @@ function EditorContent() {
                       </div>
                     </div>
 
-                    <div className="p-2 space-y-1">
+                    <div className="p-1.5 space-y-0.5">
                       {authMethod === "local" && (
                         <button
                           onClick={() => {
                             setShowAccountMenu(false);
                             setShowBackupModal(true);
                           }}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium"
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium"
                         >
-                          <Key className="w-4 h-4 text-brand" />
+                          <Key className="w-3.5 h-3.5 text-brand" />
                           <span>Backup Secret Key</span>
                         </button>
                       )}
@@ -467,23 +481,23 @@ function EditorContent() {
                             const ok = await login();
                             if (ok) toast.success("Switched to extension session!");
                           }}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium"
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium"
                         >
-                          <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                          <span>Switch to Alby Extension</span>
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>Connect Alby Extension</span>
                         </button>
                       )}
 
                       <Link
                         to="/login?switch=true"
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs"
                         onClick={() => {
                           logout();
                           setShowAccountMenu(false);
                         }}
                       >
-                        <RefreshCw className="w-4 h-4 text-txt-muted" />
-                        <span>Switch Account</span>
+                        <RefreshCw className="w-3.5 h-3.5 text-txt-muted" />
+                        <span>Switch Profile</span>
                       </Link>
 
                       <button
@@ -492,9 +506,9 @@ function EditorContent() {
                           setShowAccountMenu(false);
                           window.location.href = "/";
                         }}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-card-hover transition-colors text-red-500 w-full text-left text-xs"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-red-500/10 transition-colors text-red-500 w-full text-left text-xs"
                       >
-                        <LogOut className="w-4 h-4" />
+                        <LogOut className="w-3.5 h-3.5" />
                         <span>Logout</span>
                       </button>
                     </div>
@@ -531,38 +545,25 @@ function EditorContent() {
             className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
           >
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                <Laptop className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                <Laptop className="w-4 h-4" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-txt-main">
-                    This account is saved only in this browser
+                  <p className="text-xs sm:text-sm font-semibold text-txt-main">
+                    Profile saved in this browser
                   </p>
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">
-                    Not Synced
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                    Local Only
                   </span>
                 </div>
                 <p className="text-xs text-txt-muted mt-0.5 leading-relaxed">
-                  To edit your tree from another computer or phone, back up your secret key or connect a Nostr extension like Alby.
+                  Back up your key so you never lose edit access if your cache is cleared.
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-              {hasExtension && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={async () => {
-                    const ok = await login();
-                    if (ok) toast.success("Connected with extension!");
-                  }}
-                  className="text-xs"
-                >
-                  Connect Alby
-                </Button>
-              )}
               <Button
                 size="sm"
                 onClick={() => setShowBackupModal(true)}
@@ -586,8 +587,8 @@ function EditorContent() {
         )}
 
         {profileLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-brand" />
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-7 h-7 animate-spin text-brand" />
           </div>
         ) : slug ? (
           <LinkTreeEditor 

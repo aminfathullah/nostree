@@ -10,28 +10,23 @@ interface QRCodeModalProps {
   bgColor?: string;
 }
 
-/**
- * Modal displaying QR code for easy mobile sharing
- * Uses canvas-based qrcode library to avoid React hooks conflicts
- */
 function QRCodeModalComponent({ 
   isOpen, 
   onClose, 
   url,
-  primaryColor = '#5E47B8',
-  bgColor = '#ffffff'
+  primaryColor = '#6366f1',
+  bgColor = '#09090b'
 }: QRCodeModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Generate QR code when modal opens
   useEffect(() => {
     if (isOpen && canvasRef.current) {
       QRCode.toCanvas(canvasRef.current, url, {
-        width: 200,
+        width: 220,
         margin: 2,
         color: {
-          dark: primaryColor,
-          light: '#ffffff00', // Transparent background
+          dark: '#0f172a',
+          light: '#ffffff',
         },
         errorCorrectionLevel: 'H',
       }).catch(console.error);
@@ -42,7 +37,7 @@ function QRCodeModalComponent({
     if (!canvasRef.current) return;
     
     const link = document.createElement('a');
-    link.download = 'qr-code.png';
+    link.download = 'nostree-qr-code.png';
     link.href = canvasRef.current.toDataURL('image/png');
     link.click();
   }, []);
@@ -51,54 +46,45 @@ function QRCodeModalComponent({
 
   return (
     <>
-      {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fade-in"
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 animate-fade-in"
         onClick={onClose}
       />
       
-      {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
         <div 
-          className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full pointer-events-auto animate-bounce-in"
+          className="bg-card border border-border rounded-2xl shadow-elevated p-6 max-w-xs w-full pointer-events-auto animate-pop"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Share via QR Code</h3>
+            <h3 className="text-sm font-semibold text-txt-main">Share QR Code</h3>
             <button
               onClick={onClose}
-              className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card-hover transition-colors"
               aria-label="Close"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* QR Code */}
-          <div 
-            className="flex items-center justify-center p-6 rounded-xl mb-4"
-            style={{ backgroundColor: `${primaryColor}10` }}
-          >
-            <canvas ref={canvasRef} />
+          <div className="flex items-center justify-center p-3 rounded-xl mb-3.5 bg-white border border-border shadow-xs">
+            <canvas ref={canvasRef} className="rounded-lg max-w-full" />
           </div>
 
-          {/* URL display */}
           <p 
-            className="text-sm text-center text-gray-500 mb-4 truncate px-4"
+            className="text-xs text-center text-txt-muted mb-4 truncate px-2"
             title={url}
           >
             {url}
           </p>
 
-          {/* Download button */}
           <button
             onClick={handleDownload}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-all hover:opacity-90"
-            style={{ backgroundColor: primaryColor, color: bgColor }}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 hover:opacity-95 active:scale-[0.98] shadow-sm text-white"
+            style={{ backgroundColor: primaryColor }}
           >
-            <Download className="w-4 h-4" />
-            <span>Download QR Code</span>
+            <Download className="w-3.5 h-3.5" />
+            <span>Download Image</span>
           </button>
         </div>
       </div>

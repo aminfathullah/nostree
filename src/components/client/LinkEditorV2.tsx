@@ -12,31 +12,38 @@ import {
   Save,
   X,
   ChevronDown,
+  ChevronUp,
   ChevronRight,
   Folder,
   Move,
+  CornerDownRight
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import type { Link, LinkItem, LinkGroup } from "../../schemas/nostr";
 
 interface LinkEditorItemProps {
   link: Link;
+  index: number;
+  totalCount: number;
   onUpdate: (link: Link) => void;
   onDelete: (id: string) => void;
   onToggleVisibility: (id: string) => void;
   onMoveToGroup?: (linkId: string, groupId: string | null) => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   availableGroups?: LinkGroup[];
 }
 
-/**
- * Single draggable link item in the editor
- */
 function LinkEditorItem({ 
   link, 
+  index,
+  totalCount,
   onUpdate, 
   onDelete, 
   onToggleVisibility,
   onMoveToGroup,
+  onMoveUp,
+  onMoveDown,
   availableGroups = [],
 }: LinkEditorItemProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -48,9 +55,9 @@ function LinkEditorItem({
   const handleSave = () => {
     onUpdate({
       ...link,
-      title,
-      url,
-      emoji: emoji || undefined,
+      title: title.trim() || link.title,
+      url: url.trim() || link.url,
+      emoji: emoji.trim() || undefined,
     });
     setIsEditing(false);
   };
@@ -67,134 +74,162 @@ function LinkEditorItem({
       value={link}
       id={link.id}
       className="relative group w-full"
-      whileDrag={{ scale: 1.02, boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}
+      whileDrag={{ scale: 1.01, boxShadow: "0 12px 32px rgba(0,0,0,0.15)" }}
     >
       <motion.div
         layout
         className={`
-          bg-card border rounded-xl overflow-hidden transition-colors
-          ${link.visible ? 'border-border' : 'border-border/50 opacity-60'}
+          bg-card border rounded-2xl overflow-hidden transition-all duration-200
+          ${link.visible ? 'border-border shadow-card hover:border-border-hover' : 'border-border/40 opacity-50'}
         `}
       >
         <div className="flex items-stretch max-w-full">
-          {/* Drag Handle */}
-          <div className="flex items-center px-3 cursor-grab active:cursor-grabbing bg-card-hover border-r border-border">
-            <GripVertical className="w-5 h-5 text-txt-dim" />
+          <div className="flex flex-col items-center justify-center px-2 sm:px-2.5 bg-canvas/60 border-r border-border/80">
+            <div className="cursor-grab active:cursor-grabbing p-1 text-txt-dim hover:text-txt-main transition-colors">
+              <GripVertical className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col gap-0.5 mt-0.5">
+              <button
+                type="button"
+                onClick={onMoveUp}
+                disabled={index === 0}
+                className="p-0.5 text-txt-dim hover:text-txt-main disabled:opacity-20 disabled:hover:text-txt-dim transition-colors"
+                title="Move up"
+                aria-label="Move up"
+              >
+                <ChevronUp className="w-3 h-3" />
+              </button>
+              <button
+                type="button"
+                onClick={onMoveDown}
+                disabled={index === totalCount - 1}
+                className="p-0.5 text-txt-dim hover:text-txt-main disabled:opacity-20 disabled:hover:text-txt-dim transition-colors"
+                title="Move down"
+                aria-label="Move down"
+              >
+                <ChevronDown className="w-3 h-3" />
+              </button>
+            </div>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 min-w-0 overflow-hidden p-3">
+          <div className="flex-1 min-w-0 p-3 sm:p-3.5">
             {isEditing ? (
-              /* Edit Mode */
-              <div className="space-y-2">
+              <div className="space-y-2.5 animate-fade-in">
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={emoji}
                     onChange={(e) => setEmoji(e.target.value)}
-                    placeholder="🔗"
-                    className="w-12 h-10 px-2 text-center text-xl bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none"
+                    placeholder="Icon"
+                    className="w-14 h-9 px-2 text-center text-lg bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
                   />
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Link title"
-                    className="flex-1 h-10 px-3 bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none text-txt-main"
+                    className="flex-1 h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
+                    autoFocus
                   />
                 </div>
                 <input
                   type="url"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full h-10 px-3 bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none text-txt-main"
+                  placeholder="https://example.com"
+                  className="w-full h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs font-mono"
                 />
                 <div className="flex justify-end gap-2 pt-1">
-                  <Button variant="ghost" size="sm" onClick={handleCancel}>
-                    <X className="w-4 h-4 mr-1" />
+                  <Button variant="ghost" size="sm" onClick={handleCancel} className="text-xs h-8">
                     Cancel
                   </Button>
-                  <Button size="sm" onClick={handleSave}>
-                    <Save className="w-4 h-4 mr-1" />
+                  <Button size="sm" onClick={handleSave} className="text-xs h-8" prefixIcon={<Save className="w-3.5 h-3.5" />}>
                     Save
                   </Button>
                 </div>
               </div>
             ) : (
-              /* View Mode */
               <div 
-                className="flex items-center gap-3 cursor-pointer hover:bg-card-hover rounded-lg p-1 -m-1 transition-colors w-full"
+                className="flex items-center gap-3 cursor-pointer hover:opacity-90 rounded-xl p-1 transition-opacity w-full"
                 onClick={() => setIsEditing(true)}
               >
-                {link.emoji && (
-                  <span className="text-xl flex-shrink-0">{link.emoji}</span>
+                {link.emoji ? (
+                  <span className="text-xl shrink-0 p-1.5 rounded-xl bg-canvas border border-border/60">
+                    {link.emoji}
+                  </span>
+                ) : (
+                  <div className="w-8 h-8 rounded-xl bg-canvas border border-border/60 flex items-center justify-center shrink-0">
+                    <ExternalLink className="w-3.5 h-3.5 text-txt-dim" />
+                  </div>
                 )}
                 <div className="w-0 flex-grow overflow-hidden">
-                  <p className="font-medium text-txt-main truncate">{link.title}</p>
-                  <p className="text-sm text-txt-dim truncate">{link.url}</p>
+                  <p className="font-semibold text-sm text-txt-main truncate tracking-tight">{link.title}</p>
+                  <p className="text-xs text-txt-dim truncate font-mono mt-0.5">{link.url}</p>
                 </div>
-                <ExternalLink className="w-4 h-4 text-txt-dim flex-shrink-0" />
               </div>
             )}
           </div>
 
-          {/* Actions */}
           {!isEditing && (
-            <div className="flex items-center gap-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 pr-2">
               {onMoveToGroup && availableGroups.length > 0 && (
                 <div className="relative">
                   <button
                     onClick={() => setShowMoveMenu(!showMoveMenu)}
-                    className="p-2 rounded-lg hover:bg-card-hover transition-colors"
+                    className="p-2 rounded-xl text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors"
                     title="Move to group"
                   >
-                    <Move className="w-4 h-4 text-txt-muted" />
+                    <Move className="w-4 h-4" />
                   </button>
                   {showMoveMenu && (
-                    <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg py-1 z-10 min-w-[150px]">
-                      <button
-                        onClick={() => {
-                          onMoveToGroup(link.id, null);
-                          setShowMoveMenu(false);
-                        }}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-card-hover transition-colors text-txt-main"
-                      >
-                        📌 Root level
-                      </button>
-                      {availableGroups.map((group) => (
+                    <>
+                      <div className="fixed inset-0 z-30" onClick={() => setShowMoveMenu(false)} />
+                      <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-elevated py-1.5 z-40 min-w-[160px] animate-pop">
                         <button
-                          key={group.id}
                           onClick={() => {
-                            onMoveToGroup(link.id, group.id);
+                            onMoveToGroup(link.id, null);
                             setShowMoveMenu(false);
                           }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-card-hover transition-colors text-txt-main"
+                          className="w-full px-3 py-1.5 text-left text-xs hover:bg-card-hover transition-colors text-txt-main flex items-center gap-2"
                         >
-                          {group.emoji || '📁'} {group.title}
+                          <CornerDownRight className="w-3.5 h-3.5 text-txt-dim" />
+                          <span>Root Level</span>
                         </button>
-                      ))}
-                    </div>
+                        {availableGroups.map((group) => (
+                          <button
+                            key={group.id}
+                            onClick={() => {
+                              onMoveToGroup(link.id, group.id);
+                              setShowMoveMenu(false);
+                            }}
+                            className="w-full px-3 py-1.5 text-left text-xs hover:bg-card-hover transition-colors text-txt-main flex items-center gap-2"
+                          >
+                            <Folder className="w-3.5 h-3.5 text-brand" />
+                            <span className="truncate">{group.title}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
               <button
                 onClick={() => onToggleVisibility(link.id)}
-                className="p-2 rounded-lg hover:bg-card-hover transition-colors"
+                className="p-2 rounded-xl text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors"
                 title={link.visible ? "Hide link" : "Show link"}
               >
                 {link.visible ? (
-                  <Eye className="w-4 h-4 text-txt-muted" />
+                  <Eye className="w-4 h-4" />
                 ) : (
-                  <EyeOff className="w-4 h-4 text-txt-dim" />
+                  <EyeOff className="w-4 h-4" />
                 )}
               </button>
               <button
                 onClick={() => onDelete(link.id)}
-                className="p-2 rounded-lg hover:bg-red-500/20 transition-colors group/delete"
+                className="p-2 rounded-xl text-txt-dim hover:text-red-500 hover:bg-red-500/10 transition-colors"
                 title="Delete link"
               >
-                <Trash2 className="w-4 h-4 text-txt-muted group-hover/delete:text-red-400" />
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -217,9 +252,6 @@ interface LinkGroupEditorProps {
   availableGroups?: LinkGroup[];
 }
 
-/**
- * Group editor component with collapsible link list
- */
 function LinkGroupEditor({
   group,
   onUpdateGroup,
@@ -239,8 +271,8 @@ function LinkGroupEditor({
   const handleSaveGroup = () => {
     onUpdateGroup({
       ...group,
-      title,
-      emoji: emoji || undefined,
+      title: title.trim() || group.title,
+      emoji: emoji.trim() || undefined,
     });
     setIsEditingGroup(false);
   };
@@ -251,93 +283,101 @@ function LinkGroupEditor({
     setIsEditingGroup(false);
   };
 
-  // Filter out current group from available groups
+  const moveLinkInGroup = (index: number, direction: 'up' | 'down') => {
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= group.links.length) return;
+    const reordered = [...group.links];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(target, 0, moved);
+    onReorderLinks(group.id, reordered);
+  };
+
   const otherGroups = availableGroups.filter(g => g.id !== group.id);
 
   return (
     <motion.div
       layout
       className={`
-        bg-card border-2 rounded-2xl overflow-hidden transition-all shadow-sm
-        ${group.visible ? 'border-brand/30 border-l-4 border-l-brand' : 'border-border/50 opacity-60 border-l-4 border-l-border'}
+        bg-card border rounded-2xl overflow-hidden transition-all shadow-card
+        ${group.visible ? 'border-border' : 'border-border/40 opacity-50'}
       `}
     >
-      {/* Group Header */}
-      <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-brand/5 to-transparent border-b border-border/50">
+      <div className="flex items-center justify-between gap-2 p-3 bg-canvas/40 border-b border-border">
         <button
           onClick={() => onToggleCollapse(group.id)}
-          className="p-1.5 hover:bg-brand/10 rounded-lg transition-colors"
+          className="p-1 rounded-lg text-brand hover:bg-brand/10 transition-colors"
           title={group.collapsed ? "Expand group" : "Collapse group"}
         >
           {group.collapsed ? (
-            <ChevronRight className="w-4 h-4 text-brand" />
+            <ChevronRight className="w-4 h-4" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-brand" />
+            <ChevronDown className="w-4 h-4" />
           )}
         </button>
 
         {isEditingGroup ? (
-          <div className="flex-1 flex gap-2">
+          <div className="flex-1 flex gap-2 animate-fade-in">
             <input
               type="text"
               value={emoji}
               onChange={(e) => setEmoji(e.target.value)}
               placeholder="📁"
-              className="w-12 h-8 px-2 text-center text-lg bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none"
+              className="w-12 h-8 px-2 text-center text-base bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none"
             />
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Group name"
-              className="flex-1 h-8 px-3 bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none text-txt-main text-sm"
+              className="flex-1 h-8 px-3 bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none text-txt-main text-xs font-semibold"
               autoFocus
             />
-            <Button variant="ghost" size="sm" onClick={handleCancelGroup}>
-              <X className="w-3 h-3" />
+            <Button variant="ghost" size="sm" onClick={handleCancelGroup} className="h-8 text-xs">
+              <X className="w-3.5 h-3.5" />
             </Button>
-            <Button size="sm" onClick={handleSaveGroup}>
-              <Save className="w-3 h-3" />
+            <Button size="sm" onClick={handleSaveGroup} className="h-8 text-xs">
+              <Save className="w-3.5 h-3.5" />
             </Button>
           </div>
         ) : (
           <>
             <div 
-              className="flex-1 flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+              className="flex-1 flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity min-w-0"
               onClick={() => setIsEditingGroup(true)}
             >
-              <span className="text-lg">{group.emoji || (group.collapsed ? '📁' : '📂')}</span>
-              <span className="font-medium text-txt-main">{group.title}</span>
-              <span className="text-xs text-txt-dim">({group.links.length})</span>
+              {group.emoji && <span className="text-base shrink-0">{group.emoji}</span>}
+              <span className="font-bold text-sm text-txt-main truncate tracking-tight">{group.title}</span>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-brand/10 text-brand shrink-0">
+                {group.links.length}
+              </span>
             </div>
             
             <div className="flex items-center gap-1">
               <button
                 onClick={() => onToggleVisibility(group.id)}
-                className="p-1.5 rounded-lg hover:bg-card transition-colors"
+                className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors"
                 title={group.visible ? "Hide group" : "Show group"}
               >
                 {group.visible ? (
-                  <Eye className="w-4 h-4 text-txt-muted" />
+                  <Eye className="w-4 h-4" />
                 ) : (
-                  <EyeOff className="w-4 h-4 text-txt-dim" />
+                  <EyeOff className="w-4 h-4" />
                 )}
               </button>
               <button
                 onClick={() => onDeleteGroup(group.id)}
-                className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors group/delete"
-                title="Delete group (moves links to root)"
+                className="p-1.5 rounded-lg text-txt-dim hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                title="Delete group"
               >
-                <Trash2 className="w-4 h-4 text-txt-muted group-hover/delete:text-red-400" />
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </>
         )}
       </div>
 
-      {/* Group Links */}
       {!group.collapsed && (
-        <div className="p-3 pt-2 border-l-4 border-l-brand/20 ml-2">
+        <div className="p-3 space-y-2 bg-canvas/10">
           {group.links.length > 0 ? (
             <Reorder.Group
               axis="y"
@@ -346,24 +386,28 @@ function LinkGroupEditor({
               className="space-y-2"
             >
               <AnimatePresence mode="popLayout">
-                {group.links.map((link) => (
+                {group.links.map((link, idx) => (
                   <LinkEditorItem
                     key={link.id}
                     link={link}
+                    index={idx}
+                    totalCount={group.links.length}
                     onUpdate={onUpdateLink}
                     onDelete={onDeleteLink}
                     onToggleVisibility={onToggleVisibility}
                     onMoveToGroup={onMoveToGroup}
+                    onMoveUp={() => moveLinkInGroup(idx, 'up')}
+                    onMoveDown={() => moveLinkInGroup(idx, 'down')}
                     availableGroups={otherGroups}
                   />
                 ))}
               </AnimatePresence>
             </Reorder.Group>
           ) : (
-            <div className="text-center py-6 text-txt-dim text-sm border-2 border-dashed border-border rounded-lg">
-              <Folder className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>Empty group</p>
-              <p className="text-xs mt-1">Drag links here or use the move menu</p>
+            <div className="text-center py-6 text-txt-dim text-xs border border-dashed border-border rounded-xl">
+              <Folder className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
+              <p className="font-medium">Empty Group</p>
+              <p className="text-[11px] mt-0.5">Add links or use the move action to place links here</p>
             </div>
           )}
         </div>
@@ -377,9 +421,6 @@ interface AddLinkFormProps {
   onCancel: () => void;
 }
 
-/**
- * Form for adding a new link
- */
 function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
@@ -392,7 +433,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
     onAdd({
       title: title.trim(),
       url: url.trim(),
-      emoji: emoji || undefined,
+      emoji: emoji.trim() || undefined,
       visible: true,
       clicks: 0,
     });
@@ -404,26 +445,26 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
 
   return (
     <motion.form
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
       onSubmit={handleSubmit}
-      className="bg-card border border-brand/50 rounded-xl p-4 space-y-3"
+      className="bg-card border-2 border-brand/40 rounded-2xl p-4 space-y-3 shadow-elevated"
     >
       <div className="flex gap-2">
         <input
           type="text"
           value={emoji}
           onChange={(e) => setEmoji(e.target.value)}
-          placeholder="🔗"
-          className="w-12 h-10 px-2 text-center text-xl bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none"
+          placeholder="Icon"
+          className="w-16 h-10 px-2 text-center text-lg bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
         />
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Link title"
-          className="flex-1 h-10 px-3 bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none text-txt-main"
+          placeholder="Link title (e.g. My Portfolio)"
+          className="flex-1 h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
           autoFocus
         />
       </div>
@@ -431,15 +472,14 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
         type="url"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        placeholder="https://example.com"
-        className="w-full h-10 px-3 bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none text-txt-main"
+        placeholder="https://..."
+        className="w-full h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs font-mono"
       />
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+      <div className="flex justify-end gap-2 pt-1">
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
           Cancel
         </Button>
-        <Button type="submit" size="sm" disabled={!title.trim() || !url.trim()}>
-          <Plus className="w-4 h-4 mr-1" />
+        <Button type="submit" size="sm" disabled={!title.trim() || !url.trim()} className="text-xs" prefixIcon={<Plus className="w-3.5 h-3.5" />}>
           Add Link
         </Button>
       </div>
@@ -452,9 +492,6 @@ interface AddGroupFormProps {
   onCancel: () => void;
 }
 
-/**
- * Form for adding a new group
- */
 function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
   const [title, setTitle] = useState("");
   const [emoji, setEmoji] = useState("");
@@ -465,7 +502,7 @@ function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
     
     onAdd({
       title: title.trim(),
-      emoji: emoji || undefined,
+      emoji: emoji.trim() || undefined,
       collapsed: false,
       visible: true,
     });
@@ -476,11 +513,11 @@ function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
 
   return (
     <motion.form
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
       onSubmit={handleSubmit}
-      className="bg-card-hover border-2 border-dashed border-brand/50 rounded-xl p-4 space-y-3"
+      className="bg-card border-2 border-dashed border-brand/40 rounded-2xl p-4 space-y-3 shadow-elevated"
     >
       <div className="flex gap-2">
         <input
@@ -488,23 +525,22 @@ function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
           value={emoji}
           onChange={(e) => setEmoji(e.target.value)}
           placeholder="📁"
-          className="w-12 h-10 px-2 text-center text-xl bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none"
+          className="w-16 h-10 px-2 text-center text-lg bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
         />
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Group name"
-          className="flex-1 h-10 px-3 bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none text-txt-main"
+          placeholder="Group title (e.g. Socials, Projects)"
+          className="flex-1 h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
           autoFocus
         />
       </div>
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+      <div className="flex justify-end gap-2 pt-1">
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
           Cancel
         </Button>
-        <Button type="submit" size="sm" disabled={!title.trim()}>
-          <Folder className="w-4 h-4 mr-1" />
+        <Button type="submit" size="sm" disabled={!title.trim()} className="text-xs" prefixIcon={<Folder className="w-3.5 h-3.5" />}>
           Create Group
         </Button>
       </div>
@@ -528,9 +564,6 @@ interface LinkEditorV2Props {
   onReorderWithinGroup: (groupId: string, links: Link[]) => void;
 }
 
-/**
- * Enhanced link editor with group support
- */
 export function LinkEditorV2({
   links,
   isSaving,
@@ -559,7 +592,6 @@ export function LinkEditorV2({
     setShowAddGroupForm(false);
   };
 
-  // Separate root-level links from groups
   const rootLinks: Link[] = [];
   const groups: LinkGroup[] = [];
   
@@ -571,40 +603,87 @@ export function LinkEditorV2({
     }
   });
 
+  const moveRootLink = (index: number, direction: 'up' | 'down') => {
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= rootLinks.length) return;
+    const reordered = [...rootLinks];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(target, 0, moved);
+    onReorder([...reordered, ...groups]);
+  };
+
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-txt-main">Your Links</h2>
+      <div className="flex items-center justify-between pb-1">
+        <div>
+          <h2 className="text-base font-bold text-txt-main tracking-tight">Your Links &amp; Groups</h2>
+          <p className="text-xs text-txt-dim">Drag cards or use arrow buttons to organize your tree</p>
+        </div>
         {isSaving && (
-          <div className="flex items-center gap-2 text-sm text-brand">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Saving...</span>
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand/10 text-brand text-xs font-semibold animate-pulse">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span>Saved</span>
           </div>
         )}
       </div>
 
-      {/* Root Level Links */}
+      <AnimatePresence mode="wait">
+        {showAddForm ? (
+          <AddLinkForm 
+            key="link-form"
+            onAdd={handleAdd} 
+            onCancel={() => setShowAddForm(false)} 
+          />
+        ) : showAddGroupForm ? (
+          <AddGroupForm
+            key="group-form"
+            onAdd={handleAddGroup}
+            onCancel={() => setShowAddGroupForm(false)}
+          />
+        ) : (
+          <motion.div key="buttons" layout className="flex gap-2.5">
+            <Button
+              variant="outline"
+              className="flex-1 text-xs font-semibold py-2.5 rounded-xl border-dashed hover:border-brand"
+              onClick={() => setShowAddForm(true)}
+              prefixIcon={<Plus className="w-4 h-4" />}
+            >
+              Add Link
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 text-xs font-semibold py-2.5 rounded-xl border-dashed hover:border-brand"
+              onClick={() => setShowAddGroupForm(true)}
+              prefixIcon={<Folder className="w-4 h-4" />}
+            >
+              New Group
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {rootLinks.length > 0 && (
         <Reorder.Group
           axis="y"
           values={rootLinks}
           onReorder={(newOrder) => {
-            // Reconstruct full links array maintaining groups
-            const newLinks = [...newOrder, ...groups];
-            onReorder(newLinks);
+            onReorder([...newOrder, ...groups]);
           }}
-          className="space-y-2 w-full overflow-hidden"
+          className="space-y-2.5 w-full"
         >
           <AnimatePresence mode="popLayout">
-            {rootLinks.map((link) => (
+            {rootLinks.map((link, idx) => (
               <LinkEditorItem
                 key={link.id}
                 link={link}
+                index={idx}
+                totalCount={rootLinks.length}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
                 onToggleVisibility={onToggleVisibility}
                 onMoveToGroup={onMoveToGroup}
+                onMoveUp={() => moveRootLink(idx, 'up')}
+                onMoveDown={() => moveRootLink(idx, 'down')}
                 availableGroups={groups}
               />
             ))}
@@ -612,9 +691,8 @@ export function LinkEditorV2({
         </Reorder.Group>
       )}
 
-      {/* Groups */}
       {groups.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-3 pt-1">
           {groups.map((group) => (
             <LinkGroupEditor
               key={group.id}
@@ -633,48 +711,14 @@ export function LinkEditorV2({
         </div>
       )}
 
-      {/* Empty State */}
       {links.length === 0 && !showAddForm && !showAddGroupForm && (
-        <div className="text-center py-8 text-txt-muted">
-          <p>No links yet. Add your first link or create a group!</p>
+        <div className="text-center py-12 px-4 rounded-2xl border-2 border-dashed border-border bg-card/50">
+          <p className="text-sm font-semibold text-txt-main">No links yet</p>
+          <p className="text-xs text-txt-dim mt-1 max-w-xs mx-auto">
+            Click &quot;Add Link&quot; above to add your first destination or social profile.
+          </p>
         </div>
       )}
-
-      {/* Add Forms */}
-      <AnimatePresence mode="wait">
-        {showAddForm ? (
-          <AddLinkForm 
-            key="link-form"
-            onAdd={handleAdd} 
-            onCancel={() => setShowAddForm(false)} 
-          />
-        ) : showAddGroupForm ? (
-          <AddGroupForm
-            key="group-form"
-            onAdd={handleAddGroup}
-            onCancel={() => setShowAddGroupForm(false)}
-          />
-        ) : (
-          <motion.div key="buttons" layout className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setShowAddForm(true)}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Link
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => setShowAddGroupForm(true)}
-            >
-              <Folder className="w-4 h-4 mr-2" />
-              New Group
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

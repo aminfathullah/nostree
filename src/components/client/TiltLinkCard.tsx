@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, type MouseEvent, memo } from 'react';
+import { memo, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import type { Link } from '../../schemas/nostr';
 
@@ -15,10 +15,6 @@ interface TiltLinkCardProps {
   borderRadius: string;
 }
 
-/**
- * TiltLinkCard - Link card with 3D tilt effect on hover
- * Provides premium feel with perspective-based rotation
- */
 function TiltLinkCardComponent({
   link,
   index,
@@ -26,84 +22,58 @@ function TiltLinkCardComponent({
   cardBorder,
   cardHoverBg,
   cardHoverBorder,
-  fgColor,
   textColor,
   dimColor,
   borderRadius,
 }: TiltLinkCardProps) {
-  const ref = useRef<HTMLAnchorElement>(null);
-  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
   const [isHovered, setIsHovered] = useState(false);
-
-  const handleMouseMove = useCallback((e: MouseEvent<HTMLAnchorElement>) => {
-    if (!ref.current) return;
-
-    const rect = ref.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-
-    // Subtle tilt (max 5 degrees)
-    const rotateX = ((y - centerY) / centerY) * -5;
-    const rotateY = ((x - centerX) / centerX) * 5;
-
-    setTilt({ rotateX, rotateY, scale: 1.02 });
-  }, []);
-
-  const handleMouseEnter = useCallback(() => {
-    setIsHovered(true);
-    setTilt(prev => ({ ...prev, scale: 1.02 }));
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setIsHovered(false);
-    setTilt({ rotateX: 0, rotateY: 0, scale: 1 });
-  }, []);
 
   return (
     <a
-      ref={ref}
       href={link.url}
       target="_blank"
       rel="noopener noreferrer nofollow"
-      className="group block w-full p-4 animate-slide-up backdrop-blur-sm"
+      className="group relative block w-full px-5 py-4 animate-slide-up backdrop-blur-md transition-all duration-200 active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       style={{
         backgroundColor: isHovered ? cardHoverBg : cardBg,
         border: `1px solid ${isHovered ? cardHoverBorder : cardBorder}`,
         borderRadius: borderRadius,
-        animationDelay: `${150 + index * 60}ms`,
-        transform: `perspective(1000px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale(${tilt.scale})`,
-        transition: 'transform 300ms cubic-bezier(0.03, 0.98, 0.52, 0.99), background-color 200ms, border-color 200ms',
-        boxShadow: isHovered ? `0 12px 35px ${fgColor}20, 0 0 0 1px ${fgColor}05` : 'none',
+        animationDelay: `${Math.min(index * 40, 400)}ms`,
+        boxShadow: isHovered 
+          ? '0 12px 28px -6px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.06)' 
+          : '0 2px 6px rgba(0, 0, 0, 0.04)',
       }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex items-center gap-3">
-        {link.emoji && (
-          <span 
-            className="text-xl transition-transform duration-300"
-            style={{ transform: isHovered ? 'scale(1.15)' : 'scale(1)' }}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {link.emoji && (
+            <span className="text-xl shrink-0 transition-transform duration-200 group-hover:scale-110">
+              {link.emoji}
+            </span>
+          )}
+          <span
+            className="font-semibold text-sm sm:text-base tracking-tight truncate flex-1 text-left"
+            style={{ color: textColor }}
           >
-            {link.emoji}
+            {link.title}
           </span>
-        )}
-        <span
-          className="font-medium text-center flex-1"
-          style={{ color: textColor }}
-        >
-          {link.title}
-        </span>
-        <ExternalLink
-          className="w-4 h-4 transition-all duration-300"
+        </div>
+        <div 
+          className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
           style={{ 
-            color: dimColor,
-            opacity: isHovered ? 0.8 : 0.4,
-            transform: isHovered ? 'translateX(3px)' : 'translateX(0)',
+            backgroundColor: isHovered ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.04)',
           }}
-        />
+        >
+          <ExternalLink
+            className="w-3.5 h-3.5 transition-opacity duration-200"
+            style={{ 
+              color: dimColor,
+              opacity: isHovered ? 1 : 0.6,
+            }}
+          />
+        </div>
       </div>
     </a>
   );

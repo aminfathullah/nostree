@@ -8,14 +8,11 @@ interface ShareButtonProps {
   bgColor?: string;
 }
 
-/**
- * Floating share button with copy and QR code functionality
- */
 function ShareButtonComponent({ 
   url, 
   onQRClick,
-  primaryColor = '#5E47B8',
-  bgColor = '#ffffff'
+  primaryColor = '#6366f1',
+  bgColor = '#09090b'
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -26,7 +23,6 @@ function ShareButtonComponent({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = url;
       document.body.appendChild(textArea);
@@ -39,14 +35,11 @@ function ShareButtonComponent({
   }, [url]);
 
   const handleShare = useCallback(() => {
-    // Always show our custom menu instead of native share
     setShowMenu(prev => !prev);
   }, []);
 
-
   return (
-    <div className="fixed bottom-6 right-6 z-40">
-      {/* Menu */}
+    <div className="fixed bottom-5 right-5 z-40">
       {showMenu && (
         <>
           <div 
@@ -54,52 +47,51 @@ function ShareButtonComponent({
             onClick={() => setShowMenu(false)} 
           />
           <div 
-            className="absolute bottom-16 right-0 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50 animate-slide-up min-w-[180px]"
+            className="absolute bottom-14 right-0 glass-card bg-card/95 border border-border rounded-2xl shadow-elevated overflow-hidden z-50 animate-pop min-w-[170px] p-1.5 space-y-1"
           >
             <button
               onClick={() => { handleCopy(); setShowMenu(false); }}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-left text-xs font-medium text-txt-main active:scale-[0.98]"
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-green-600 font-medium">Copied!</span>
+                  <Check className="w-4 h-4 text-emerald-500" />
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Link2 className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-700">Copy link</span>
+                  <Link2 className="w-4 h-4 text-txt-muted" />
+                  <span>Copy Link</span>
                 </>
               )}
             </button>
             {onQRClick && (
               <button
                 onClick={() => { onQRClick(); setShowMenu(false); }}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left border-t border-gray-100"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-left text-xs font-medium text-txt-main active:scale-[0.98]"
               >
-                <QrCode className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-gray-700">Show QR code</span>
+                <QrCode className="w-4 h-4 text-txt-muted" />
+                <span>Show QR Code</span>
               </button>
             )}
           </div>
         </>
       )}
 
-      {/* Main Button */}
       <button
         onClick={handleShare}
-        className="w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+        className="w-11 h-11 rounded-full shadow-elevated flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-brand"
         style={{ 
           backgroundColor: primaryColor, 
-          color: bgColor,
-          boxShadow: `0 4px 20px ${primaryColor}40`
+          color: '#ffffff',
+          boxShadow: `0 8px 24px -4px ${primaryColor}60`
         }}
         aria-label="Share this page"
       >
         {copied ? (
-          <Check className="w-5 h-5 animate-bounce-in" />
+          <Check className="w-4 h-4 animate-pop" />
         ) : (
-          <Share2 className="w-5 h-5" />
+          <Share2 className="w-4 h-4" />
         )}
       </button>
     </div>

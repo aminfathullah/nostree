@@ -1,241 +1,309 @@
-import { Link, Navigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { motion } from 'motion/react'
-import { ArrowRight, Zap, Palette, Lock, Sparkles, Users, Globe } from 'lucide-react'
-import logo from '../assets/logo.png'
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { motion } from 'motion/react';
+import { 
+  ArrowRight, 
+  Zap, 
+  Palette, 
+  Lock, 
+  Sparkles, 
+  Layers, 
+  ExternalLink,
+  CheckCircle2,
+  Share2
+} from 'lucide-react';
+import logo from '../assets/logo.png';
 
-const features = [
+const bentoFeatures = [
   {
+    colSpan: "md:col-span-2",
     icon: Zap,
-    title: "Lightning Fast",
-    description: "Publish in seconds. Your links go live instantly on the Nostr network.",
-    color: "text-yellow-500",
-    bg: "bg-yellow-500/10",
+    title: "Sub-Second Performance",
+    description: "Engineered to load instantly with zero redirect delays. Your links render in under 300ms across the globe.",
+    badge: "Blazing Fast",
+    badgeColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
   },
   {
+    colSpan: "md:col-span-1",
     icon: Palette,
-    title: "16+ Themes",
-    description: "Choose from beautiful presets or create your own custom style.",
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
+    title: "16+ Curated Themes",
+    description: "From deep obsidian to crisp minimalist light, or tailor your exact palette with custom CSS tokens.",
+    badge: "Expressive",
+    badgeColor: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
   },
   {
+    colSpan: "md:col-span-1",
     icon: Lock,
-    title: "You Own It",
-    description: "Your data lives on Nostr. No middlemen, no lock-in, truly yours.",
-    color: "text-green-500",
-    bg: "bg-green-500/10",
+    title: "Zero Platform Lock-in",
+    description: "Never worry about a platform banning your account or locking your links behind $15/month paywalls.",
+    badge: "Yours Forever",
+    badgeColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
   },
-]
-
-const stats = [
-  { value: "∞", label: "Trees" },
-  { value: "16+", label: "Themes" },
-  { value: "0", label: "Fees" },
-]
+  {
+    colSpan: "md:col-span-2",
+    icon: Layers,
+    title: "Bento Folders & Groups",
+    description: "Group your projects, socials, articles, and recommendations into organized, collapsible Bento compartments.",
+    badge: "Smart Layout",
+    badgeColor: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+  },
+];
 
 export default function HomePage() {
-  const { pubkey, status } = useAuth()
-
-  if (pubkey && status === "authenticated") {
-    return <Navigate to="/admin" replace />
-  }
+  const { pubkey, status } = useAuth();
+  const isAuthenticated = Boolean(pubkey && status === "authenticated");
 
   return (
-    <main className="min-h-screen overflow-hidden bg-canvas">
-      <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-4 py-20">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand/20 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-orange-400/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+    <main className="min-h-screen bg-canvas text-txt-main overflow-x-hidden selection:bg-brand selection:text-brand-fg">
+      <nav className="sticky top-0 z-40 backdrop-blur-md bg-canvas/80 border-b border-border">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5">
+            <img src={logo} alt="Nostree Logo" className="w-8 h-8 object-contain" />
+            <span className="font-bold text-lg tracking-tight">Nostree</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            {isAuthenticated ? (
+              <Link
+                to="/admin"
+                className="text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl bg-brand text-brand-fg hover:bg-brand-hover shadow-sm transition-all active:scale-[0.98]"
+              >
+                Go to Editor
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl text-txt-muted hover:text-txt-main hover:bg-card transition-colors active:scale-[0.98]"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/admin"
+                  className="text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl bg-brand text-brand-fg hover:bg-brand-hover shadow-sm transition-all active:scale-[0.98]"
+                >
+                  Create Free Tree
+                </Link>
+              </>
+            )}
+          </div>
         </div>
+      </nav>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative z-10 text-center max-w-3xl"
-        >
+      <section className="relative pt-12 pb-20 sm:pt-20 sm:pb-28 px-4">
+        <div className="max-w-6xl mx-auto flex flex-col items-center text-center">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand/10 border border-brand/20 text-brand text-sm font-medium mb-8"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand/10 border border-brand/20 text-brand text-xs font-semibold mb-6 shadow-xs"
           >
-            <Sparkles className="w-4 h-4" />
-            <span>Powered by Nostr</span>
-          </motion.div>
-
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="mb-8 animate-float flex justify-center"
-          >
-            <img 
-              src={logo} 
-              alt="Nostree Logo" 
-              className="h-56 w-auto mx-auto object-contain drop-shadow-2xl filter" 
-            />
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>The Modern Link Organizer</span>
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-5xl md:text-7xl font-bold mb-6 tracking-tight"
+            transition={{ duration: 0.35, delay: 0.05 }}
+            className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight max-w-4xl leading-[1.1] mb-6"
           >
-            <span className="bg-gradient-to-r from-brand via-purple-500 to-brand bg-clip-text text-transparent animate-gradient">
-              Nostree
+            One link.{" "}
+            <span className="bg-gradient-to-r from-brand via-purple-500 to-accent bg-clip-text text-transparent">
+              Infinite expression.
             </span>
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-xl md:text-2xl text-txt-muted mb-4"
+            transition={{ duration: 0.35, delay: 0.1 }}
+            className="text-base sm:text-xl text-txt-muted max-w-2xl leading-relaxed mb-8"
           >
-            Your Nostr-powered link tree.
-          </motion.p>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="text-lg text-txt-dim mb-10"
-          >
-            Own your links. Own your graph. No middlemen.
+            Organize your projects, socials, and work in a stunning Bento-style link hub. Blazing fast, free forever, and owned completely by you.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            transition={{ duration: 0.35, delay: 0.15 }}
+            className="flex flex-col sm:flex-row gap-3.5 w-full sm:w-auto justify-center mb-16"
           >
             <Link
-              to={pubkey ? "/admin" : "/login"}
-              className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand hover:bg-brand-hover text-brand-fg font-semibold rounded-2xl transition-all shadow-lg hover:shadow-xl hover:shadow-brand/25"
+              to="/admin"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-brand hover:bg-brand-hover text-brand-fg font-semibold rounded-2xl shadow-elevated transition-all active:scale-[0.98] text-sm sm:text-base"
             >
-              <span>{pubkey ? "Go to Editor" : "Get Started Free"}</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <span>Build Your Free Page</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
-            
             <a
-              href="https://nostr.how/get-started"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-card hover:bg-card-hover border border-border hover:border-border-hover text-txt-main font-medium rounded-2xl transition-all"
+              href="#preview"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-card hover:bg-card-hover border border-border text-txt-main font-semibold rounded-2xl transition-all active:scale-[0.98] text-sm sm:text-base"
             >
-              <Globe className="w-5 h-5" />
-              <span>Learn about Nostr</span>
+              <span>Explore Features</span>
             </a>
           </motion.div>
-        </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="relative z-10 flex gap-12 mt-16"
-        >
-          {stats.map((stat, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 + i * 0.1 }}
-              className="text-center"
-            >
-              <div className="text-3xl font-bold text-brand">{stat.value}</div>
-              <div className="text-sm text-txt-muted">{stat.label}</div>
-            </motion.div>
-          ))}
-        </motion.div>
+          <motion.div
+            id="preview"
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.2 }}
+            className="w-full max-w-md mx-auto"
+          >
+            <div className="glass-card bg-card/90 rounded-[2.5rem] p-6 border border-border shadow-elevated text-left">
+              <div className="flex items-center justify-between pb-5 border-b border-border/60">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-brand/30 shadow-xs">
+                    <img
+                      src="https://api.dicebear.com/7.x/shapes/svg?seed=CreativeStudio"
+                      alt="Creator Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h2 className="font-bold text-sm sm:text-base text-txt-main tracking-tight">Alex Rivers</h2>
+                      <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded-full font-bold">PRO</span>
+                    </div>
+                    <p className="text-xs text-txt-dim">Product Designer &amp; Builder</p>
+                  </div>
+                </div>
+                <div className="p-2 rounded-xl bg-canvas border border-border text-txt-dim">
+                  <Share2 className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-5">
+                <a
+                  href="#preview"
+                  onClick={(e) => e.preventDefault()}
+                  className="group block p-3.5 rounded-2xl bg-canvas/70 hover:bg-card border border-border/80 hover:border-brand/40 shadow-xs transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg p-1.5 rounded-xl bg-card border border-border/60">🎨</span>
+                      <div>
+                        <p className="font-semibold text-xs sm:text-sm text-txt-main">Selected Design Portfolio 2026</p>
+                        <p className="text-[11px] text-txt-dim">Case studies, design systems, and apps</p>
+                      </div>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-txt-dim group-hover:text-brand transition-colors" />
+                  </div>
+                </a>
+
+                <a
+                  href="#preview"
+                  onClick={(e) => e.preventDefault()}
+                  className="group block p-3.5 rounded-2xl bg-canvas/70 hover:bg-card border border-border/80 hover:border-brand/40 shadow-xs transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg p-1.5 rounded-xl bg-card border border-border/60">🎙️</span>
+                      <div>
+                        <p className="font-semibold text-xs sm:text-sm text-txt-main">Design Engineering Podcast</p>
+                        <p className="text-[11px] text-txt-dim">Weekly episodes on UI micro-interactions</p>
+                      </div>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-txt-dim group-hover:text-brand transition-colors" />
+                  </div>
+                </a>
+
+                <a
+                  href="#preview"
+                  onClick={(e) => e.preventDefault()}
+                  className="group block p-3.5 rounded-2xl bg-canvas/70 hover:bg-card border border-border/80 hover:border-brand/40 shadow-xs transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg p-1.5 rounded-xl bg-card border border-border/60">⚡</span>
+                      <div>
+                        <p className="font-semibold text-xs sm:text-sm text-txt-main">Tip via Lightning Zap</p>
+                        <p className="text-[11px] text-txt-dim">Support my open source writings</p>
+                      </div>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-txt-dim group-hover:text-brand transition-colors" />
+                  </div>
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
-      <section className="relative py-20 px-4">
+      <section className="py-20 px-4 border-t border-border bg-card/40">
         <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-txt-main mb-4">
-              Why Nostree?
+          <div className="text-center mb-14">
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3">
+              Why Creators Choose Nostree
             </h2>
-            <p className="text-txt-muted text-lg max-w-2xl mx-auto">
-              Unlike traditional link-in-bio tools, Nostree gives you true ownership 
-              of your data through the decentralized Nostr protocol.
+            <p className="text-txt-muted text-sm sm:text-base max-w-xl mx-auto">
+              Everything you need to showcase your presence, without corporate gatekeeping or subscription fees.
             </p>
-          </motion.div>
+          </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {features.map((feature, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="group p-6 bg-card border border-border rounded-2xl hover:border-brand/30 hover:shadow-lg transition-all duration-300"
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {bentoFeatures.map((feat, idx) => (
+              <div
+                key={idx}
+                className={`${feat.colSpan} p-6 sm:p-7 rounded-3xl bg-card border border-border shadow-card hover:border-brand/40 transition-all flex flex-col justify-between`}
               >
-                <div className={`w-12 h-12 ${feature.bg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                <div>
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="w-10 h-10 rounded-2xl bg-brand/10 text-brand flex items-center justify-center">
+                      <feat.icon className="w-5 h-5" />
+                    </div>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${feat.badgeColor}`}>
+                      {feat.badge}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-txt-main mb-2 tracking-tight">
+                    {feat.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-txt-muted leading-relaxed">
+                    {feat.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold text-txt-main mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-txt-muted">
-                  {feature.description}
-                </p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="relative py-20 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="p-8 bg-gradient-to-br from-brand/10 via-purple-500/10 to-brand/5 rounded-3xl border border-brand/20"
-          >
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Users className="w-5 h-5 text-brand" />
-              <span className="text-sm font-medium text-brand">Built for the Nostr community</span>
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="p-8 sm:p-12 rounded-[2.5rem] bg-gradient-to-br from-brand/10 via-card to-purple-500/10 border border-brand/20 shadow-elevated text-center">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <CheckCircle2 className="w-5 h-5 text-brand" />
+              <span className="text-xs font-bold text-brand uppercase tracking-wider">Instant Setup</span>
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-txt-main mb-4">
-              Ready to own your links?
-            </h3>
-            <p className="text-txt-muted mb-6">
-              Join the growing community of creators using Nostr to take control of their online presence.
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-txt-main mb-3">
+              Your link hub is waiting.
+            </h2>
+            <p className="text-sm sm:text-base text-txt-muted max-w-lg mx-auto mb-8">
+              No complicated sign-up form. Open the editor, add your links, pick a theme, and publish in seconds.
             </p>
             <Link
-              to={pubkey ? "/admin" : "/login"}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-brand hover:bg-brand-hover text-brand-fg font-semibold rounded-2xl transition-all shadow-lg"
+              to="/admin"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-brand hover:bg-brand-hover text-brand-fg font-semibold rounded-2xl shadow-elevated transition-all active:scale-[0.98] text-sm sm:text-base"
             >
-              <span>Create Your Tree</span>
-              <ArrowRight className="w-5 h-5" />
+              <span>Create Your Free Page</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      <footer className="py-8 px-4 border-t border-border">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-txt-muted">
-            <img src={logo} alt="Nostree Logo" className="w-8 h-8 object-contain" />
-            <span className="font-medium">Nostree</span>
+      <footer className="py-8 px-4 border-t border-border text-xs text-txt-dim">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-txt-muted font-semibold">
+            <img src={logo} alt="Nostree Logo" className="w-6 h-6 object-contain" />
+            <span>Nostree</span>
           </div>
-          <p className="text-sm text-txt-dim">
-            Built with ❤️ for the Nostr ecosystem
+          <p>
+            Clean, decentralized link organizer for modern creators.
           </p>
         </div>
       </footer>
     </main>
-  )
+  );
 }

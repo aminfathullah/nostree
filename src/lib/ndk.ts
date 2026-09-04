@@ -134,7 +134,7 @@ export async function publishEvent(event: NDKEvent): Promise<PublishResult> {
   let syncAccepted = false;
 
   try {
-    const primaryRelay = ndk.pool.getRelayById(primaryRelayUrl);
+    const primaryRelay = (ndk.pool as any).getRelay?.(primaryRelayUrl) || ndk.pool.relays.get(primaryRelayUrl);
     if (primaryRelay) {
       await Promise.race([
         event.publish(new Set([primaryRelay]) as any),
@@ -147,7 +147,7 @@ export async function publishEvent(event: NDKEvent): Promise<PublishResult> {
   if (!syncAccepted) {
     try {
       const fallbackUrl = secondaryRelayUrls[0];
-      const fallbackRelay = fallbackUrl ? ndk.pool.getRelayById(fallbackUrl) : null;
+      const fallbackRelay = fallbackUrl ? ((ndk.pool as any).getRelay?.(fallbackUrl) || ndk.pool.relays.get(fallbackUrl)) : null;
       if (fallbackRelay) {
         await Promise.race([
           event.publish(new Set([fallbackRelay]) as any),
@@ -168,7 +168,7 @@ export async function publishEvent(event: NDKEvent): Promise<PublishResult> {
   (async () => {
     try {
       const asyncRelays = secondaryRelayUrls
-        .map(url => ndk.pool.getRelayById(url))
+        .map(url => (ndk.pool as any).getRelay?.(url) || ndk.pool.relays.get(url))
         .filter((r): r is NonNullable<typeof r> => Boolean(r));
 
       if (asyncRelays.length > 0) {
