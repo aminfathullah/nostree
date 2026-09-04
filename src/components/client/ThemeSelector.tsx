@@ -2,9 +2,6 @@ import { useState } from "react";
 import type { Theme } from "../../schemas/nostr";
 import { Check, Palette } from "lucide-react";
 
-/**
- * Predefined theme presets for Nostree trees
- */
 export const THEME_PRESETS: Record<string, Theme & { name: string; preview: string }> = {
   light: {
     name: "Light",
@@ -206,13 +203,9 @@ interface ThemeSelectorProps {
   disabled?: boolean;
 }
 
-/**
- * Theme selector component with predefined theme presets
- */
 export function ThemeSelector({ currentTheme, onThemeChange, disabled }: ThemeSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Find current theme preset key
   const currentPresetKey = Object.entries(THEME_PRESETS).find(
     ([_, preset]) => preset.colors.background === currentTheme?.colors.background
   )?.[0] || "light";
@@ -229,41 +222,38 @@ export function ThemeSelector({ currentTheme, onThemeChange, disabled }: ThemeSe
 
   return (
     <div className="relative">
-      {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg hover:border-border-hover transition-colors disabled:opacity-50"
+        className="flex items-center gap-2 px-3.5 py-1.5 bg-card border border-border rounded-xl hover:border-border-hover transition-colors disabled:opacity-50 shadow-xs cursor-pointer active:scale-[0.98]"
       >
-        <Palette className="w-4 h-4 text-txt-muted" />
-        <span className="text-sm font-medium text-txt-main">
-          {THEME_PRESETS[currentPresetKey]?.name || "Theme"}
+        <Palette className="w-3.5 h-3.5 text-txt-muted" />
+        <span className="text-xs font-semibold text-txt-main">
+          {THEME_PRESETS[currentPresetKey]?.name || "Tema"}
         </span>
       </button>
 
-      {/* Dropdown */}
       {isOpen && (
         <>
           <div 
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-xl shadow-xl z-50 p-4">
-            <h4 className="text-sm font-medium text-txt-main mb-3">Choose Theme</h4>
+          <div className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-2xl shadow-elevated z-50 p-4 animate-pop origin-top-left">
+            <h4 className="text-xs font-bold text-txt-main mb-3 uppercase tracking-wider">Pilih Tema</h4>
             
             <div className="grid grid-cols-4 gap-2">
               {Object.entries(THEME_PRESETS).map(([key, preset]) => (
                 <button
                   key={key}
                   onClick={() => handleSelectTheme(key)}
-                  className={`relative aspect-square rounded-lg border-2 transition-all overflow-hidden group ${
+                  className={`relative aspect-square rounded-xl border-2 transition-transform duration-150 overflow-hidden group cursor-pointer active:scale-[0.92] ${
                     currentPresetKey === key
                       ? "border-brand ring-2 ring-brand/20"
                       : "border-border hover:border-border-hover"
                   }`}
                   title={preset.name}
                 >
-                  {/* Color preview */}
                   <div 
                     className="absolute inset-0"
                     style={{ backgroundColor: preset.colors.background }}
@@ -286,7 +276,6 @@ export function ThemeSelector({ currentTheme, onThemeChange, disabled }: ThemeSe
                     </div>
                   </div>
                   
-                  {/* Check mark for selected */}
                   {currentPresetKey === key && (
                     <div className="absolute inset-0 flex items-center justify-center bg-brand/20">
                       <Check className="w-4 h-4 text-brand" />
@@ -296,8 +285,8 @@ export function ThemeSelector({ currentTheme, onThemeChange, disabled }: ThemeSe
               ))}
             </div>
 
-            <p className="text-xs text-txt-dim mt-3 text-center">
-              {THEME_PRESETS[currentPresetKey]?.name} theme selected
+            <p className="text-[11px] text-txt-dim mt-3 text-center">
+              Tema <span className="font-semibold text-txt-main">{THEME_PRESETS[currentPresetKey]?.name}</span> aktif
             </p>
           </div>
         </>

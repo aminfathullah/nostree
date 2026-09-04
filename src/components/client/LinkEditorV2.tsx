@@ -79,18 +79,19 @@ function LinkEditorItem({
     <Reorder.Item
       value={link}
       id={link.id}
-      className="relative group w-full"
+      className={`w-full ${isEditing ? 'relative z-30' : 'relative group'}`}
       whileDrag={{ scale: 1.01, boxShadow: "0 12px 32px rgba(0,0,0,0.15)" }}
     >
       <motion.div
         layout
         className={`
-          bg-card border rounded-2xl overflow-hidden transition-all duration-200
+          bg-card border rounded-2xl transition-colors duration-150 ease-out
+          ${isEditing ? 'relative z-30 ring-2 ring-brand/30' : ''}
           ${link.visible ? 'border-border shadow-card hover:border-border-hover' : 'border-border/40 opacity-50'}
         `}
       >
         <div className="flex items-stretch max-w-full">
-          <div className="flex flex-col items-center justify-center px-2 sm:px-2.5 bg-canvas/60 border-r border-border/80">
+          <div className="flex flex-col items-center justify-center px-2 sm:px-2.5 bg-canvas/60 border-r border-border/80 rounded-l-2xl">
             <div className="cursor-grab active:cursor-grabbing p-1 text-txt-dim hover:text-txt-main transition-colors">
               <GripVertical className="w-4 h-4" />
             </div>
@@ -99,9 +100,9 @@ function LinkEditorItem({
                 type="button"
                 onClick={onMoveUp}
                 disabled={index === 0}
-                className="p-0.5 text-txt-dim hover:text-txt-main disabled:opacity-20 disabled:hover:text-txt-dim transition-colors"
-                title="Move up"
-                aria-label="Move up"
+                className="p-0.5 text-txt-dim hover:text-txt-main disabled:opacity-20 disabled:hover:text-txt-dim transition-colors cursor-pointer active:scale-[0.92]"
+                title="Pindah ke atas"
+                aria-label="Pindah ke atas"
               >
                 <ChevronUp className="w-3 h-3" />
               </button>
@@ -109,9 +110,9 @@ function LinkEditorItem({
                 type="button"
                 onClick={onMoveDown}
                 disabled={index === totalCount - 1}
-                className="p-0.5 text-txt-dim hover:text-txt-main disabled:opacity-20 disabled:hover:text-txt-dim transition-colors"
-                title="Move down"
-                aria-label="Move down"
+                className="p-0.5 text-txt-dim hover:text-txt-main disabled:opacity-20 disabled:hover:text-txt-dim transition-colors cursor-pointer active:scale-[0.92]"
+                title="Pindah ke bawah"
+                aria-label="Pindah ke bawah"
               >
                 <ChevronDown className="w-3 h-3" />
               </button>
@@ -120,7 +121,15 @@ function LinkEditorItem({
 
           <div className="flex-1 min-w-0 p-3 sm:p-3.5">
             {isEditing ? (
-              <div className="space-y-2.5 animate-fade-in">
+              <div 
+                className="space-y-2.5 animate-fade-in"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    handleCancel();
+                  }
+                }}
+              >
                 <div className="flex gap-2 items-center">
                   <IconPickerDropdown
                     selectedIcon={icon}
@@ -139,6 +148,12 @@ function LinkEditorItem({
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSave();
+                      }
+                    }}
                     placeholder="Judul tautan"
                     className="flex-1 h-10 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
                     autoFocus
@@ -148,6 +163,12 @@ function LinkEditorItem({
                   type="text"
                   value={subtitle}
                   onChange={(e) => setSubtitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSave();
+                    }
+                  }}
                   placeholder="Subjudul / Keterangan (opsional, misal: Google Drive)"
                   className="w-full h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs"
                 />
@@ -155,6 +176,12 @@ function LinkEditorItem({
                   type="url"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSave();
+                    }
+                  }}
                   placeholder="https://example.com"
                   className="w-full h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs font-mono"
                 />
@@ -190,24 +217,24 @@ function LinkEditorItem({
                 <div className="relative">
                   <button
                     onClick={() => setShowMoveMenu(!showMoveMenu)}
-                    className="p-2 rounded-xl text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors"
-                    title="Move to group"
+                    className="p-2 rounded-xl text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors cursor-pointer active:scale-[0.92]"
+                    title="Pindah ke grup"
                   >
                     <Move className="w-4 h-4" />
                   </button>
                   {showMoveMenu && (
                     <>
                       <div className="fixed inset-0 z-30" onClick={() => setShowMoveMenu(false)} />
-                      <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-elevated py-1.5 z-40 min-w-[160px] animate-pop">
+                      <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-2xl shadow-elevated py-1.5 z-40 min-w-[160px] animate-pop origin-top-right">
                         <button
                           onClick={() => {
                             onMoveToGroup(link.id, null);
                             setShowMoveMenu(false);
                           }}
-                          className="w-full px-3 py-1.5 text-left text-xs hover:bg-card-hover transition-colors text-txt-main flex items-center gap-2"
+                          className="w-full px-3 py-1.5 text-left text-xs hover:bg-card-hover transition-colors text-txt-main flex items-center gap-2 cursor-pointer"
                         >
                           <CornerDownRight className="w-3.5 h-3.5 text-txt-dim" />
-                          <span>Root Level</span>
+                          <span>Level Utama (Root)</span>
                         </button>
                         {availableGroups.map((group) => (
                           <button
@@ -216,7 +243,7 @@ function LinkEditorItem({
                               onMoveToGroup(link.id, group.id);
                               setShowMoveMenu(false);
                             }}
-                            className="w-full px-3 py-1.5 text-left text-xs hover:bg-card-hover transition-colors text-txt-main flex items-center gap-2"
+                            className="w-full px-3 py-1.5 text-left text-xs hover:bg-card-hover transition-colors text-txt-main flex items-center gap-2 cursor-pointer"
                           >
                             <Folder className="w-3.5 h-3.5 text-brand" />
                             <span className="truncate">{group.title}</span>
@@ -229,8 +256,8 @@ function LinkEditorItem({
               )}
               <button
                 onClick={() => onToggleVisibility(link.id)}
-                className="p-2 rounded-xl text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors"
-                title={link.visible ? "Hide link" : "Show link"}
+                className="p-2 rounded-xl text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors cursor-pointer active:scale-[0.92]"
+                title={link.visible ? "Sembunyikan tautan" : "Tampilkan tautan"}
               >
                 {link.visible ? (
                   <Eye className="w-4 h-4" />
@@ -240,8 +267,8 @@ function LinkEditorItem({
               </button>
               <button
                 onClick={() => onDelete(link.id)}
-                className="p-2 rounded-xl text-txt-dim hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                title="Delete link"
+                className="p-2 rounded-xl text-txt-dim hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer active:scale-[0.92]"
+                title="Hapus tautan"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -312,11 +339,11 @@ function LinkGroupEditor({
     <motion.div
       layout
       className={`
-        bg-card border rounded-2xl overflow-hidden transition-all shadow-card
+        bg-card border rounded-2xl transition-all shadow-card
         ${group.visible ? 'border-border' : 'border-border/40 opacity-50'}
       `}
     >
-      <div className="flex items-center justify-between gap-2 p-3 bg-canvas/40 border-b border-border">
+      <div className="flex items-center justify-between gap-2 p-3 bg-canvas/40 border-b border-border rounded-t-2xl">
         <button
           onClick={() => onToggleCollapse(group.id)}
           className="p-1 rounded-lg text-brand hover:bg-brand/10 transition-colors"
@@ -469,7 +496,13 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       onSubmit={handleSubmit}
-      className="bg-card border-2 border-brand/40 rounded-2xl p-4 space-y-3 shadow-elevated"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          onCancel();
+        }
+      }}
+      className="bg-card border-2 border-brand/40 rounded-2xl p-4 space-y-3 shadow-elevated relative z-20"
     >
       <div className="flex gap-2 items-center">
         <IconPickerDropdown
@@ -550,6 +583,12 @@ function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       onSubmit={handleSubmit}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          onCancel();
+        }
+      }}
       className="bg-card border-2 border-dashed border-brand/40 rounded-2xl p-4 space-y-3 shadow-elevated"
     >
       <div className="flex gap-2">
@@ -564,17 +603,17 @@ function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Group title (e.g. Socials, Projects)"
+          placeholder="Nama grup (misal: Dokumentasi, Materi)"
           className="flex-1 h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
           autoFocus
         />
       </div>
       <div className="flex justify-end gap-2 pt-1">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
-          Cancel
+          Batal
         </Button>
         <Button type="submit" size="sm" disabled={!title.trim()} className="text-xs" prefixIcon={<Folder className="w-3.5 h-3.5" />}>
-          Create Group
+          Buat Grup
         </Button>
       </div>
     </motion.form>

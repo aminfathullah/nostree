@@ -4,15 +4,10 @@ import { Sun, Moon, Monitor } from 'lucide-react';
 
 type Theme = 'light' | 'dark' | 'system';
 
-/**
- * ThemeToggle - Animated theme switcher with system preference support
- * Persists preference to localStorage and syncs with system changes
- */
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>('system');
   const [mounted, setMounted] = useState(false);
 
-  // Initialize theme from localStorage on mount
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem('nostree-theme') as Theme | null;
@@ -22,7 +17,6 @@ export function ThemeToggle() {
     }
   }, []);
 
-  // Listen for system preference changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
@@ -40,7 +34,6 @@ export function ThemeToggle() {
     if (newTheme !== 'system') {
       root.classList.add(newTheme);
     }
-    // For system preference, we rely on the CSS media query
   };
 
   const cycleTheme = () => {
@@ -50,10 +43,9 @@ export function ThemeToggle() {
     applyTheme(next);
   };
 
-  // Prevent hydration mismatch
   if (!mounted) {
     return (
-      <button className="p-2 rounded-lg bg-card border border-border">
+      <button className="p-2 rounded-xl bg-card border border-border">
         <div className="w-4 h-4" />
       </button>
     );
@@ -64,7 +56,7 @@ export function ThemeToggle() {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={cycleTheme}
-      className="p-2 rounded-lg bg-card border border-border hover:bg-card-hover hover:border-border-hover transition-colors"
+      className="p-2 rounded-xl bg-card border border-border hover:bg-card-hover hover:border-border-hover transition-colors cursor-pointer shadow-xs"
       title={`Theme: ${theme} (click to change)`}
       aria-label={`Current theme: ${theme}. Click to change.`}
     >
@@ -88,3 +80,4 @@ export function ThemeToggle() {
 }
 
 export default ThemeToggle;
+
