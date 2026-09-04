@@ -47,6 +47,7 @@ function ShareButtonComponent({
             onClick={() => setShowMenu(false)} 
           />
           <div 
+            onClick={(e) => e.stopPropagation()}
             className="absolute bottom-14 right-0 glass-card bg-card/95 border border-border rounded-2xl shadow-elevated overflow-hidden z-50 animate-pop min-w-[170px] p-1.5 space-y-1"
           >
             <button

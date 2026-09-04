@@ -107,18 +107,35 @@ export function parseTreePath(path: string): {
 
 export async function fetchUserTrees(pubkey: string): Promise<UserTreeEntry[]> {
   const events = await fetchEventsWithTimeout({
-    kinds: [30078],
+    kinds: [5, 30078],
     authors: [pubkey],
   }, 1600, 60);
   
+  const deletedDTags = new Map<string, number>();
   const eventsByDTag = new Map<string, any>();
   
   for (const event of events) {
-    const dTag = event.tags.find((t: string[]) => t[0] === "d")?.[1];
-    if (dTag && isNostreeDTag(dTag)) {
-      const existing = eventsByDTag.get(dTag);
-      if (!existing || (event.created_at || 0) > (existing.created_at || 0)) {
-        eventsByDTag.set(dTag, event);
+    if (event.kind === 5) {
+      for (const tag of event.tags) {
+        if (tag[0] === "a") {
+          const parts = tag[1]?.split(":");
+          if (parts && parts[0] === "30078" && parts[1] === pubkey && parts[2]) {
+            const dTag = parts[2];
+            const existingTime = deletedDTags.get(dTag) || 0;
+            const eventTime = event.created_at || 0;
+            if (eventTime > existingTime) {
+              deletedDTags.set(dTag, eventTime);
+            }
+          }
+        }
+      }
+    } else if (event.kind === 30078) {
+      const dTag = event.tags.find((t: string[]) => t[0] === "d")?.[1];
+      if (dTag && isNostreeDTag(dTag)) {
+        const existing = eventsByDTag.get(dTag);
+        if (!existing || (event.created_at || 0) > (existing.created_at || 0)) {
+          eventsByDTag.set(dTag, event);
+        }
       }
     }
   }
@@ -126,6 +143,11 @@ export async function fetchUserTrees(pubkey: string): Promise<UserTreeEntry[]> {
   const trees: UserTreeEntry[] = [];
   
   for (const [dTag, event] of eventsByDTag.entries()) {
+    const deletionTime = deletedDTags.get(dTag);
+    if (deletionTime && (event.created_at || 0) <= deletionTime) {
+      continue;
+    }
+
     const slug = dTagToSlug(dTag);
     if (slug) {
       if (slug === "default") {
@@ -144,7 +166,9 @@ export async function fetchUserTrees(pubkey: string): Promise<UserTreeEntry[]> {
           }
           parsedData = data;
         }
-      } catch {}
+      } catch {
+        continue;
+      }
       
       trees.push({
         slug,

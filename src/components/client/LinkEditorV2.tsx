@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Reorder, AnimatePresence, motion } from "motion/react";
 import { 
   GripVertical, 
@@ -225,7 +226,10 @@ function LinkEditorItem({
                   {showMoveMenu && (
                     <>
                       <div className="fixed inset-0 z-30" onClick={() => setShowMoveMenu(false)} />
-                      <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-2xl shadow-elevated py-1.5 z-40 min-w-[160px] animate-pop origin-top-right">
+                      <div 
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute right-0 top-full mt-1 bg-card border border-border rounded-2xl shadow-elevated py-1.5 z-40 min-w-[160px] animate-pop origin-top-right"
+                      >
                         <button
                           onClick={() => {
                             onMoveToGroup(link.id, null);
@@ -306,6 +310,7 @@ function LinkGroupEditor({
   availableGroups = [],
 }: LinkGroupEditorProps) {
   const [isEditingGroup, setIsEditingGroup] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [title, setTitle] = useState(group.title);
   const [emoji, setEmoji] = useState(group.emoji || "");
 
@@ -406,9 +411,16 @@ function LinkGroupEditor({
                 )}
               </button>
               <button
-                onClick={() => onDeleteGroup(group.id)}
-                className="p-1.5 rounded-lg text-txt-dim hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                title="Delete group"
+                type="button"
+                onClick={() => {
+                  if (group.links.length > 0) {
+                    setConfirmDelete(true);
+                  } else {
+                    onDeleteGroup(group.id);
+                  }
+                }}
+                className="p-1.5 rounded-lg text-txt-dim hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer active:scale-[0.92]"
+                title="Hapus grup"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -452,6 +464,69 @@ function LinkGroupEditor({
             </div>
           )}
         </div>
+      )}
+
+      {confirmDelete && typeof document !== "undefined" && createPortal(
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+          onClick={() => setConfirmDelete(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-card border border-border rounded-2xl shadow-elevated overflow-hidden animate-pop"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                  <Trash2 className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-txt-main truncate">Hapus Grup?</h3>
+                  <p className="text-xs text-txt-muted truncate">{group.title}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card-hover transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5">
+              <p className="text-xs text-txt-muted leading-relaxed">
+                Grup ini berisi <span className="font-semibold text-txt-main">{group.links.length} tautan</span>. Menghapus grup ini juga akan menghapus seluruh tautan di dalamnya.
+              </p>
+            </div>
+            <div className="px-5 py-3.5 bg-canvas/60 border-t border-border flex items-center justify-end gap-2.5">
+              <Button
+                id="btn-cancel-delete-group"
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDelete(false)}
+                className="text-xs cursor-pointer"
+              >
+                Batal
+              </Button>
+              <Button
+                id="btn-confirm-delete-group"
+                type="button"
+                variant="solid"
+                size="sm"
+                onClick={() => {
+                  onDeleteGroup(group.id);
+                  setConfirmDelete(false);
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white text-xs cursor-pointer active:scale-[0.98]"
+                prefixIcon={<Trash2 className="w-3.5 h-3.5" />}
+              >
+                Hapus Grup
+              </Button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </motion.div>
   );

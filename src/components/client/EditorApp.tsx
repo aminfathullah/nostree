@@ -215,8 +215,12 @@ function KeyBackupModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+      onClick={onClose}
+    >
       <motion.div
+        onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -361,19 +365,34 @@ function EditorContent() {
     async function loadAdminData() {
       try {
         const events = await fetchEventsWithTimeout({
-          kinds: [0, 30078],
+          kinds: [0, 5, 30078],
           authors: [pubkey!],
         }, 2200, 70);
 
         if (!mounted) return;
 
         let latestProfileEvent: any = null;
+        const deletedDTags = new Map<string, number>();
         const eventsByDTag = new Map<string, any>();
 
         for (const event of events) {
           if (event.kind === 0) {
             if (!latestProfileEvent || (event.created_at || 0) > (latestProfileEvent.created_at || 0)) {
               latestProfileEvent = event;
+            }
+          } else if (event.kind === 5) {
+            for (const tag of event.tags) {
+              if (tag[0] === "a") {
+                const parts = tag[1]?.split(":");
+                if (parts && parts[0] === "30078" && parts[1] === pubkey && parts[2]) {
+                  const dTag = parts[2];
+                  const existingTime = deletedDTags.get(dTag) || 0;
+                  const eventTime = event.created_at || 0;
+                  if (eventTime > existingTime) {
+                    deletedDTags.set(dTag, eventTime);
+                  }
+                }
+              }
             }
           } else if (event.kind === 30078) {
             const dTag = event.tags.find((t: string[]) => t[0] === "d")?.[1];
@@ -403,6 +422,11 @@ function EditorContent() {
         const dataMap = new Map<string, NostreeData>();
 
         for (const [dTag, event] of eventsByDTag.entries()) {
+          const deletionTime = deletedDTags.get(dTag);
+          if (deletionTime && (event.created_at || 0) <= deletionTime) {
+            continue;
+          }
+
           const parsedSlug = dTagToSlug(dTag);
           if (parsedSlug && parsedSlug !== "default") {
             let treePayload: any = undefined;
@@ -413,7 +437,9 @@ function EditorContent() {
                 if (parsed?.links?.length === 0 && parsed?.treeMeta?.deletedAt !== undefined) continue;
                 treePayload = parsed;
                 dataMap.set(parsedSlug, parsed);
-              } catch {}
+              } catch {
+                continue;
+              }
             }
 
             userTrees.push({
@@ -529,6 +555,21 @@ function EditorContent() {
     setSlug(newSlug);
   };
 
+  const handleTreeDeleted = (deletedSlug: string) => {
+    setTrees(prev => {
+      const remaining = prev.filter(t => t.slug !== deletedSlug);
+      if (slug === deletedSlug) {
+        setSlug(remaining.length > 0 ? remaining[0].slug : null);
+      }
+      return remaining;
+    });
+    setTreesDataMap(prev => {
+      const next = new Map(prev);
+      next.delete(deletedSlug);
+      return next;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-border bg-card/85 backdrop-blur-md sticky top-0 z-40">
@@ -558,6 +599,7 @@ function EditorContent() {
               currentSlug={slug}
               onSlugChange={handleSlugChange}
               onTreeCreated={handleTreeCreated}
+              onTreeDeleted={handleTreeDeleted}
               forceOpen={openTreeSelector}
               onOpenChange={setOpenTreeSelector}
               trees={trees}
@@ -595,7 +637,10 @@ function EditorContent() {
                     className="fixed inset-0 z-40" 
                     onClick={() => setShowAccountMenu(false)} 
                   />
-                  <div className="absolute top-full right-0 mt-2 w-64 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden animate-pop">
+                  <div 
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute top-full right-0 mt-2 w-64 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden animate-pop"
+                  >
                     <div className="p-4 border-b border-border">
                       <div className="flex items-center gap-3 mb-2">
                         {profile.picture ? (

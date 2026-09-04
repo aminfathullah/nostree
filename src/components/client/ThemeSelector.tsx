@@ -239,7 +239,10 @@ export function ThemeSelector({ currentTheme, onThemeChange, disabled }: ThemeSe
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-2xl shadow-elevated z-50 p-4 animate-pop origin-top-left">
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-2xl shadow-elevated z-50 p-4 animate-pop origin-top-left"
+          >
             <h4 className="text-xs font-bold text-txt-main mb-3 uppercase tracking-wider">Pilih Tema</h4>
             
             <div className="grid grid-cols-4 gap-2">

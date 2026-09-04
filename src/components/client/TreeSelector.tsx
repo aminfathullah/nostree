@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { fetchUserTrees, slugToDTag, checkSlugAvailability } from "../../lib/slug-resolver";
 import { publishEvent, createNostreeEvent, createDeletionEvent } from "../../lib/ndk";
 import { Button } from "../ui/Button";
-import { Plus, ChevronDown, Trash2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
+import { Plus, ChevronDown, Trash2, Copy, Check, ExternalLink, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 export interface TreeInfo {
@@ -17,6 +18,7 @@ interface TreeSelectorProps {
   currentSlug: string | null;
   onSlugChange: (slug: string | null) => void;
   onTreeCreated?: (slug: string, newTreeData?: any) => void;
+  onTreeDeleted?: (slug: string) => void;
   forceOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   trees?: TreeInfo[];
@@ -28,6 +30,7 @@ export function TreeSelector({
   currentSlug, 
   onSlugChange, 
   onTreeCreated, 
+  onTreeDeleted,
   forceOpen, 
   onOpenChange,
   trees: propTrees,
@@ -40,6 +43,8 @@ export function TreeSelector({
   const [newSlug, setNewSlug] = useState("");
   const [slugError, setSlugError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [treeToDelete, setTreeToDelete] = useState<string | null>(null);
+  const [isDeletingTree, setIsDeletingTree] = useState(false);
 
   const trees = propTrees !== undefined ? propTrees : internalTrees;
   const isLoading = propIsLoading !== undefined ? propIsLoading : internalLoading;
@@ -207,29 +212,26 @@ export function TreeSelector({
     toast.success("URL copied!");
   };
 
-  const handleDeleteTree = (slug: string) => {
-    if (!window.confirm(`Delete tree "/${slug}"? This will permanently remove all links in this tree.`)) {
-      return;
-    }
-    
-    setInternalTrees(prev => prev.filter(t => t.slug !== slug));
-    
-    if (slug === currentSlug) {
-      const remaining = trees.filter(t => t.slug !== slug);
-      const nextSlug = remaining.length > 0 ? remaining[0].slug : null;
-      onSlugChange(nextSlug);
-    }
-    
-    toast.success(`Tree "/${slug}" deleted`);
-    
+  const executeDeleteTree = async (slug: string) => {
+    setIsDeletingTree(true);
     try {
+      setInternalTrees(prev => prev.filter(t => t.slug !== slug));
+      onTreeDeleted?.(slug);
+      
+      if (slug === currentSlug) {
+        const remaining = trees.filter(t => t.slug !== slug);
+        const nextSlug = remaining.length > 0 ? remaining[0].slug : null;
+        onSlugChange(nextSlug);
+      }
+      
       const dTag = slugToDTag(slug);
+      const now = Math.floor(Date.now() / 1000);
       const emptyData = {
         version: "2.0" as const,
         treeMeta: {
           slug,
           isDefault: false,
-          deletedAt: Math.floor(Date.now() / 1000),
+          deletedAt: now,
         },
         links: [],
         socials: [],
@@ -246,13 +248,22 @@ export function TreeSelector({
       };
       
       const event = createNostreeEvent(emptyData, pubkey, dTag);
-      publishEvent(event).catch(err => {
-        console.error("Failed to publish tree deletion:", err);
-      });
+      event.created_at = now;
       const delEvent = createDeletionEvent(pubkey, dTag);
-      publishEvent(delEvent).catch(() => {});
+      delEvent.created_at = now;
+
+      await Promise.allSettled([
+        publishEvent(event),
+        publishEvent(delEvent)
+      ]);
+
+      toast.success(`Halaman "/${slug}" berhasil dihapus`);
     } catch (err) {
-      console.error("Failed to create delete event:", err);
+      console.error("Failed to delete tree:", err);
+      toast.error("Gagal menghapus halaman");
+    } finally {
+      setIsDeletingTree(false);
+      setTreeToDelete(null);
     }
   };
 
@@ -271,6 +282,7 @@ export function TreeSelector({
     <div className="relative">
       <div className="flex items-center gap-1.5">
         <button
+          type="button"
           onClick={() => handleDropdownChange(!isDropdownOpen)}
           className="flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-xl hover:border-border-hover transition-colors shadow-xs cursor-pointer active:scale-[0.98]"
         >
@@ -281,6 +293,7 @@ export function TreeSelector({
         {currentSlug && (
           <>
             <button
+              type="button"
               onClick={handleCopyUrl}
               className="p-2 bg-card border border-border rounded-xl hover:border-border-hover transition-colors shadow-xs cursor-pointer active:scale-[0.95]"
               title="Salin tautan publik"
@@ -311,7 +324,10 @@ export function TreeSelector({
             className="fixed inset-0 z-40" 
             onClick={() => handleDropdownChange(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden animate-pop origin-top-left">
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden animate-pop origin-top-left"
+          >
             <div className="max-h-56 overflow-y-auto p-1.5 space-y-0.5">
               {trees.map((tree) => (
                 <div
@@ -321,6 +337,7 @@ export function TreeSelector({
                   }`}
                 >
                   <button
+                    type="button"
                     onClick={() => {
                       onSlugChange(tree.slug);
                       handleDropdownChange(false);
@@ -335,10 +352,11 @@ export function TreeSelector({
                     )}
                   </button>
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      handleDeleteTree(tree.slug);
+                      setTreeToDelete(tree.slug);
                       handleDropdownChange(false);
                     }}
                     className="p-1.5 rounded-lg hover:bg-red-500/15 transition-colors cursor-pointer group active:scale-[0.92]"
@@ -355,6 +373,7 @@ export function TreeSelector({
             {!isCreating ? (
               <div className="p-1.5">
                 <button
+                  type="button"
                   onClick={() => setIsCreating(true)}
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left hover:bg-card-hover transition-colors text-brand text-xs font-semibold cursor-pointer active:scale-[0.98]"
                 >
@@ -416,6 +435,74 @@ export function TreeSelector({
             )}
           </div>
         </>
+      )}
+
+      {treeToDelete && typeof document !== "undefined" && createPortal(
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+          onClick={() => !isDeletingTree && setTreeToDelete(null)}
+        >
+          <div
+            className="w-full max-w-md bg-card border border-border rounded-2xl shadow-elevated overflow-hidden animate-pop"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+                  <Trash2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-txt-main">Hapus Halaman Tautan?</h3>
+                  <p className="text-xs font-mono text-txt-muted">/{treeToDelete}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={isDeletingTree}
+                onClick={() => setTreeToDelete(null)}
+                className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card-hover transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-3">
+              <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-600 dark:text-red-400 space-y-1">
+                <p className="font-semibold">Tindakan ini permanen di jaringan Nostr</p>
+                <p className="text-txt-muted leading-relaxed">
+                  Semua tautan dan konfigurasi pada halaman ini akan dihapus. Setelah dihapus, nama slug <span className="font-mono font-semibold text-txt-main">/{treeToDelete}</span> akan dilepaskan dan dapat didaftarkan kembali.
+                </p>
+              </div>
+            </div>
+
+            <div className="px-5 py-3.5 bg-canvas/60 border-t border-border flex items-center justify-end gap-2.5">
+              <Button
+                id="btn-cancel-delete-tree"
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isDeletingTree}
+                onClick={() => setTreeToDelete(null)}
+                className="text-xs cursor-pointer"
+              >
+                Batal
+              </Button>
+              <Button
+                id="btn-confirm-delete-tree"
+                type="button"
+                variant="solid"
+                size="sm"
+                disabled={isDeletingTree}
+                onClick={() => executeDeleteTree(treeToDelete)}
+                className="bg-red-600 hover:bg-red-700 text-white text-xs cursor-pointer active:scale-[0.98]"
+                prefixIcon={isDeletingTree ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+              >
+                {isDeletingTree ? "Menghapus..." : "Hapus Halaman"}
+              </Button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

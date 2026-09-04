@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Image, Upload, Link, X, ImagePlus } from "lucide-react";
+import { toast } from "sonner";
 
 interface HeaderImageEditorProps {
   currentImage: string | undefined;
@@ -7,9 +8,6 @@ interface HeaderImageEditorProps {
   disabled?: boolean;
 }
 
-/**
- * Editor for header/banner image displayed above the profile
- */
 export function HeaderImageEditor({ currentImage, onImageChange, disabled }: HeaderImageEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
@@ -29,12 +27,12 @@ export function HeaderImageEditor({ currentImage, onImageChange, disabled }: Hea
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Please select an image file");
+      toast.error("Please select an image file");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image must be less than 5MB");
+      toast.error("Image must be less than 5MB");
       return;
     }
 
@@ -49,12 +47,12 @@ export function HeaderImageEditor({ currentImage, onImageChange, disabled }: Hea
         setIsOpen(false);
       };
       reader.onerror = () => {
-        alert("Failed to read image file");
+        toast.error("Failed to read image file");
         setIsUploading(false);
       };
       reader.readAsDataURL(file);
     } catch {
-      alert("Failed to upload image");
+      toast.error("Failed to upload image");
       setIsUploading(false);
     }
   };
@@ -66,11 +64,11 @@ export function HeaderImageEditor({ currentImage, onImageChange, disabled }: Hea
 
   return (
     <div className="relative">
-      {/* Toggle Button */}
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg hover:border-border-hover transition-colors disabled:opacity-50"
+        className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg hover:border-border-hover transition-colors disabled:opacity-50 cursor-pointer active:scale-[0.98]"
         title="Add header image"
       >
         <ImagePlus className="w-4 h-4 text-txt-muted" />
@@ -82,14 +80,16 @@ export function HeaderImageEditor({ currentImage, onImageChange, disabled }: Hea
         )}
       </button>
 
-      {/* Dropdown Panel */}
       {isOpen && (
         <>
           <div 
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-80 bg-card border border-border rounded-xl shadow-xl z-50 p-4">
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-full left-0 mt-2 w-80 bg-card border border-border rounded-xl shadow-xl z-50 p-4 animate-pop origin-top-left"
+          >
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-sm font-medium text-txt-main flex items-center gap-2">
                 <Image className="w-4 h-4" />
@@ -97,8 +97,9 @@ export function HeaderImageEditor({ currentImage, onImageChange, disabled }: Hea
               </h4>
               {currentImage && (
                 <button
+                  type="button"
                   onClick={handleRemove}
-                  className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
+                  className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                   Remove
@@ -106,7 +107,6 @@ export function HeaderImageEditor({ currentImage, onImageChange, disabled }: Hea
               )}
             </div>
 
-            {/* Current Image Preview */}
             {currentImage && (
               <div className="mb-4">
                 <img 
@@ -117,7 +117,6 @@ export function HeaderImageEditor({ currentImage, onImageChange, disabled }: Hea
               </div>
             )}
 
-            {/* Image URL Input */}
             <div className="mb-3">
               <label className="text-xs text-txt-muted mb-1.5 flex items-center gap-1">
                 <Link className="w-3 h-3" />
@@ -132,23 +131,22 @@ export function HeaderImageEditor({ currentImage, onImageChange, disabled }: Hea
                   className="flex-1 px-3 py-2 text-sm bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none"
                 />
                 <button
+                  type="button"
                   onClick={handleImageUrlSubmit}
                   disabled={!imageUrl.trim()}
-                  className="px-3 py-2 bg-brand text-brand-fg text-sm font-medium rounded-lg hover:bg-brand-hover transition-colors disabled:opacity-50"
+                  className="px-3 py-2 bg-brand text-brand-fg text-sm font-medium rounded-lg hover:bg-brand-hover transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   Set
                 </button>
               </div>
             </div>
 
-            {/* Divider */}
             <div className="flex items-center gap-3 my-3">
               <div className="flex-1 h-px bg-border" />
               <span className="text-xs text-txt-dim">or</span>
               <div className="flex-1 h-px bg-border" />
             </div>
 
-            {/* File Upload */}
             <div>
               <input
                 ref={fileInputRef}
@@ -158,9 +156,10 @@ export function HeaderImageEditor({ currentImage, onImageChange, disabled }: Hea
                 className="hidden"
               />
               <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="w-full p-3 border-2 border-dashed border-border rounded-lg hover:border-brand hover:bg-brand/5 transition-all text-center"
+                className="w-full p-3 border-2 border-dashed border-border rounded-lg hover:border-brand hover:bg-brand/5 transition-all text-center cursor-pointer"
               >
                 {isUploading ? (
                   <span className="text-sm text-txt-muted">Uploading...</span>

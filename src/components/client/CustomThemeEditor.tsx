@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import type { Theme, Radius, Font } from "../../schemas/nostr";
 import { Sliders, RotateCcw, Type, Paintbrush, Sparkles, Image, Upload, Link, X } from "lucide-react";
+import { toast } from "sonner";
 import { THEME_PRESETS } from "./ThemeSelector";
 
 interface CustomThemeEditorProps {
@@ -73,12 +74,12 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Please select an image file");
+      toast.error("Please select an image file");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image must be less than 5MB");
+      toast.error("Image must be less than 5MB");
       return;
     }
 
@@ -92,12 +93,12 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
         setIsUploading(false);
       };
       reader.onerror = () => {
-        alert("Failed to read image file");
+        toast.error("Failed to read image file");
         setIsUploading(false);
       };
       reader.readAsDataURL(file);
     } catch {
-      alert("Failed to upload image");
+      toast.error("Failed to upload image");
       setIsUploading(false);
     }
   };
@@ -132,7 +133,10 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full right-0 mt-2 w-80 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden max-h-[80vh] overflow-y-auto origin-top-right animate-pop">
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-full right-0 mt-2 w-80 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden max-h-[80vh] overflow-y-auto origin-top-right animate-pop"
+          >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border sticky top-0 bg-card/95 backdrop-blur-md z-10">
               <h4 className="text-xs font-semibold text-txt-main uppercase tracking-wider">Customize Appearance</h4>
               <button

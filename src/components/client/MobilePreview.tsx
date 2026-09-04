@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import type { Link, NostreeData } from "../../schemas/nostr";
 import { BadgeCheck, ExternalLink, Camera, ImagePlus, Pencil, Upload, X } from "lucide-react";
+import { toast } from "sonner";
 import { LinkItemIcon } from "./LinkItemIcon";
 
 interface MobilePreviewProps {
@@ -45,7 +46,7 @@ function ImageEditorPopup({
     if (!file) return;
     if (!file.type.startsWith("image/")) return;
     if (file.size > maxSize * 1024 * 1024) {
-      alert(`Image must be less than ${maxSize}MB`);
+      toast.error(`Image must be less than ${maxSize}MB`);
       return;
     }
     setIsUploading(true);
@@ -64,7 +65,10 @@ function ImageEditorPopup({
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs" onClick={onClose} />
-      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-card border border-border rounded-2xl shadow-elevated z-50 p-4 animate-pop">
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-card border border-border rounded-2xl shadow-elevated z-50 p-4 animate-pop"
+      >
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-semibold text-txt-main">{title}</span>
           {currentImage && (
