@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import type { Link, NostreeData } from "../../schemas/nostr";
 import { BadgeCheck, ExternalLink, Camera, ImagePlus, Pencil, Upload, X } from "lucide-react";
+import { LinkItemIcon } from "./LinkItemIcon";
 
 interface MobilePreviewProps {
   profile: {
@@ -316,7 +317,7 @@ export function MobilePreview({
               {visibleLinks.map((link) => (
                 <div
                   key={link.id}
-                  className="w-full px-4 py-3 font-semibold text-xs transition-all flex items-center justify-between shadow-xs"
+                  className="w-full px-3 py-2.5 font-semibold text-xs transition-all flex items-center justify-between shadow-xs text-left"
                   style={{
                     backgroundColor: isBackgroundImage ? "rgba(255,255,255,0.12)" : `${fgColor}0a`,
                     color: textColor,
@@ -325,18 +326,25 @@ export function MobilePreview({
                     backdropFilter: "blur(8px)",
                   }}
                 >
-                  <span className="flex items-center gap-2 truncate">
-                    {link.emoji && <span className="text-sm">{link.emoji}</span>}
-                    <span className="truncate">{link.title}</span>
-                  </span>
-                  <ExternalLink className="w-3 h-3 opacity-40 shrink-0 ml-1" />
+                  <div className="flex items-center gap-2.5 truncate min-w-0 flex-1">
+                    <LinkItemIcon icon={link.icon} emoji={link.emoji} url={link.url} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <span className="truncate block">{link.title}</span>
+                      {link.subtitle && (
+                        <span className="text-[10px] opacity-70 truncate block font-normal leading-tight mt-0.5">
+                          {link.subtitle}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <ExternalLink className="w-3 h-3 opacity-40 shrink-0 ml-1.5" />
                 </div>
               ))}
             </div>
 
             {socials.length > 0 && (
               <div className="flex justify-center gap-2 pt-3 flex-wrap">
-                {socials.map((social, i) => (
+                {socials.map((_social, i) => (
                   <div
                     key={i}
                     className="w-8 h-8 rounded-lg flex items-center justify-center shadow-xs"

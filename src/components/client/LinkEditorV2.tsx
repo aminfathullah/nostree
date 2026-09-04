@@ -7,7 +7,6 @@ import {
   Trash2, 
   Eye, 
   EyeOff, 
-  ExternalLink,
   Loader2,
   Save,
   X,
@@ -20,6 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import type { Link, LinkItem, LinkGroup } from "../../schemas/nostr";
+import { LinkItemIcon, IconPickerDropdown } from "./LinkItemIcon";
 
 interface LinkEditorItemProps {
   link: Link;
@@ -49,14 +49,18 @@ function LinkEditorItem({
   const [isEditing, setIsEditing] = useState(false);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
   const [title, setTitle] = useState(link.title);
+  const [subtitle, setSubtitle] = useState(link.subtitle || "");
   const [url, setUrl] = useState(link.url);
+  const [icon, setIcon] = useState<string | undefined>(link.icon);
   const [emoji, setEmoji] = useState(link.emoji || "");
 
   const handleSave = () => {
     onUpdate({
       ...link,
       title: title.trim() || link.title,
+      subtitle: subtitle.trim() || undefined,
       url: url.trim() || link.url,
+      icon: icon || undefined,
       emoji: emoji.trim() || undefined,
     });
     setIsEditing(false);
@@ -64,7 +68,9 @@ function LinkEditorItem({
 
   const handleCancel = () => {
     setTitle(link.title);
+    setSubtitle(link.subtitle || "");
     setUrl(link.url);
+    setIcon(link.icon);
     setEmoji(link.emoji || "");
     setIsEditing(false);
   };
@@ -115,23 +121,36 @@ function LinkEditorItem({
           <div className="flex-1 min-w-0 p-3 sm:p-3.5">
             {isEditing ? (
               <div className="space-y-2.5 animate-fade-in">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={emoji}
-                    onChange={(e) => setEmoji(e.target.value)}
-                    placeholder="Icon"
-                    className="w-14 h-9 px-2 text-center text-lg bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
+                <div className="flex gap-2 items-center">
+                  <IconPickerDropdown
+                    selectedIcon={icon}
+                    selectedEmoji={emoji}
+                    url={url}
+                    onSelectIcon={(i) => {
+                      setIcon(i);
+                      if (i) setEmoji("");
+                    }}
+                    onSelectEmoji={(em) => {
+                      setEmoji(em || "");
+                      if (em) setIcon(undefined);
+                    }}
                   />
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Link title"
-                    className="flex-1 h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
+                    placeholder="Judul tautan"
+                    className="flex-1 h-10 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
                     autoFocus
                   />
                 </div>
+                <input
+                  type="text"
+                  value={subtitle}
+                  onChange={(e) => setSubtitle(e.target.value)}
+                  placeholder="Subjudul / Keterangan (opsional, misal: Google Drive)"
+                  className="w-full h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs"
+                />
                 <input
                   type="url"
                   value={url}
@@ -141,30 +160,25 @@ function LinkEditorItem({
                 />
                 <div className="flex justify-end gap-2 pt-1">
                   <Button variant="ghost" size="sm" onClick={handleCancel} className="text-xs h-8">
-                    Cancel
+                    Batal
                   </Button>
                   <Button size="sm" onClick={handleSave} className="text-xs h-8" prefixIcon={<Save className="w-3.5 h-3.5" />}>
-                    Save
+                    Simpan
                   </Button>
                 </div>
               </div>
             ) : (
               <div 
-                className="flex items-center gap-3 cursor-pointer hover:opacity-90 rounded-xl p-1 transition-opacity w-full"
+                className="flex items-center gap-3 cursor-pointer hover:opacity-90 rounded-xl p-1 transition-opacity w-full text-left"
                 onClick={() => setIsEditing(true)}
               >
-                {link.emoji ? (
-                  <span className="text-xl shrink-0 p-1.5 rounded-xl bg-canvas border border-border/60">
-                    {link.emoji}
-                  </span>
-                ) : (
-                  <div className="w-8 h-8 rounded-xl bg-canvas border border-border/60 flex items-center justify-center shrink-0">
-                    <ExternalLink className="w-3.5 h-3.5 text-txt-dim" />
-                  </div>
-                )}
+                <LinkItemIcon icon={link.icon} emoji={link.emoji} url={link.url} size="md" />
                 <div className="w-0 flex-grow overflow-hidden">
                   <p className="font-semibold text-sm text-txt-main truncate tracking-tight">{link.title}</p>
-                  <p className="text-xs text-txt-dim truncate font-mono mt-0.5">{link.url}</p>
+                  {link.subtitle && (
+                    <p className="text-xs text-txt-dim truncate mt-0.5">{link.subtitle}</p>
+                  )}
+                  <p className="text-[11px] text-txt-dim/70 truncate font-mono mt-0.5">{link.url}</p>
                 </div>
               </div>
             )}
@@ -423,7 +437,9 @@ interface AddLinkFormProps {
 
 function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
   const [title, setTitle] = useState("");
+  const [subtitle, setSubtitle] = useState("");
   const [url, setUrl] = useState("");
+  const [icon, setIcon] = useState<string | undefined>();
   const [emoji, setEmoji] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -432,14 +448,18 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
     
     onAdd({
       title: title.trim(),
+      subtitle: subtitle.trim() || undefined,
       url: url.trim(),
+      icon: icon || undefined,
       emoji: emoji.trim() || undefined,
       visible: true,
       clicks: 0,
     });
     
     setTitle("");
+    setSubtitle("");
     setUrl("");
+    setIcon(undefined);
     setEmoji("");
   };
 
@@ -451,23 +471,36 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
       onSubmit={handleSubmit}
       className="bg-card border-2 border-brand/40 rounded-2xl p-4 space-y-3 shadow-elevated"
     >
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={emoji}
-          onChange={(e) => setEmoji(e.target.value)}
-          placeholder="Icon"
-          className="w-16 h-10 px-2 text-center text-lg bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
+      <div className="flex gap-2 items-center">
+        <IconPickerDropdown
+          selectedIcon={icon}
+          selectedEmoji={emoji}
+          url={url}
+          onSelectIcon={(i) => {
+            setIcon(i);
+            if (i) setEmoji("");
+          }}
+          onSelectEmoji={(em) => {
+            setEmoji(em || "");
+            if (em) setIcon(undefined);
+          }}
         />
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Link title (e.g. My Portfolio)"
+          placeholder="Judul tautan (misal: Folder Dokumen Tim)"
           className="flex-1 h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
           autoFocus
         />
       </div>
+      <input
+        type="text"
+        value={subtitle}
+        onChange={(e) => setSubtitle(e.target.value)}
+        placeholder="Subjudul / Keterangan (opsional, misal: Google Drive)"
+        className="w-full h-9 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs"
+      />
       <input
         type="url"
         value={url}
@@ -477,10 +510,10 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
       />
       <div className="flex justify-end gap-2 pt-1">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
-          Cancel
+          Batal
         </Button>
         <Button type="submit" size="sm" disabled={!title.trim() || !url.trim()} className="text-xs" prefixIcon={<Plus className="w-3.5 h-3.5" />}>
-          Add Link
+          Tambah Tautan
         </Button>
       </div>
     </motion.form>

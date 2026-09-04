@@ -54,16 +54,11 @@ export const RadiusEnum = z.enum(["0", "0.5rem", "1rem", "9999px"]);
  * Individual link schema
  */
 export const LinkSchema = z.object({
-  /** Unique identifier for the link */
   id: z.string().uuid(),
-  
-  /** Display title for the link */
   title: z.string().min(1, "Title is required").max(64, "Title too long"),
-  
-  /** Destination URL */
+  subtitle: z.string().max(128, "Subtitle too long").optional(),
   url: z.string().url("Invalid URL format"),
-  
-  /** Optional emoji icon */
+  icon: z.string().optional(),
   emoji: z.string().optional(),
   
   /** Whether the link is visible on the public profile */

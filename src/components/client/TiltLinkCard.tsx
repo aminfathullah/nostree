@@ -1,6 +1,7 @@
 import { memo, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import type { Link } from '../../schemas/nostr';
+import { LinkItemIcon } from './LinkItemIcon';
 
 interface TiltLinkCardProps {
   link: Link;
@@ -33,7 +34,7 @@ function TiltLinkCardComponent({
       href={link.url}
       target="_blank"
       rel="noopener noreferrer nofollow"
-      className="group relative block w-full px-5 py-4 animate-slide-up backdrop-blur-md transition-all duration-200 active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+      className="group relative block w-full px-4 py-3 sm:px-5 sm:py-3.5 animate-slide-up backdrop-blur-md transition-all duration-200 active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       style={{
         backgroundColor: isHovered ? cardHoverBg : cardBg,
         border: `1px solid ${isHovered ? cardHoverBorder : cardBorder}`,
@@ -47,18 +48,29 @@ function TiltLinkCardComponent({
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          {link.emoji && (
-            <span className="text-xl shrink-0 transition-transform duration-200 group-hover:scale-110">
-              {link.emoji}
+        <div className="flex items-center gap-3.5 min-w-0 flex-1 text-left">
+          <LinkItemIcon 
+            icon={link.icon} 
+            emoji={link.emoji} 
+            url={link.url} 
+            size="md" 
+          />
+          <div className="min-w-0 flex-1">
+            <span
+              className="font-semibold text-sm sm:text-base tracking-tight truncate block"
+              style={{ color: textColor }}
+            >
+              {link.title}
             </span>
-          )}
-          <span
-            className="font-semibold text-sm sm:text-base tracking-tight truncate flex-1 text-left"
-            style={{ color: textColor }}
-          >
-            {link.title}
-          </span>
+            {link.subtitle && (
+              <span
+                className="text-xs truncate block mt-0.5 leading-snug"
+                style={{ color: dimColor }}
+              >
+                {link.subtitle}
+              </span>
+            )}
+          </div>
         </div>
         <div 
           className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
