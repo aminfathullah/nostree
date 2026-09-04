@@ -238,7 +238,7 @@ export function useNostrAuth(): UseNostrAuthReturn {
       }
 
       if (isMountedRef.current) {
-        if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+        if (typeof window !== "undefined" && (window.location.pathname === "/" || window.location.pathname.startsWith("/admin"))) {
           await autoUseLocalAccount();
         } else {
           setStatus("idle");

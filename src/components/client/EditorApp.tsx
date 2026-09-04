@@ -534,7 +534,7 @@ function EditorContent() {
       <header className="border-b border-border bg-card/85 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-85">
+            <Link to="/admin" className="flex items-center gap-2.5 transition-opacity hover:opacity-85">
               <img src={logo} alt="Nostree" className="w-7 h-7 object-contain" />
               <span className="text-base font-bold text-txt-main tracking-tight hidden sm:inline">Nostree</span>
             </Link>

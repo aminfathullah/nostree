@@ -12,10 +12,10 @@ export default function NotFoundPage() {
         The page you're looking for doesn't exist.
       </p>
       <Link 
-        to="/" 
+        to="/admin" 
         className="text-brand hover:underline"
       >
-        Go to Homepage
+        Buka Dashboard Kerja
       </Link>
     </main>
   )
