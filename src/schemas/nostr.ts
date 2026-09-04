@@ -177,14 +177,10 @@ export const TreeMetaSchema = z.object({
     .min(1, "Slug required")
     .max(32, "Slug too long"),
   
-  /** Display title for this tree */
   title: z.string().max(64, "Title too long").optional(),
-  
-  /** Whether this is the user's default tree */
   isDefault: z.boolean().default(false),
-  
-  /** Created timestamp */
   createdAt: z.number().optional(),
+  deletedAt: z.number().optional(),
 });
 
 // ============================================

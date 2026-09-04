@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchUserTrees, slugToDTag, checkSlugAvailability } from "../../lib/slug-resolver";
-import { publishEvent, createNostreeEvent } from "../../lib/ndk";
+import { publishEvent, createNostreeEvent, createDeletionEvent } from "../../lib/ndk";
 import { Button } from "../ui/Button";
 import { Plus, ChevronDown, Trash2, Copy, Check, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -249,6 +249,8 @@ export function TreeSelector({
       publishEvent(event).catch(err => {
         console.error("Failed to publish tree deletion:", err);
       });
+      const delEvent = createDeletionEvent(pubkey, dTag);
+      publishEvent(delEvent).catch(() => {});
     } catch (err) {
       console.error("Failed to create delete event:", err);
     }

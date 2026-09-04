@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { slugToDTag } from "../../lib/slug-resolver";
+import { resolveCanonicalSlugEvent } from "../../lib/slug-resolver";
 import { parseNostreeData } from "../../lib/migration";
 import { fetchEventsWithTimeout } from "../../lib/ndk";
 import type { NostreeDataV2 } from "../../schemas/nostr";
@@ -35,37 +35,21 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
     async function loadTree() {
       try {
         setStatus("loading");
-        const dTag = slugToDTag(slug);
-        
-        const treeEvents = await fetchEventsWithTimeout({
-          kinds: [30078],
-          "#d": [dTag],
-        }, 1800, 70);
+        const resolution = await resolveCanonicalSlugEvent(slug);
         
         if (cancelled) return;
         
-        if (treeEvents.size === 0) {
-          setError(`Tree "${slug}" not found`);
+        if (resolution.status !== "claimed" || !resolution.event || !resolution.data) {
+          setError(`Halaman "/${slug}" tidak ditemukan`);
           setStatus("error");
           return;
         }
         
-        const sorted = Array.from(treeEvents).sort(
-          (a, b) => (b.created_at || 0) - (a.created_at || 0)
-        );
-        const event = sorted[0];
-        
-        if (!event?.content) {
-          setError("Invalid tree data");
-          setStatus("error");
-          return;
-        }
-        
-        const parsedContent = JSON.parse(event.content);
-        const result = parseNostreeData(parsedContent, slug);
+        const event = resolution.event;
+        const result = parseNostreeData(resolution.data, slug);
         
         if (!result.success) {
-          setError("Failed to parse tree data");
+          setError("Gagal memuat data tautan");
           setStatus("error");
           return;
         }

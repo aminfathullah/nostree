@@ -162,51 +162,97 @@ export async function fetchUserTrees(pubkey: string): Promise<UserTreeEntry[]> {
   return trees;
 }
 
-export async function checkSlugAvailability(slug: string): Promise<{
-  available: boolean;
-  owner?: string;
-}> {
+export interface CanonicalSlugResolution {
+  status: "available" | "claimed" | "reserved";
+  ownerPubkey?: string;
+  event?: any;
+  data?: any;
+}
+
+export async function resolveCanonicalSlugEvent(slug: string): Promise<CanonicalSlugResolution> {
   const reserved = ["admin", "login", "profile", "api", "u", "settings", "help", "about", "default"];
   if (reserved.includes(slug)) {
-    return { available: false };
+    return { status: "reserved" };
   }
-  
+
   const dTag = slugToDTag(slug);
-  
+
   try {
     const events = await fetchEventsWithTimeout({
       kinds: [30078],
       "#d": [dTag],
-    }, 2000, 60);
-    
-    if (events.size === 0) {
-      return { available: true };
+    }, 2000, 70);
+
+    if (!events || events.size === 0) {
+      return { status: "available" };
     }
-    
+
+    const latestByPubkey = new Map<string, any>();
     for (const event of events) {
-      try {
-        if (event.content) {
-          const data = JSON.parse(event.content);
-          if (data?.treeMeta?.deletedAt) {
-            continue;
-          }
-          return {
-            available: false,
-            owner: event.pubkey,
-          };
-        }
-      } catch {
-        return {
-          available: false,
-          owner: event.pubkey,
-        };
+      const existing = latestByPubkey.get(event.pubkey);
+      if (!existing || (event.created_at || 0) > (existing.created_at || 0)) {
+        latestByPubkey.set(event.pubkey, event);
       }
     }
-    
-    return { available: true };
-  } catch (err) {
-    return { available: false };
+
+    let latestDeletionTimestamp = 0;
+    const activeCandidates: { event: any; data: any; createdAt: number }[] = [];
+
+    for (const [_, event] of latestByPubkey.entries()) {
+      if (!event?.content) continue;
+      try {
+        const data = JSON.parse(event.content);
+        if (data?.treeMeta?.deletedAt) {
+          const delTime = Number(data.treeMeta.deletedAt) || (event.created_at || 0);
+          if (delTime > latestDeletionTimestamp) {
+            latestDeletionTimestamp = delTime;
+          }
+          continue;
+        }
+
+        const createdAt = Number(data?.treeMeta?.createdAt) || (event.created_at || 0);
+        activeCandidates.push({
+          event,
+          data,
+          createdAt,
+        });
+      } catch {}
+    }
+
+    const validActive = activeCandidates.filter(
+      c => c.createdAt >= latestDeletionTimestamp || (c.event.created_at || 0) >= latestDeletionTimestamp
+    );
+
+    if (validActive.length === 0) {
+      return { status: "available" };
+    }
+
+    validActive.sort((a, b) => a.createdAt - b.createdAt);
+    const canonical = validActive[0];
+
+    return {
+      status: "claimed",
+      ownerPubkey: canonical.event.pubkey,
+      event: canonical.event,
+      data: canonical.data,
+    };
+  } catch {
+    return { status: "available" };
   }
+}
+
+export async function checkSlugAvailability(slug: string): Promise<{
+  available: boolean;
+  owner?: string;
+}> {
+  const result = await resolveCanonicalSlugEvent(slug);
+  if (result.status === "available") {
+    return { available: true };
+  }
+  return {
+    available: false,
+    owner: result.ownerPubkey,
+  };
 }
 
 export default {
@@ -216,6 +262,7 @@ export default {
   dTagToSlug,
   fetchUserTrees,
   checkSlugAvailability,
+  resolveCanonicalSlugEvent,
   NOSTREE_PREFIX,
   DEFAULT_SLUG,
 };

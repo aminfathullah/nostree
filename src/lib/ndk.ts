@@ -199,5 +199,17 @@ export function createNostreeEvent(content: object, pubkey: string, dTag: string
   return event;
 }
 
+export function createDeletionEvent(pubkey: string, dTag: string): NDKEvent {
+  const ndk = getNDK();
+  const event = new NDKEventClass(ndk);
+  event.kind = 5;
+  event.content = "Deleted Nostree slug";
+  event.tags = [
+    ["a", `30078:${pubkey}:${dTag}`],
+    ["p", pubkey],
+  ];
+  return event;
+}
+
 export { NDK, NDKEventClass, NDKRelaySet };
 export type { NDKEvent, NDKFilter, NDKSigner };
