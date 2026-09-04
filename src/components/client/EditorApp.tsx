@@ -7,7 +7,7 @@ import { useLinkTree } from "../../hooks/useLinkTree";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { LinkEditorV2 } from "./LinkEditorV2";
 import { MobilePreview } from "./MobilePreview";
-import { TreeSelector } from "./TreeSelector";
+import { TreeSelector, TreeInfo } from "./TreeSelector";
 import { ThemeSelector } from "./ThemeSelector";
 import { CustomThemeEditor } from "./CustomThemeEditor";
 import { EmptyState } from "./EmptyState";
@@ -16,7 +16,6 @@ import { LoadingOverlay } from "../ui/LoadingOverlay";
 import { KeyboardShortcutsHelp, KeyboardShortcutsButton } from "../ui/KeyboardShortcutsHelp";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { 
-  Loader2, 
   LogOut, 
   User, 
   ChevronDown, 
@@ -33,7 +32,9 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { fetchEventsWithTimeout } from "../../lib/ndk";
+import { dTagToSlug, isNostreeDTag, slugToDTag } from "../../lib/slug-resolver";
 import { toast } from "sonner";
+import type { NostreeData } from "../../schemas/nostr";
 
 interface UserProfile {
   name?: string;
@@ -43,35 +44,81 @@ interface UserProfile {
   lud16?: string;
 }
 
+function EditorSkeleton() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 animate-pulse">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-6 w-48 bg-card border border-border rounded-lg" />
+            <div className="h-4 w-72 bg-card/60 border border-border/60 rounded-md" />
+          </div>
+          <div className="flex gap-2">
+            <div className="h-9 w-28 bg-card border border-border rounded-xl" />
+            <div className="h-9 w-28 bg-card border border-border rounded-xl" />
+          </div>
+        </div>
+
+        <div className="space-y-3 pt-2">
+          {[1, 2, 3].map((i) => (
+            <div 
+              key={i} 
+              className="p-4 rounded-2xl bg-card border border-border flex items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-5 h-8 bg-card-hover rounded-md" />
+                <div className="w-10 h-10 rounded-xl bg-card-hover shrink-0" />
+                <div className="space-y-2 flex-1 max-w-xs">
+                  <div className="h-4 w-3/4 bg-card-hover rounded-md" />
+                  <div className="h-3 w-1/2 bg-card-hover/70 rounded-md" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-card-hover" />
+                <div className="w-8 h-8 rounded-lg bg-card-hover" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="hidden lg:block space-y-4">
+        <div className="flex items-center justify-center gap-2">
+          <div className="h-8 w-24 bg-card border border-border rounded-xl" />
+          <div className="h-8 w-24 bg-card border border-border rounded-xl" />
+        </div>
+        
+        <div className="w-[340px] h-[640px] mx-auto rounded-[48px] bg-card border-[7px] border-border/80 p-5 flex flex-col items-center">
+          <div className="w-24 h-4 bg-border rounded-full mb-8" />
+          <div className="w-18 h-18 rounded-full bg-card-hover mb-4" />
+          <div className="h-5 w-32 bg-card-hover rounded-md mb-8" />
+          <div className="w-full space-y-3">
+            <div className="h-12 w-full rounded-xl bg-card-hover" />
+            <div className="h-12 w-full rounded-xl bg-card-hover" />
+            <div className="h-12 w-full rounded-xl bg-card-hover" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LinkTreeEditor({ 
   pubkey, 
   slug, 
   profile,
+  initialData,
 }: { 
   pubkey: string; 
   slug: string; 
   profile: UserProfile;
+  initialData?: NostreeData;
 }) {
   const linkTree = useLinkTree({ 
     pubkey,
     slug,
-    initialData: undefined,
+    initialData,
   });
-
-  if (linkTree.isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center gap-3"
-        >
-          <Loader2 className="w-7 h-7 animate-spin text-brand" />
-          <p className="text-xs text-txt-muted font-medium">Loading your links...</p>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
@@ -285,15 +332,16 @@ function EditorContent() {
   } = useAuth();
 
   const [profile, setProfile] = useState<UserProfile>({});
-  const [profileLoading, setProfileLoading] = useState(false);
+  const [trees, setTrees] = useState<TreeInfo[]>([]);
+  const [treesDataMap, setTreesDataMap] = useState<Map<string, NostreeData>>(new Map());
   const [slug, setSlug] = useState<string | null>(null);
+  const [isDataLoading, setIsDataLoading] = useState(true);
+
   const [openTreeSelector, setOpenTreeSelector] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showBackupModal, setShowBackupModal] = useState(false);
-  const [dismissedLocalWarning, setDismissedLocalWarning] = useState(() => {
-    return localStorage.getItem("nostree-dismissed-local-warning") === "true";
-  });
+  const [dismissedLocalWarning, setDismissedLocalWarning] = useState(false);
 
   useKeyboardShortcuts({
     "mod+/": () => setShowKeyboardHelp(true),
@@ -306,38 +354,103 @@ function EditorContent() {
   useEffect(() => {
     if (!pubkey || !isAuthenticated) return;
 
-    async function fetchProfile() {
-      setProfileLoading(true);
+    let mounted = true;
+    setIsDataLoading(true);
+
+    async function loadAdminData() {
       try {
         const events = await fetchEventsWithTimeout({
-          kinds: [0],
+          kinds: [0, 30078],
           authors: [pubkey!],
-        }, 8000);
+        }, 2200, 70);
 
-        if (events.size > 0) {
-          const sorted = Array.from(events).sort(
-            (a, b) => (b.created_at || 0) - (a.created_at || 0)
-          );
-          const latest = sorted[0];
-          if (latest?.content) {
-            const data = JSON.parse(latest.content);
+        if (!mounted) return;
+
+        let latestProfileEvent: any = null;
+        const eventsByDTag = new Map<string, any>();
+
+        for (const event of events) {
+          if (event.kind === 0) {
+            if (!latestProfileEvent || (event.created_at || 0) > (latestProfileEvent.created_at || 0)) {
+              latestProfileEvent = event;
+            }
+          } else if (event.kind === 30078) {
+            const dTag = event.tags.find((t: string[]) => t[0] === "d")?.[1];
+            if (dTag && isNostreeDTag(dTag)) {
+              const existing = eventsByDTag.get(dTag);
+              if (!existing || (event.created_at || 0) > (existing.created_at || 0)) {
+                eventsByDTag.set(dTag, event);
+              }
+            }
+          }
+        }
+
+        if (latestProfileEvent?.content) {
+          try {
+            const pData = JSON.parse(latestProfileEvent.content);
             setProfile({
-              name: data.name || data.display_name,
-              picture: data.picture || data.image,
-              about: data.about,
-              nip05: data.nip05,
-              lud16: data.lud16,
+              name: pData.name || pData.display_name,
+              picture: pData.picture || pData.image,
+              about: pData.about,
+              nip05: pData.nip05,
+              lud16: pData.lud16,
+            });
+          } catch {}
+        }
+
+        const userTrees: TreeInfo[] = [];
+        const dataMap = new Map<string, NostreeData>();
+
+        for (const [dTag, event] of eventsByDTag.entries()) {
+          const parsedSlug = dTagToSlug(dTag);
+          if (parsedSlug && parsedSlug !== "default") {
+            let treePayload: any = undefined;
+            if (event.content) {
+              try {
+                const parsed = JSON.parse(event.content);
+                if (parsed?.treeMeta?.deletedAt) continue;
+                if (parsed?.links?.length === 0 && parsed?.treeMeta?.deletedAt !== undefined) continue;
+                treePayload = parsed;
+                dataMap.set(parsedSlug, parsed);
+              } catch {}
+            }
+
+            userTrees.push({
+              slug: parsedSlug,
+              dTag,
+              createdAt: event.created_at,
+              data: treePayload,
             });
           }
         }
+
+        userTrees.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+        setTrees(userTrees);
+        setTreesDataMap(dataMap);
+
+        if (userTrees.length > 0) {
+          setSlug(prev => {
+            if (prev && userTrees.some(t => t.slug === prev)) return prev;
+            return userTrees[0].slug;
+          });
+        } else {
+          setSlug(null);
+        }
       } catch (err) {
-        console.error("Failed to fetch profile:", err);
+        console.error("Failed to load admin data:", err);
       } finally {
-        setProfileLoading(false);
+        if (mounted) {
+          setIsDataLoading(false);
+        }
       }
     }
 
-    fetchProfile();
+    loadAdminData();
+
+    return () => {
+      mounted = false;
+    };
   }, [pubkey, isAuthenticated]);
 
   if (authLoading) {
@@ -356,6 +469,24 @@ function EditorContent() {
   }
 
   const localPrivateKey = getLocalKey();
+
+  const handleSlugChange = (newSlug: string | null) => {
+    setSlug(newSlug);
+  };
+
+  const handleTreeCreated = (newSlug: string, newTreeData?: any) => {
+    const newEntry: TreeInfo = {
+      slug: newSlug,
+      dTag: slugToDTag(newSlug),
+      createdAt: Math.floor(Date.now() / 1000),
+      data: newTreeData,
+    };
+    setTrees(prev => [...prev, newEntry]);
+    if (newTreeData) {
+      setTreesDataMap(prev => new Map(prev).set(newSlug, newTreeData));
+    }
+    setSlug(newSlug);
+  };
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -384,10 +515,12 @@ function EditorContent() {
             <TreeSelector
               pubkey={pubkey || ""}
               currentSlug={slug}
-              onSlugChange={(newSlug) => setSlug(newSlug)}
-              onTreeCreated={() => {}}
+              onSlugChange={handleSlugChange}
+              onTreeCreated={handleTreeCreated}
               forceOpen={openTreeSelector}
               onOpenChange={setOpenTreeSelector}
+              trees={trees}
+              isLoading={isDataLoading}
             />
 
             <div className="relative">
@@ -573,10 +706,7 @@ function EditorContent() {
                 Backup Key
               </Button>
               <button
-                onClick={() => {
-                  setDismissedLocalWarning(true);
-                  localStorage.setItem("nostree-dismissed-local-warning", "true");
-                }}
+                onClick={() => setDismissedLocalWarning(true)}
                 className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card/50 transition-colors ml-auto sm:ml-0"
                 title="Dismiss warning"
               >
@@ -586,16 +716,15 @@ function EditorContent() {
           </motion.div>
         )}
 
-        {profileLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-7 h-7 animate-spin text-brand" />
-          </div>
+        {isDataLoading ? (
+          <EditorSkeleton />
         ) : slug ? (
           <LinkTreeEditor 
             key={slug} 
             pubkey={pubkey || ""} 
             slug={slug} 
             profile={profile}
+            initialData={treesDataMap.get(slug)}
           />
         ) : (
           <EmptyState onCreateTree={() => setOpenTreeSelector(true)} />

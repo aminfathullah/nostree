@@ -3,6 +3,7 @@ import NDK, {
   type NDKFilter, 
   type NDKSigner,
   NDKEvent as NDKEventClass,
+  NDKRelaySet,
 } from "@nostr-dev-kit/ndk";
 import defaultRelaysConfig from "./relays.json";
 
@@ -41,29 +42,37 @@ export function setNDKSigner(signer: NDKSigner | undefined): void {
 export async function connectNDK(): Promise<void> {
   const ndk = getNDK();
   if (!connectionPromise) {
-    connectionPromise = Promise.race([
-      ndk.connect(1000),
-      new Promise<void>(r => setTimeout(r, 600))
-    ]);
+    connectionPromise = ndk.connect(1000);
   }
   await connectionPromise;
 }
 
 export async function fetchEventsWithTimeout(
   filter: NDKFilter,
-  timeoutMs: number = 1800,
-  debounceMs: number = 100
+  timeoutMs: number = 1200,
+  debounceMs: number = 60
 ): Promise<Set<NDKEvent>> {
   const ndk = getNDK();
 
   if (!connectionPromise) {
-    connectionPromise = Promise.race([
-      ndk.connect(1000),
-      new Promise<void>(r => setTimeout(r, 600))
-    ]);
+    connectionPromise = ndk.connect(1000);
   }
 
-  await connectionPromise;
+  const relayPool = ndk.pool.relays;
+  const targetRelays = relaysConfig.readRelays
+    .map(url => {
+      const normalized = url.endsWith('/') ? url : url + '/';
+      const unnormalized = url.endsWith('/') ? url.slice(0, -1) : url;
+      return relayPool.get(url) || relayPool.get(normalized) || relayPool.get(unnormalized);
+    })
+    .filter((r): r is NonNullable<typeof r> => Boolean(r));
+
+  if (targetRelays.length === 0 && ndk.pool.connectedRelays().length === 0) {
+    await Promise.race([
+      connectionPromise,
+      new Promise<void>(r => setTimeout(r, 120))
+    ]);
+  }
 
   return new Promise((resolve) => {
     const events = new Set<NDKEvent>();
@@ -85,14 +94,11 @@ export async function fetchEventsWithTimeout(
 
     const hardTimer = setTimeout(cleanup, timeoutMs);
 
-    const relayPool = ndk.pool.relays;
-    const targetRelays = relaysConfig.readRelays
-      .map(url => relayPool.get(url))
-      .filter((r): r is NonNullable<typeof r> => Boolean(r));
+    const relaySet = NDKRelaySet.fromRelayUrls(relaysConfig.readRelays, ndk);
 
     const subscription = ndk.subscribe(filter, { 
       closeOnEose: false,
-      relaySet: targetRelays.length > 0 ? new Set(targetRelays) as any : undefined,
+      relaySet,
     });
 
     subscription.on("event", (event: NDKEvent) => {
@@ -134,23 +140,21 @@ export async function publishEvent(event: NDKEvent): Promise<PublishResult> {
   let syncAccepted = false;
 
   try {
-    const primaryRelay = (ndk.pool as any).getRelay?.(primaryRelayUrl) || ndk.pool.relays.get(primaryRelayUrl);
-    if (primaryRelay) {
-      await Promise.race([
-        event.publish(new Set([primaryRelay]) as any),
-        new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Primary write timeout")), 1500))
-      ]);
-      syncAccepted = true;
-    }
+    const primaryRelaySet = NDKRelaySet.fromRelayUrls([primaryRelayUrl], ndk);
+    await Promise.race([
+      event.publish(primaryRelaySet),
+      new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Primary write timeout")), 1500))
+    ]);
+    syncAccepted = true;
   } catch {}
 
   if (!syncAccepted) {
     try {
       const fallbackUrl = secondaryRelayUrls[0];
-      const fallbackRelay = fallbackUrl ? ((ndk.pool as any).getRelay?.(fallbackUrl) || ndk.pool.relays.get(fallbackUrl)) : null;
-      if (fallbackRelay) {
+      if (fallbackUrl) {
+        const fallbackRelaySet = NDKRelaySet.fromRelayUrls([fallbackUrl], ndk);
         await Promise.race([
-          event.publish(new Set([fallbackRelay]) as any),
+          event.publish(fallbackRelaySet),
           new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Fallback write timeout")), 1500))
         ]);
         syncAccepted = true;
@@ -167,12 +171,9 @@ export async function publishEvent(event: NDKEvent): Promise<PublishResult> {
 
   (async () => {
     try {
-      const asyncRelays = secondaryRelayUrls
-        .map(url => (ndk.pool as any).getRelay?.(url) || ndk.pool.relays.get(url))
-        .filter((r): r is NonNullable<typeof r> => Boolean(r));
-
-      if (asyncRelays.length > 0) {
-        await event.publish(new Set(asyncRelays) as any);
+      if (secondaryRelayUrls.length > 0) {
+        const secondaryRelaySet = NDKRelaySet.fromRelayUrls(secondaryRelayUrls, ndk);
+        await event.publish(secondaryRelaySet);
       }
     } catch {}
   })();
@@ -198,5 +199,5 @@ export function createNostreeEvent(content: object, pubkey: string, dTag: string
   return event;
 }
 
-export { NDK, NDKEventClass };
+export { NDK, NDKEventClass, NDKRelaySet };
 export type { NDKEvent, NDKFilter, NDKSigner };
