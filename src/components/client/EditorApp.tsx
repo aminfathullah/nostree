@@ -19,7 +19,6 @@ import {
   LogOut, 
   User, 
   ChevronDown, 
-  RefreshCw, 
   Key, 
   Laptop, 
   Copy, 
@@ -324,10 +323,9 @@ function EditorContent() {
     isLoading: authLoading, 
     pubkey, 
     npub, 
-    logout, 
+    switchToLocalAccount, 
     authMethod, 
     getLocalKey, 
-    hasExtension, 
     login 
   } = useAuth();
 
@@ -637,56 +635,66 @@ function EditorContent() {
                     </div>
 
                     <div className="p-1.5 space-y-0.5">
-                      {authMethod === "local" && (
-                        <button
-                          onClick={() => {
-                            setShowAccountMenu(false);
-                            setShowBackupModal(true);
-                          }}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium"
-                        >
-                          <Key className="w-3.5 h-3.5 text-brand" />
-                          <span>Backup Secret Key</span>
-                        </button>
+                      {authMethod === "local" ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              setShowAccountMenu(false);
+                              setShowBackupModal(true);
+                            }}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium cursor-pointer"
+                          >
+                            <Key className="w-3.5 h-3.5 text-brand" />
+                            <span>Cadangkan Kunci Rahasia</span>
+                          </button>
+
+                          <button
+                            onClick={async () => {
+                              setShowAccountMenu(false);
+                              const ok = await login();
+                              if (ok) {
+                                toast.success("Beralih ke sesi ekstensi");
+                              } else {
+                                toast.error("Ekstensi Nostr (Alby) tidak terdeteksi");
+                              }
+                            }}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium cursor-pointer"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                            <span>Beralih ke Ekstensi (Alby / NIP-07)</span>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={async () => {
+                              setShowAccountMenu(false);
+                              const ok = await switchToLocalAccount();
+                              if (ok) {
+                                toast.success("Beralih ke akun lokal");
+                              } else {
+                                toast.error("Gagal memuat akun lokal");
+                              }
+                            }}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium cursor-pointer"
+                          >
+                            <Laptop className="w-3.5 h-3.5 text-amber-500" />
+                            <span>Beralih ke Akun Lokal</span>
+                          </button>
+
+                          <button
+                            onClick={async () => {
+                              setShowAccountMenu(false);
+                              await switchToLocalAccount();
+                              toast.success("Ekstensi diputuskan, kembali ke akun lokal");
+                            }}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-muted w-full text-left text-xs cursor-pointer"
+                          >
+                            <LogOut className="w-3.5 h-3.5" />
+                            <span>Putuskan Ekstensi</span>
+                          </button>
+                        </>
                       )}
-
-                      {authMethod === "local" && hasExtension && (
-                        <button
-                          onClick={async () => {
-                            setShowAccountMenu(false);
-                            const ok = await login();
-                            if (ok) toast.success("Switched to extension session!");
-                          }}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium"
-                        >
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                          <span>Connect Alby Extension</span>
-                        </button>
-                      )}
-
-                      <Link
-                        to="/login?switch=true"
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs"
-                        onClick={() => {
-                          logout();
-                          setShowAccountMenu(false);
-                        }}
-                      >
-                        <RefreshCw className="w-3.5 h-3.5 text-txt-muted" />
-                        <span>Switch Profile</span>
-                      </Link>
-
-                      <button
-                        onClick={() => {
-                          logout();
-                          setShowAccountMenu(false);
-                          window.location.href = "/";
-                        }}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-red-500/10 transition-colors text-red-500 w-full text-left text-xs"
-                      >
-                        <LogOut className="w-3.5 h-3.5" />
-                        <span>Logout</span>
-                      </button>
                     </div>
                   </div>
                 </>

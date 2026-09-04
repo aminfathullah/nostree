@@ -17,6 +17,7 @@ interface AuthContextValue {
   createBrowserAccount: () => Promise<boolean>;
   loginWithKey: (privateKey: string, password?: string) => Promise<boolean>;
   getLocalKey: () => string | null;
+  switchToLocalAccount: () => Promise<boolean>;
   logout: () => void;
 }
 

@@ -27,6 +27,7 @@ export interface UseNostrAuthReturn {
   createBrowserAccount: () => Promise<boolean>;
   loginWithKey: (privateKey: string, password?: string) => Promise<boolean>;
   getLocalKey: () => string | null;
+  switchToLocalAccount: () => Promise<boolean>;
   logout: () => void;
 }
 
@@ -58,12 +59,6 @@ export function useNostrAuth(): UseNostrAuthReturn {
   const isMountedRef = useRef(true);
   const activePrivateKeyRef = useRef<string | null>(null);
 
-  const clearAuthStorage = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORAGE_METHOD_KEY);
-    localStorage.removeItem(STORAGE_ENCRYPTED_KEY);
-    activePrivateKeyRef.current = null;
-  }, []);
 
   const setupExtensionSession = useCallback(async (pubkeyHex: string): Promise<boolean> => {
     try {
@@ -145,16 +140,14 @@ export function useNostrAuth(): UseNostrAuthReturn {
       }
 
       if (!privateKey || !isValidPrivateKey(privateKey)) {
-        clearAuthStorage();
         return false;
       }
 
       return await setupLocalKeySession(privateKey);
     } catch {
-      clearAuthStorage();
       return false;
     }
-  }, [clearAuthStorage, setupLocalKeySession]);
+  }, [setupLocalKeySession]);
 
   const autoUseLocalAccount = useCallback(async (): Promise<boolean> => {
     const existing = await restoreLocalSession();
@@ -337,19 +330,17 @@ export function useNostrAuth(): UseNostrAuthReturn {
     }
   }, [authMethod]);
 
-  const logout = useCallback(() => {
-    const ndk = getNDK();
-    ndk.signer = undefined;
+  const switchToLocalAccount = useCallback(async (): Promise<boolean> => {
+    const success = await restoreLocalSession();
+    if (success) {
+      return true;
+    }
+    return await autoUseLocalAccount();
+  }, [restoreLocalSession, autoUseLocalAccount]);
 
-    setPubkey(null);
-    setNpub(null);
-    setUser(null);
-    setStatus("idle");
-    setError(null);
-    setAuthMethod(null);
-    clearAuthStorage();
-    localStorage.setItem(STORAGE_SKIP_AUTO_LOGIN, "true");
-  }, [clearAuthStorage]);
+  const logout = useCallback(() => {
+    switchToLocalAccount();
+  }, [switchToLocalAccount]);
 
   return {
     status,
@@ -363,6 +354,7 @@ export function useNostrAuth(): UseNostrAuthReturn {
     createBrowserAccount,
     loginWithKey,
     getLocalKey,
+    switchToLocalAccount,
     logout,
   };
 }
