@@ -363,7 +363,7 @@ export function TreeSelector({
             ) : (
               <div className="p-3.5 space-y-3">
                 <div>
-                  <label className="text-xs font-medium text-txt-muted block mb-1">Custom slug / URL</label>
+                  <label className="text-xs font-medium text-txt-muted block mb-1">Slug / URL</label>
                   <div className="flex items-center gap-1.5 bg-canvas border border-border rounded-xl px-3 py-1.5 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
                     <span className="text-txt-dim text-xs font-mono">/</span>
                     <input
@@ -379,7 +379,7 @@ export function TreeSelector({
                           handleCreateTree();
                         }
                       }}
-                      placeholder="kegiatan-kantor"
+                      placeholder="tautan-anda"
                       className="flex-1 bg-transparent text-xs text-txt-main focus:outline-none font-mono"
                       autoFocus
                     />

@@ -15,7 +15,7 @@ export default function NotFoundPage() {
         to="/admin" 
         className="text-brand hover:underline"
       >
-        Buka Dashboard Kerja
+        Buka Dashboard
       </Link>
     </main>
   )

@@ -10,8 +10,7 @@ import {
   ExternalLink,
   FileText,
   Video,
-  FileSpreadsheet,
-  Calendar,
+  Globe,
   Layers,
   Sparkles
 } from 'lucide-react';
@@ -22,7 +21,7 @@ export default function HomePage() {
   const { pubkey, status } = useAuth();
   const isAuthenticated = Boolean(pubkey && status === "authenticated");
   const [claimedSlug, setClaimedSlug] = useState("");
-  const [activeTab, setActiveTab] = useState<'kegiatan' | 'berkas'>('kegiatan');
+  const [activeTab, setActiveTab] = useState<'utama' | 'koleksi'>('utama');
 
   const handleClaim = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +61,7 @@ export default function HomePage() {
         </div>
       </nav>
 
-      <div className="max-w-xl mx-auto px-4 py-8 sm:py-10 w-full flex flex-col items-center text-center my-auto">
+      <div className="max-w-xl mx-auto px-4 py-8 sm:py-12 flex-1 flex flex-col items-center justify-center text-center w-full">
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -71,13 +70,13 @@ export default function HomePage() {
         >
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand/10 text-brand text-[11px] font-medium border border-brand/20">
             <Sparkles className="w-3 h-3" />
-            <span>Pusat Tautan Kerja &amp; Kegiatan</span>
+            <span>Pusat Tautan Digital</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-txt-main leading-snug">
-            Satu Halaman untuk Seluruh Tautan Kerja
+            Satu Halaman untuk Seluruh Tautan Anda
           </h1>
           <p className="text-xs sm:text-sm text-txt-muted max-w-lg mx-auto leading-relaxed">
-            Kumpulkan link pendaftaran, materi paparan, ruang rapat virtual, kelengkapan administrasi, atau portal penting dalam satu alamat praktis yang siap dibagikan ke rekan kerja.
+            Kumpulkan dokumen, portofolio, media sosial, atau referensi penting dalam satu halaman ringkas yang mudah dibagikan.
           </p>
         </motion.div>
 
@@ -92,7 +91,7 @@ export default function HomePage() {
               to="/admin"
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-hover active:scale-[0.98] text-brand-fg font-semibold rounded-xl text-sm transition-all cursor-pointer shadow-xs"
             >
-              <span>Buka Dashboard Kerja</span>
+              <span>Buka Dashboard</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </motion.div>
@@ -111,7 +110,7 @@ export default function HomePage() {
                   type="text"
                   value={claimedSlug}
                   onChange={(e) => setClaimedSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder="nama-kegiatan-atau-tim"
+                  placeholder="tautan-anda"
                   className="w-full bg-transparent text-xs sm:text-sm font-medium text-txt-main placeholder:text-txt-dim focus:outline-none ml-1"
                 />
               </div>
@@ -124,7 +123,7 @@ export default function HomePage() {
               </button>
             </div>
             <p className="text-[11px] text-txt-dim mt-2 text-center">
-              Contoh: workshop-2026, berkas-administrasi, atau portal-kegiatan
+              Contoh: tautan-saya, projek, atau referensi
             </p>
           </motion.form>
         )}
@@ -132,27 +131,27 @@ export default function HomePage() {
         <div className="w-full mb-3 flex items-center justify-center gap-1 p-1 bg-card/80 border border-border rounded-xl">
           <button
             type="button"
-            onClick={() => setActiveTab('kegiatan')}
+            onClick={() => setActiveTab('utama')}
             className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'kegiatan'
+              activeTab === 'utama'
                 ? 'bg-brand/15 text-brand shadow-xs border border-brand/20'
                 : 'text-txt-muted hover:text-txt-main'
             }`}
           >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>Kegiatan &amp; Pelatihan</span>
+            <Globe className="w-3.5 h-3.5" />
+            <span>Tautan Pilihan</span>
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('berkas')}
+            onClick={() => setActiveTab('koleksi')}
             className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'berkas'
+              activeTab === 'koleksi'
                 ? 'bg-brand/15 text-brand shadow-xs border border-brand/20'
                 : 'text-txt-muted hover:text-txt-main'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>Berkas &amp; Portal Kerja</span>
+            <span>Koleksi &amp; Dokumen</span>
           </button>
         </div>
 
@@ -163,20 +162,20 @@ export default function HomePage() {
           transition={{ duration: 0.2 }}
           className="w-full bg-card border border-border rounded-2xl p-4 sm:p-5 text-left shadow-xs"
         >
-          {activeTab === 'kegiatan' ? (
+          {activeTab === 'utama' ? (
             <>
               <div className="flex items-center gap-3 pb-3.5 border-b border-border">
                 <div className="w-9 h-9 rounded-xl border border-brand/20 bg-brand/10 text-brand font-bold flex items-center justify-center text-xs">
-                  <Calendar className="w-4 h-4" />
+                  <Globe className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h2 className="font-bold text-xs sm:text-sm text-txt-main">Workshop &amp; Sosialisasi Kerja</h2>
+                    <h2 className="font-bold text-xs sm:text-sm text-txt-main">Tautan Terpilih</h2>
                     <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-medium">
-                      Sedang Berlangsung
+                      Aktif
                     </span>
                   </div>
-                  <p className="text-[11px] text-txt-dim">Pusat Informasi &amp; Kelengkapan Acara</p>
+                  <p className="text-[11px] text-txt-dim">Akses Cepat &amp; Terorganisir</p>
                 </div>
               </div>
 
@@ -187,8 +186,8 @@ export default function HomePage() {
                       <FileText className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Materi &amp; Bahan Paparan</p>
-                      <p className="text-[10px] text-txt-dim">Slide Presentasi &amp; Modul Panduan PDF</p>
+                      <p className="font-semibold text-xs text-txt-main">Dokumentasi &amp; Catatan</p>
+                      <p className="text-[10px] text-txt-dim">Ringkasan materi &amp; referensi</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -200,8 +199,8 @@ export default function HomePage() {
                       <Video className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Akses Zoom / Ruang Virtual</p>
-                      <p className="text-[10px] text-txt-dim">Tautan Sesi Diskusi Online</p>
+                      <p className="font-semibold text-xs text-txt-main">Ruang Diskusi Virtual</p>
+                      <p className="text-[10px] text-txt-dim">Tautan pertemuan &amp; sesi online</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -210,11 +209,11 @@ export default function HomePage() {
                 <div className="flex items-center justify-between p-2.5 rounded-lg bg-canvas/60 border border-border hover:border-brand/40 transition-colors">
                   <div className="flex items-center gap-2.5">
                     <div className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                      <FileSpreadsheet className="w-3.5 h-3.5" />
+                      <BarChart3 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Presensi &amp; Administrasi</p>
-                      <p className="text-[10px] text-txt-dim">Form Konfirmasi Kehadiran &amp; Surat Tugas</p>
+                      <p className="font-semibold text-xs text-txt-main">Dashboard &amp; Ringkasan</p>
+                      <p className="text-[10px] text-txt-dim">Laporan berkala &amp; pemantauan</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -226,8 +225,8 @@ export default function HomePage() {
                       <Folder className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Dokumentasi &amp; Arsip Kegiatan</p>
-                      <p className="text-[10px] text-txt-dim">Google Drive Foto &amp; Rekaman Acara</p>
+                      <p className="font-semibold text-xs text-txt-main">Folder Berkas Penting</p>
+                      <p className="text-[10px] text-txt-dim">Penyimpanan &amp; arsip dokumen</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -242,12 +241,12 @@ export default function HomePage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h2 className="font-bold text-xs sm:text-sm text-txt-main">Pusat Berkas &amp; Portal Tim</h2>
+                    <h2 className="font-bold text-xs sm:text-sm text-txt-main">Koleksi Tautan</h2>
                     <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-medium">
-                      Direktori Aktif
+                      Direktori
                     </span>
                   </div>
-                  <p className="text-[11px] text-txt-dim">Akses Cepat Dokumen &amp; Sistem Kerja</p>
+                  <p className="text-[11px] text-txt-dim">Kumpulan Tautan Terkelola</p>
                 </div>
               </div>
 
@@ -258,34 +257,8 @@ export default function HomePage() {
                       <Folder className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Folder SOP &amp; Panduan Operasional</p>
-                      <p className="text-[10px] text-txt-dim">Google Drive Internal Tim</p>
-                    </div>
-                  </div>
-                  <ExternalLink className="w-3 h-3 text-txt-dim" />
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 rounded-lg bg-canvas/60 border border-border hover:border-brand/40 transition-colors">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                      <BarChart3 className="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-xs text-txt-main">Dashboard &amp; Evaluasi Kinerja</p>
-                      <p className="text-[10px] text-txt-dim">Sistem Pemantauan &amp; Laporan Berkala</p>
-                    </div>
-                  </div>
-                  <ExternalLink className="w-3 h-3 text-txt-dim" />
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 rounded-lg bg-canvas/60 border border-border hover:border-brand/40 transition-colors">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                      <FileSpreadsheet className="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-xs text-txt-main">Template Dokumen Resmi</p>
-                      <p className="text-[10px] text-txt-dim">Format Surat Dinas &amp; Lembar Verifikasi</p>
+                      <p className="font-semibold text-xs text-txt-main">Panduan &amp; Dokumentasi</p>
+                      <p className="text-[10px] text-txt-dim">Koleksi referensi</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -297,8 +270,8 @@ export default function HomePage() {
                       <Mail className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Layanan Bantuan &amp; Kontak Tim</p>
-                      <p className="text-[10px] text-txt-dim">Email &amp; Kanal Koordinasi Pegawai</p>
+                      <p className="font-semibold text-xs text-txt-main">Kontak &amp; Dukungan</p>
+                      <p className="text-[10px] text-txt-dim">Saluran komunikasi</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -312,28 +285,27 @@ export default function HomePage() {
           <div className="p-3 rounded-xl bg-card/60 border border-border">
             <p className="text-xs font-semibold text-txt-main">Cukup Satu Tautan</p>
             <p className="text-[11px] text-txt-dim mt-0.5 leading-relaxed">
-              Tak perlu menyalin banyak link terpisah di grup pesan kantor.
+              Semua link penting tersusun rapi dalam satu alamat praktis.
             </p>
           </div>
           <div className="p-3 rounded-xl bg-card/60 border border-border">
             <p className="text-xs font-semibold text-txt-main">Rapi di Segala Perangkat</p>
             <p className="text-[11px] text-txt-dim mt-0.5 leading-relaxed">
-              Nyaman dibuka langsung dari ponsel saat rapat maupun desktop kerja.
+              Tampil proporsional di layar ponsel, tablet, maupun desktop.
             </p>
           </div>
           <div className="p-3 rounded-xl bg-card/60 border border-border">
-            <p className="text-xs font-semibold text-txt-main">Siap Pakai Seketika</p>
+            <p className="text-xs font-semibold text-txt-main">Mudah Dikelola</p>
             <p className="text-[11px] text-txt-dim mt-0.5 leading-relaxed">
-              Tanpa prosedur rumit, langsung buat halaman dan bagikan alamatnya.
+              Ubah atau tambah tautan baru kapan saja secara instan.
             </p>
           </div>
         </div>
       </div>
 
       <footer className="border-t border-border py-4 px-4 text-center text-[11px] text-txt-dim">
-        <p>Nostree — Satu Halaman untuk Seluruh Tautan Kerja &amp; Kegiatan</p>
+        <p>Nostree — Platform Berbagi Tautan</p>
       </footer>
     </main>
   );
 }
-

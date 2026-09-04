@@ -169,7 +169,7 @@ function LinkEditorItem({
                       handleSave();
                     }
                   }}
-                  placeholder="Subjudul / Keterangan (opsional, misal: Google Drive)"
+                  placeholder="Keterangan singkat (opsional)"
                   className="w-full h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs"
                 />
                 <input
@@ -369,7 +369,7 @@ function LinkGroupEditor({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Group name"
+              placeholder="Nama grup"
               className="flex-1 h-8 px-3 bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none text-txt-main text-xs font-semibold"
               autoFocus
             />
@@ -522,7 +522,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Judul tautan (misal: Folder Dokumen Tim)"
+          placeholder="Judul tautan"
           className="flex-1 h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
           autoFocus
         />
@@ -531,7 +531,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
         type="text"
         value={subtitle}
         onChange={(e) => setSubtitle(e.target.value)}
-        placeholder="Subjudul / Keterangan (opsional, misal: Google Drive)"
+        placeholder="Keterangan singkat (opsional)"
         className="w-full h-9 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs"
       />
       <input
@@ -603,7 +603,7 @@ function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Nama grup (misal: Dokumentasi, Materi)"
+          placeholder="Nama grup"
           className="flex-1 h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
           autoFocus
         />

@@ -19,14 +19,14 @@ import {
 export const ICON_MAP = {
   folder: { label: 'Folder', icon: Folder, color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
   chart: { label: 'Grafik', icon: BarChart3, color: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' },
-  calendar: { label: 'Jadwal', icon: Calendar, color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-  mail: { label: 'Kontak', icon: Mail, color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
+  calendar: { label: 'Kalender', icon: Calendar, color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+  mail: { label: 'Email', icon: Mail, color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
   file: { label: 'Dokumen', icon: FileText, color: 'bg-rose-500/10 text-rose-500 border-rose-500/20' },
   sheet: { label: 'Spreadsheet', icon: Table, color: 'bg-teal-500/10 text-teal-500 border-teal-500/20' },
-  database: { label: 'Data', icon: Database, color: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' },
+  database: { label: 'Database', icon: Database, color: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' },
   globe: { label: 'Web', icon: Globe, color: 'bg-sky-500/10 text-sky-500 border-sky-500/20' },
   message: { label: 'Pesan', icon: MessageSquare, color: 'bg-green-500/10 text-green-500 border-green-500/20' },
-  video: { label: 'Meeting', icon: Video, color: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
+  video: { label: 'Video', icon: Video, color: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
   code: { label: 'Kode', icon: Code, color: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20' },
   link: { label: 'Tautan', icon: ExternalLink, color: 'bg-brand/10 text-brand border-brand/20' },
 } as const;
@@ -240,7 +240,7 @@ export function IconPickerDropdown({
               <div className="text-left min-w-0 flex-1">
                 <p className="text-xs font-semibold truncate leading-tight">Favicon Otomatis</p>
                 <p className="text-[10px] text-txt-dim truncate">
-                  {domain ? `Logo resmi dari ${domain}` : 'Mengambil logo otomatis dari URL'}
+                  {domain ? `Favicon dari ${domain}` : 'Otomatis dari URL'}
                 </p>
               </div>
             </button>
@@ -285,7 +285,7 @@ export function IconPickerDropdown({
                 onSelectEmoji(val || undefined);
                 if (val) onSelectIcon(undefined);
               }}
-              placeholder="Contoh: 📑"
+              placeholder="Contoh: ✦"
               className="w-full h-8 px-2.5 text-xs bg-canvas border border-border rounded-lg focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
               maxLength={4}
             />
