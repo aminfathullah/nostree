@@ -254,19 +254,24 @@ function PublicTreeViewerComponent({
   return (
     <>
       <main 
-        className="min-h-screen flex flex-col items-center px-4 py-10 pb-24 transition-colors bg-cover bg-center bg-fixed selection:bg-brand selection:text-brand-fg"
+        className="min-h-screen w-full flex flex-col items-center justify-start sm:justify-center p-0 sm:p-6 md:p-10 transition-colors selection:bg-brand selection:text-brand-fg relative overflow-x-hidden"
         style={{ 
-          backgroundColor: isBackgroundImage ? '#09090b' : bgColor,
-          backgroundImage: bgImage,
-          color: textColor, 
+          backgroundColor: isBackgroundImage ? '#08080a' : bgColor,
+          backgroundImage: isBackgroundImage ? bgImage : `radial-gradient(circle at 50% 35%, ${primaryColor}14 0%, transparent 70%)`,
           fontFamily,
         }}
       >
-        <div className="w-full max-w-md mx-auto">
+        <div 
+          className="w-full sm:max-w-[450px] mx-auto sm:my-auto rounded-none sm:rounded-[36px] border-0 sm:border overflow-hidden transition-all duration-300 flex flex-col justify-between relative shadow-none sm:shadow-2xl min-h-screen sm:min-h-[580px]"
+          style={{ 
+            backgroundColor: isBackgroundImage ? 'rgba(10, 10, 14, 0.96)' : bgColor,
+            backgroundImage: bgImage,
+            color: textColor,
+            borderColor: cardBorder,
+          }}
+        >
           {treeData?.profile?.headerImage && (
-            <div 
-              className="w-full h-36 sm:h-40 rounded-2xl overflow-hidden mb-6 animate-fade-in shadow-sm"
-            >
+            <div className="w-full h-32 sm:h-38 overflow-hidden shrink-0">
               <img 
                 src={treeData.profile.headerImage} 
                 alt="Header" 
@@ -275,243 +280,246 @@ function PublicTreeViewerComponent({
             </div>
           )}
           
-          <header className="flex flex-col items-center text-center mb-8 animate-slide-up">
-            <div className="relative mb-3.5">
-              <div 
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden shadow-elevated transition-transform duration-200 hover:scale-105"
-                style={{ 
-                  backgroundColor: cardBg,
-                  border: `3px solid ${primaryColor}30`,
-                }}
-              >
-                <img 
-                  src={treeData?.profile?.picture || profile?.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`}
-                  alt={`${displayName}'s avatar`}
-                  className="w-full h-full object-cover"
-                  loading="eager"
-                />
-              </div>
-              
-              {showVerification && profile?.nip05 && (
-                <div 
-                  className="absolute -bottom-1 -right-1 p-1 rounded-full shadow-md animate-pop"
-                  style={{ backgroundColor: primaryColor, color: '#ffffff' }}
-                  title={`Verified: ${profile.nip05}`}
+          <div className="p-5 sm:p-7 flex-1 flex flex-col justify-between">
+            <div>
+              <header className={`flex flex-col items-center text-center mb-6 animate-slide-up ${treeData?.profile?.headerImage ? '-mt-14 sm:-mt-16' : 'pt-2'}`}>
+                <div className="relative mb-3">
+                  <div 
+                    className="w-20 h-20 sm:w-22 sm:h-22 rounded-full overflow-hidden shadow-elevated transition-transform duration-200 hover:scale-105"
+                    style={{ 
+                      backgroundColor: cardBg,
+                      border: `3px solid ${primaryColor}40`,
+                    }}
+                  >
+                    <img 
+                      src={treeData?.profile?.picture || profile?.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`}
+                      alt={`${displayName}'s avatar`}
+                      className="w-full h-full object-cover"
+                      loading="eager"
+                    />
+                  </div>
+                  
+                  {showVerification && profile?.nip05 && (
+                    <div 
+                      className="absolute -bottom-1 -right-1 p-1 rounded-full shadow-md animate-pop"
+                      style={{ backgroundColor: primaryColor, color: '#ffffff' }}
+                      title={`Verified: ${profile.nip05}`}
+                    >
+                      <BadgeCheck className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+
+                <h1 
+                  className="text-xl sm:text-2xl font-bold tracking-tight mb-1" 
+                  style={{ color: textColor }}
                 >
-                  <BadgeCheck className="w-4 h-4" />
+                  {displayName}
+                </h1>
+
+                <button
+                  onClick={copySlugLink}
+                  className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md mb-2.5 transition-all duration-150 hover:opacity-90 active:scale-[0.98] cursor-pointer"
+                  style={{ 
+                    backgroundColor: cardBg, 
+                    border: `1px solid ${cardBorder}`, 
+                    color: dimColor 
+                  }}
+                  title="Click to copy link"
+                >
+                  <span>{typeof window !== 'undefined' ? window.location.host : 'nostree.me'}/{slug}</span>
+                  {copiedSlug ? (
+                    <Check className="w-3 h-3 text-emerald-500" />
+                  ) : (
+                    <Copy className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                  )}
+                </button>
+
+                {showVerification && profile?.nip05 && (
+                  <p 
+                    className="text-xs mb-2 flex items-center gap-1 font-medium" 
+                    style={{ color: primaryColor }}
+                  >
+                    <span>✓</span>
+                    <span>{profile.nip05.startsWith('_@') ? profile.nip05.slice(2) : profile.nip05}</span>
+                  </p>
+                )}
+
+                {displayBio && (
+                  <p 
+                    className="max-w-xs text-xs sm:text-sm leading-relaxed px-2 text-center" 
+                    style={{ color: dimColor }}
+                  >
+                    {displayBio}
+                  </p>
+                )}
+              </header>
+
+              {(rootLinks.length > 0 || groups.length > 0) && (
+                <nav className="flex flex-col gap-2.5" aria-label="Links">
+                  {rootLinks.map((link, index) => (
+                    <TiltLinkCard
+                      key={link.id}
+                      link={link}
+                      index={index}
+                      cardBg={cardBg}
+                      cardBorder={cardBorder}
+                      cardHoverBg={cardHoverBg}
+                      cardHoverBorder={cardHoverBorder}
+                      fgColor={primaryColor}
+                      textColor={textColor}
+                      dimColor={dimColor}
+                      borderRadius={borderRadius}
+                    />
+                  ))}
+                  
+                  {groups.map((group, groupIndex) => {
+                    const isCollapsed = collapsedGroups.has(group.id) || group.collapsed;
+                    const startDelay = 100 + (rootLinks.length + groupIndex) * 40;
+                    
+                    return (
+                      <div
+                        key={group.id}
+                        className="animate-slide-up"
+                        style={{ animationDelay: `${startDelay}ms` }}
+                      >
+                        <button
+                          onClick={() => toggleGroupCollapse(group.id)}
+                          className="w-full px-4 py-3 flex items-center justify-between rounded-xl backdrop-blur-md transition-all duration-200 hover:opacity-90 active:scale-[0.99] mb-2.5 shadow-xs cursor-pointer"
+                          style={{
+                            backgroundColor: isBackgroundImage ? 'rgba(255,255,255,0.06)' : cardBg,
+                            border: `1px solid ${cardBorder}`,
+                            borderLeftWidth: '3px',
+                            borderLeftColor: primaryColor,
+                          }}
+                        >
+                          <div className="flex items-center gap-2.5 text-left min-w-0">
+                            {group.emoji && (
+                              <span className="text-lg shrink-0">{group.emoji}</span>
+                            )}
+                            <span className="font-bold text-sm tracking-tight truncate" style={{ color: textColor }}>
+                              {group.title}
+                            </span>
+                            <span 
+                              className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0" 
+                              style={{ 
+                                backgroundColor: `${primaryColor}20`,
+                                color: primaryColor,
+                              }}
+                            >
+                              {group.links.length}
+                            </span>
+                          </div>
+                          
+                          <div className="shrink-0 p-1 rounded-md transition-transform duration-200" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+                            <ChevronDown className="w-4 h-4" style={{ color: primaryColor }} />
+                          </div>
+                        </button>
+                        
+                        {!isCollapsed && group.links.length > 0 && (
+                          <div className="flex flex-col gap-2.5 pl-3 border-l-2 border-dashed pb-2 mb-2" style={{ borderColor: `${primaryColor}30` }}>
+                            {group.links.map((link, linkIndex) => (
+                              <TiltLinkCard
+                                key={link.id}
+                                link={link}
+                                index={rootLinks.length + groupIndex + linkIndex}
+                                cardBg={cardBg}
+                                cardBorder={cardBorder}
+                                cardHoverBg={cardHoverBg}
+                                cardHoverBorder={cardHoverBorder}
+                                fgColor={primaryColor}
+                                textColor={textColor}
+                                dimColor={dimColor}
+                                borderRadius={borderRadius}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </nav>
+              )}
+
+              {rootLinks.length === 0 && groups.length === 0 && (
+                <div 
+                  className="text-center py-8 px-6 rounded-2xl backdrop-blur-md animate-fade-in"
+                  style={{ 
+                    backgroundColor: cardBg,
+                    border: `1px solid ${cardBorder}`,
+                  }}
+                >
+                  <div className="text-2xl mb-2">📁</div>
+                  <p className="text-xs font-semibold mb-1" style={{ color: textColor }}>
+                    Belum ada tautan
+                  </p>
+                  <p className="text-[11px]" style={{ color: dimColor }}>
+                    Halaman ini siap menerima daftar tautan dari editor.
+                  </p>
+                </div>
+              )}
+
+              {socials.length > 0 && (
+                <nav 
+                  className="flex justify-center gap-2 mt-6 animate-slide-up flex-wrap" 
+                  aria-label="Social links"
+                  style={{ animationDelay: `${120 + totalLinkCount * 40}ms` }}
+                >
+                  {socials.map((social) => (
+                    <a
+                      key={social.platform}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 active:scale-95 backdrop-blur-md shadow-xs"
+                      style={{ 
+                        backgroundColor: cardBg, 
+                        border: `1px solid ${cardBorder}`, 
+                        color: textColor, 
+                      }}
+                      title={social.platform}
+                    >
+                      <SocialIcon platform={social.platform} />
+                    </a>
+                  ))}
+                </nav>
+              )}
+
+              {profile?.lud16 && (
+                <div 
+                  className="mt-5 text-center animate-slide-up"
+                  style={{ animationDelay: `${160 + totalLinkCount * 40}ms` }}
+                >
+                  <a 
+                    href={`lightning:${profile.lud16}`}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
+                    style={{ 
+                      backgroundColor: primaryColor, 
+                      color: '#ffffff',
+                    }}
+                  >
+                    <span>⚡</span>
+                    <span>Kirim Tip Lightning</span>
+                  </a>
                 </div>
               )}
             </div>
 
-            <h1 
-              className="text-xl sm:text-2xl font-bold tracking-tight mb-1.5" 
-              style={{ color: textColor }}
-            >
-              {displayName}
-            </h1>
-
-            <button
-              onClick={copySlugLink}
-              className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md mb-2.5 transition-all duration-150 hover:opacity-90 active:scale-[0.98]"
+            <footer 
+              className="pt-6 pb-1 text-center text-[11px] border-t mt-8 transition-opacity hover:opacity-100 opacity-60"
               style={{ 
-                backgroundColor: cardBg, 
-                border: `1px solid ${cardBorder}`, 
-                color: dimColor 
-              }}
-              title="Click to copy link"
-            >
-              <span>{typeof window !== 'undefined' ? window.location.host : 'nostree.me'}/{slug}</span>
-              {copiedSlug ? (
-                <Check className="w-3 h-3 text-emerald-500" />
-              ) : (
-                <Copy className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-              )}
-            </button>
-
-            {showVerification && profile?.nip05 && (
-              <p 
-                className="text-xs mb-2 flex items-center gap-1 font-medium" 
-                style={{ color: primaryColor }}
-              >
-                <span>✓</span>
-                <span>{profile.nip05.startsWith('_@') ? profile.nip05.slice(2) : profile.nip05}</span>
-              </p>
-            )}
-
-            {displayBio && (
-              <p 
-                className="max-w-sm text-xs sm:text-sm leading-relaxed px-2" 
-                style={{ color: dimColor }}
-              >
-                {displayBio}
-              </p>
-            )}
-          </header>
-
-          {(rootLinks.length > 0 || groups.length > 0) && (
-            <nav className="flex flex-col gap-3" aria-label="Links">
-              {rootLinks.map((link, index) => (
-                <TiltLinkCard
-                  key={link.id}
-                  link={link}
-                  index={index}
-                  cardBg={cardBg}
-                  cardBorder={cardBorder}
-                  cardHoverBg={cardHoverBg}
-                  cardHoverBorder={cardHoverBorder}
-                  fgColor={primaryColor}
-                  textColor={textColor}
-                  dimColor={dimColor}
-                  borderRadius={borderRadius}
-                />
-              ))}
-              
-              {groups.map((group, groupIndex) => {
-                const isCollapsed = collapsedGroups.has(group.id) || group.collapsed;
-                const startDelay = 100 + (rootLinks.length + groupIndex) * 40;
-                
-                return (
-                  <div
-                    key={group.id}
-                    className="animate-slide-up"
-                    style={{ animationDelay: `${startDelay}ms` }}
-                  >
-                    <button
-                      onClick={() => toggleGroupCollapse(group.id)}
-                      className="w-full px-4 py-3 flex items-center justify-between rounded-xl backdrop-blur-md transition-all duration-200 hover:opacity-90 active:scale-[0.99] mb-2.5 shadow-sm"
-                      style={{
-                        backgroundColor: isBackgroundImage ? 'rgba(255,255,255,0.06)' : cardBg,
-                        border: `1px solid ${cardBorder}`,
-                        borderLeftWidth: '3px',
-                        borderLeftColor: primaryColor,
-                      }}
-                    >
-                      <div className="flex items-center gap-2.5 text-left min-w-0">
-                        {group.emoji && (
-                          <span className="text-lg shrink-0">{group.emoji}</span>
-                        )}
-                        <span className="font-bold text-sm tracking-tight truncate" style={{ color: textColor }}>
-                          {group.title}
-                        </span>
-                        <span 
-                          className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0" 
-                          style={{ 
-                            backgroundColor: `${primaryColor}20`,
-                            color: primaryColor,
-                          }}
-                        >
-                          {group.links.length}
-                        </span>
-                      </div>
-                      
-                      <div className="shrink-0 p-1 rounded-md transition-transform duration-200" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
-                        <ChevronDown className="w-4 h-4" style={{ color: primaryColor }} />
-                      </div>
-                    </button>
-                    
-                    {!isCollapsed && group.links.length > 0 && (
-                      <div className="flex flex-col gap-2.5 pl-3 border-l-2 border-dashed pb-2 mb-2" style={{ borderColor: `${primaryColor}30` }}>
-                        {group.links.map((link, linkIndex) => (
-                          <TiltLinkCard
-                            key={link.id}
-                            link={link}
-                            index={rootLinks.length + groupIndex + linkIndex}
-                            cardBg={cardBg}
-                            cardBorder={cardBorder}
-                            cardHoverBg={cardHoverBg}
-                            cardHoverBorder={cardHoverBorder}
-                            fgColor={primaryColor}
-                            textColor={textColor}
-                            dimColor={dimColor}
-                            borderRadius={borderRadius}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </nav>
-          )}
-
-          {rootLinks.length === 0 && groups.length === 0 && (
-            <div 
-              className="text-center py-10 px-6 rounded-2xl backdrop-blur-md animate-fade-in"
-              style={{ 
-                backgroundColor: cardBg,
-                border: `1px solid ${cardBorder}`,
+                color: dimColor,
+                borderColor: cardBorder,
               }}
             >
-              <div className="text-3xl mb-2.5">🌱</div>
-              <p className="text-sm font-semibold mb-1" style={{ color: textColor }}>
-                No links yet
-              </p>
-              <p className="text-xs" style={{ color: dimColor }}>
-                This link organizer is fresh and waiting for links.
-              </p>
-            </div>
-          )}
-
-          {socials.length > 0 && (
-            <nav 
-              className="flex justify-center gap-2 mt-8 animate-slide-up flex-wrap" 
-              aria-label="Social links"
-              style={{ animationDelay: `${120 + totalLinkCount * 40}ms` }}
-            >
-              {socials.map((social) => (
-                <a
-                  key={social.platform}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 active:scale-95 backdrop-blur-md shadow-xs"
-                  style={{ 
-                    backgroundColor: cardBg,
-                    border: `1px solid ${cardBorder}`,
-                    color: textColor,
-                  }}
-                  title={social.platform}
-                >
-                  <SocialIcon platform={social.platform} />
-                </a>
-              ))}
-            </nav>
-          )}
-
-          {profile?.lud16 && (
-            <div 
-              className="mt-7 text-center animate-slide-up"
-              style={{ animationDelay: `${160 + totalLinkCount * 40}ms` }}
-            >
-              <a 
-                href={`lightning:${profile.lud16}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
-                style={{ 
-                  backgroundColor: primaryColor, 
-                  color: '#ffffff',
-                }}
-              >
-                <span>⚡</span>
-                <span>Send a Zap Tip</span>
+              <a href="/admin" className="inline-flex items-center gap-1.5 font-medium">
+                <span>Dikelola dengan</span>
+                <span className="font-semibold" style={{ color: textColor }}>Nostree</span>
+                <img src={logo} alt="Logo" className="w-3.5 h-3.5 object-contain" />
               </a>
-            </div>
-          )}
+            </footer>
+          </div>
         </div>
-
-        <footer 
-          className="fixed bottom-0 left-0 right-0 py-3 text-center text-[11px] backdrop-blur-md border-t"
-          style={{ 
-            color: dimColor,
-            backgroundColor: isBackgroundImage ? 'rgba(9,9,11,0.85)' : `${bgColor}ee`,
-            borderColor: cardBorder,
-          }}
-        >
-          <a href="/" className="transition-opacity duration-150 hover:opacity-90 inline-flex items-center gap-1.5 font-medium">
-            <span>Powered by</span>
-            <span className="font-semibold" style={{ color: textColor }}>Nostree</span>
-            <img src={logo} alt="Logo" className="w-3.5 h-3.5 object-contain" />
-          </a>
-        </footer>
       </main>
 
       <ShareButton 

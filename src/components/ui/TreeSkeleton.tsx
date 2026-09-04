@@ -6,111 +6,95 @@ interface TreeSkeletonProps {
   borderRadius?: string;
 }
 
-/**
- * Animated loading skeleton for the public tree viewer
- * Displays shimmer placeholders matching the final layout
- */
 function TreeSkeletonComponent({ 
-  bgColor = '#f5f5f7',
-  cardBg = 'rgba(0,0,0,0.05)',
+  bgColor = '#09090b',
+  cardBg = 'rgba(255,255,255,0.06)',
   borderRadius = '1rem'
 }: TreeSkeletonProps) {
   return (
     <main 
-      className="min-h-screen flex flex-col items-center px-4 py-12 pb-20"
+      className="min-h-screen w-full flex flex-col items-center justify-center p-0 sm:p-6 md:p-10 transition-colors relative overflow-x-hidden"
       style={{ backgroundColor: bgColor }}
     >
-      <div className="w-full max-w-md mx-auto animate-fade-in">
-        {/* Profile Skeleton */}
-        <header className="flex flex-col items-center text-center mb-8">
-          {/* Avatar */}
-          <div 
-            className="w-24 h-24 rounded-full mb-4 skeleton-shimmer"
-            style={{ backgroundColor: cardBg }}
-          />
-          
-          {/* Name */}
-          <div 
-            className="h-7 w-40 rounded-lg mb-2 skeleton-shimmer"
-            style={{ backgroundColor: cardBg }}
-          />
-          
-          {/* Badge */}
-          <div 
-            className="h-5 w-20 rounded-full mb-3 skeleton-shimmer"
-            style={{ backgroundColor: cardBg }}
-          />
-          
-          {/* Bio */}
-          <div className="space-y-2 w-full max-w-xs">
+      <div 
+        className="w-full max-w-md sm:max-w-[440px] md:max-w-[460px] mx-auto my-auto sm:my-8 rounded-none sm:rounded-[36px] sm:border overflow-hidden p-5 sm:p-7 min-h-[580px] flex flex-col justify-between animate-fade-in"
+        style={{
+          backgroundColor: cardBg,
+          borderColor: 'rgba(255,255,255,0.1)',
+          boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.35)',
+        }}
+      >
+        <div>
+          <header className="flex flex-col items-center text-center mb-6 pt-2">
             <div 
-              className="h-4 w-full rounded skeleton-shimmer"
-              style={{ backgroundColor: cardBg }}
+              className="w-20 h-20 sm:w-22 sm:h-22 rounded-full mb-3 skeleton-shimmer"
+              style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
             />
+            
             <div 
-              className="h-4 w-3/4 mx-auto rounded skeleton-shimmer"
-              style={{ backgroundColor: cardBg }}
+              className="h-6 w-36 rounded-lg mb-2 skeleton-shimmer"
+              style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
             />
-          </div>
-        </header>
-
-        {/* Link Skeletons */}
-        <nav className="flex flex-col gap-3">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="w-full p-4 skeleton-shimmer"
-              style={{ 
-                backgroundColor: cardBg,
-                borderRadius: borderRadius,
-                animationDelay: `${i * 100}ms`,
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <div 
-                  className="w-6 h-6 rounded skeleton-shimmer"
-                  style={{ backgroundColor: `${cardBg}` }}
-                />
-                <div 
-                  className="flex-1 h-5 rounded skeleton-shimmer"
-                  style={{ backgroundColor: `${cardBg}` }}
-                />
-                <div 
-                  className="w-4 h-4 rounded skeleton-shimmer"
-                  style={{ backgroundColor: `${cardBg}` }}
-                />
-              </div>
+            
+            <div 
+              className="h-4 w-24 rounded-full mb-3 skeleton-shimmer"
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+            />
+            
+            <div className="space-y-1.5 w-full max-w-xs">
+              <div 
+                className="h-3.5 w-full rounded skeleton-shimmer"
+                style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+              />
+              <div 
+                className="h-3.5 w-3/4 mx-auto rounded skeleton-shimmer"
+                style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+              />
             </div>
-          ))}
-        </nav>
+          </header>
 
-        {/* Social Icons Skeleton */}
-        <div className="flex justify-center gap-4 mt-8">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="w-10 h-10 rounded-lg skeleton-shimmer"
-              style={{ 
-                backgroundColor: cardBg,
-                animationDelay: `${400 + i * 100}ms`,
-              }}
-            />
-          ))}
+          <nav className="flex flex-col gap-2.5">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="w-full p-4 skeleton-shimmer"
+                style={{ 
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  borderRadius: borderRadius,
+                  animationDelay: `${i * 100}ms`,
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-8 h-8 rounded-lg skeleton-shimmer"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  />
+                  <div className="flex-1 space-y-1.5">
+                    <div 
+                      className="h-4 w-2/3 rounded skeleton-shimmer"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    />
+                    <div 
+                      className="h-3 w-1/3 rounded skeleton-shimmer"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </nav>
+        </div>
+
+        <div className="pt-6 pb-2 text-center text-[11px] border-t border-white/10 mt-8">
+          <div className="h-3 w-28 mx-auto rounded skeleton-shimmer" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }} />
         </div>
       </div>
 
-      {/* CSS for skeleton shimmer */}
       <style>{`
         @keyframes skeleton-shimmer {
-          0% {
-            opacity: 0.6;
-          }
-          50% {
-            opacity: 0.3;
-          }
-          100% {
-            opacity: 0.6;
-          }
+          0% { opacity: 0.6; }
+          50% { opacity: 0.25; }
+          100% { opacity: 0.6; }
         }
         .skeleton-shimmer {
           animation: skeleton-shimmer 1.5s ease-in-out infinite;
