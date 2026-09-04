@@ -245,7 +245,11 @@ export function useNostrAuth(): UseNostrAuthReturn {
       }
 
       if (isMountedRef.current) {
-        await autoUseLocalAccount();
+        if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+          await autoUseLocalAccount();
+        } else {
+          setStatus("idle");
+        }
       }
     };
 

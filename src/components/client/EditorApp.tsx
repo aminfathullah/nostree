@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { useAuth } from "../../context/AuthContext";
 import { useLinkTree } from "../../hooks/useLinkTree";
@@ -31,7 +31,7 @@ import {
   ExternalLink,
   ShieldCheck
 } from "lucide-react";
-import { fetchEventsWithTimeout } from "../../lib/ndk";
+import { fetchEventsWithTimeout, createNostreeEvent, publishEvent } from "../../lib/ndk";
 import { dTagToSlug, isNostreeDTag, slugToDTag } from "../../lib/slug-resolver";
 import { toast } from "sonner";
 import type { NostreeData } from "../../schemas/nostr";
@@ -331,6 +331,9 @@ function EditorContent() {
     login 
   } = useAuth();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const claimParam = searchParams.get("claim")?.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+
   const [profile, setProfile] = useState<UserProfile>({});
   const [trees, setTrees] = useState<TreeInfo[]>([]);
   const [treesDataMap, setTreesDataMap] = useState<Map<string, NostreeData>>(new Map());
@@ -424,12 +427,52 @@ function EditorContent() {
           }
         }
 
+        if (claimParam && !userTrees.some(t => t.slug === claimParam)) {
+          const dTag = slugToDTag(claimParam);
+          const newTreeData: NostreeData = {
+            version: "2.0",
+            treeMeta: {
+              slug: claimParam,
+              title: claimParam,
+              isDefault: false,
+              createdAt: Math.floor(Date.now() / 1000),
+            },
+            links: [],
+            socials: [],
+            theme: {
+              mode: "light",
+              colors: {
+                background: "#ffffff",
+                foreground: "#000000",
+                primary: "#5E47B8",
+                radius: "0.5rem",
+              },
+              font: "Inter",
+            },
+          };
+          const newEntry: TreeInfo = {
+            slug: claimParam,
+            dTag,
+            createdAt: Math.floor(Date.now() / 1000),
+            data: newTreeData,
+          };
+          userTrees.push(newEntry);
+          dataMap.set(claimParam, newTreeData);
+
+          const event = createNostreeEvent(newTreeData, pubkey!, dTag);
+          publishEvent(event).catch(() => {});
+        }
+
         userTrees.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
         setTrees(userTrees);
         setTreesDataMap(dataMap);
 
-        if (userTrees.length > 0) {
+        if (claimParam && userTrees.some(t => t.slug === claimParam)) {
+          setSlug(claimParam);
+          searchParams.delete("claim");
+          setSearchParams(searchParams, { replace: true });
+        } else if (userTrees.length > 0) {
           setSlug(prev => {
             if (prev && userTrees.some(t => t.slug === prev)) return prev;
             return userTrees[0].slug;
@@ -451,7 +494,7 @@ function EditorContent() {
     return () => {
       mounted = false;
     };
-  }, [pubkey, isAuthenticated]);
+  }, [pubkey, isAuthenticated, claimParam]);
 
   if (authLoading) {
     return <LoadingOverlay message="Connecting..." showProgress />;
