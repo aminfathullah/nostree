@@ -1,22 +1,9 @@
 import { z } from "zod";
 
-// ============================================
-// ENUMS
-// ============================================
-
-/**
- * Theme mode options
- */
 export const ThemeIdEnum = z.enum(["dark", "light", "custom"]);
 
-/**
- * Button styling variants
- */
 export const ButtonStyleEnum = z.enum(["solid", "outline", "glass", "ghost"]);
 
-/**
- * Supported social platforms
- */
 export const PlatformEnum = z.enum([
   "twitter",
   "instagram",
@@ -36,23 +23,10 @@ export const PlatformEnum = z.enum([
   "substack",
 ]);
 
-/**
- * Font family options
- */
 export const FontEnum = z.enum(["Inter", "Roboto", "Serif", "Mono"]);
 
-/**
- * Border radius options
- */
 export const RadiusEnum = z.enum(["0", "0.5rem", "1rem", "9999px"]);
 
-// ============================================
-// SUB-SCHEMAS
-// ============================================
-
-/**
- * Individual link schema
- */
 export const LinkSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1, "Title is required").max(64, "Title too long"),
@@ -60,160 +34,79 @@ export const LinkSchema = z.object({
   url: z.string().url("Invalid URL format"),
   icon: z.string().optional(),
   emoji: z.string().optional(),
-  
-  /** Whether the link is visible on the public profile */
+  badge: z.string().max(24).optional(),
+  highlight: z.boolean().optional(),
   visible: z.boolean().default(true),
-  
-  /** Click count (for analytics) */
   clicks: z.number().int().nonnegative().optional().default(0),
-  
-  /** Optional scheduling window */
   schedule: z
     .object({
-      start: z.number().optional(), // Unix timestamp
-      end: z.number().optional(),   // Unix timestamp
+      start: z.number().optional(),
+      end: z.number().optional(),
     })
     .optional(),
 });
 
-/**
- * Link group schema - for organizing multiple links together
- */
 export const LinkGroupSchema = z.object({
-  /** Unique identifier for the group */
   id: z.string().uuid(),
-  
-  /** Type identifier to distinguish from regular links */
   type: z.literal("group"),
-  
-  /** Display title for the group */
   title: z.string().min(1, "Group title is required").max(64, "Title too long"),
-  
-  /** Optional emoji icon for the group */
   emoji: z.string().optional(),
-  
-  /** Whether the group is collapsed by default */
   collapsed: z.boolean().default(false),
-  
-  /** Whether the group is visible on the public profile */
   visible: z.boolean().default(true),
-  
-  /** Links within this group */
   links: z.array(LinkSchema).max(30, "Maximum 30 links per group"),
 });
 
-/**
- * Link item - can be either a regular link or a group
- */
 export const LinkItemSchema = z.union([
   LinkSchema,
   LinkGroupSchema,
 ]);
 
-/**
- * Social media link schema
- */
 export const SocialSchema = z.object({
-  /** Platform identifier */
   platform: PlatformEnum,
-  
-  /** Profile URL on the platform */
   url: z.string().url("Invalid social URL"),
 });
 
-/**
- * Theme configuration schema
- */
 export const ThemeSchema = z.object({
-  /** Theme mode (dark/light/custom) */
   mode: ThemeIdEnum,
-  
-  /** Color configuration */
   colors: z.object({
-    /** Background color (hex or url for image) */
     background: z.string().regex(/^#[0-9A-Fa-f]{6}$|^url\(/, "Invalid background"),
-    
-    /** Foreground/text color (hex) */
     foreground: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid foreground color"),
-    
-    /** Primary/accent color (hex) */
     primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid primary color"),
-    
-    /** Border radius for buttons/cards */
     radius: RadiusEnum,
   }),
-  
-  /** Font family */
   font: FontEnum.default("Inter"),
 });
 
-/**
- * Profile override schema
- */
 export const ProfileOverrideSchema = z.object({
-  /** Override the name from Kind 0 */
   name: z.string().max(32, "Name too long").optional(),
-  
-  /** Override the bio from Kind 0 */
   bio: z.string().max(160, "Bio too long").optional(),
-  
-  /** Whether to show NIP-05 verification badge */
+  phone: z.string().max(32, "Phone too long").optional(),
+  email: z.string().email("Invalid email").optional(),
   show_verification: z.boolean().default(true),
-  
-  /** Custom profile picture URL (overrides Kind 0 picture) */
   picture: z.string().optional(),
-  
-  /** Header/banner image URL (displayed above profile) */
   headerImage: z.string().optional(),
 });
 
-/**
- * Tree metadata schema (for multi-tree support)
- */
 export const TreeMetaSchema = z.object({
-  /** URL slug for this tree (e.g., "portfolio", "music") */
   slug: z.string()
     .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/, "Slug must be lowercase alphanumeric with hyphens")
     .min(1, "Slug required")
     .max(32, "Slug too long"),
-  
   title: z.string().max(64, "Title too long").optional(),
   isDefault: z.boolean().default(false),
   createdAt: z.number().optional(),
   deletedAt: z.number().optional(),
 });
 
-// ============================================
-// MAIN SCHEMA (Kind 30078 Content)
-// ============================================
-
-/**
- * Main Nostree data schema v2.0
- * Supports multiple trees per user with custom slugs
- */
 export const NostreeDataSchemaV2 = z.object({
-  /** Schema version */
   version: z.literal("2.0"),
-  
-  /** Tree metadata (slug, title, isDefault) */
   treeMeta: TreeMetaSchema,
-  
-  /** Optional profile overrides */
   profile: ProfileOverrideSchema.optional(),
-  
-  /** Array of links and groups (max 50 items total) */
   links: z.array(LinkItemSchema).max(50, "Maximum 50 links/groups allowed"),
-  
-  /** Array of social links (max 10) */
   socials: z.array(SocialSchema).max(10, "Maximum 10 social links allowed"),
-  
-  /** Theme configuration */
   theme: ThemeSchema,
 });
 
-/**
- * Legacy v1.0 schema (backward compatible)
- */
 export const NostreeDataSchemaV1 = z.object({
   version: z.literal("1.0"),
   profile: ProfileOverrideSchema.optional(),
@@ -222,15 +115,7 @@ export const NostreeDataSchemaV1 = z.object({
   theme: ThemeSchema,
 });
 
-/**
- * Combined schema that accepts both versions
- * Use parseNostreeData() for type-safe parsing with migration
- */
 export const NostreeDataSchema = z.union([NostreeDataSchemaV2, NostreeDataSchemaV1]);
-
-// ============================================
-// TYPE EXPORTS
-// ============================================
 
 export type ThemeId = z.infer<typeof ThemeIdEnum>;
 export type ButtonStyle = z.infer<typeof ButtonStyleEnum>;
@@ -249,13 +134,6 @@ export type NostreeDataV2 = z.infer<typeof NostreeDataSchemaV2>;
 export type NostreeDataV1 = z.infer<typeof NostreeDataSchemaV1>;
 export type NostreeData = z.infer<typeof NostreeDataSchema>;
 
-// ============================================
-// VALIDATION HELPERS
-// ============================================
-
-/**
- * Validate Nostree data and return result
- */
 export function validateNostreeData(data: unknown): {
   success: boolean;
   data?: NostreeData;
@@ -268,16 +146,10 @@ export function validateNostreeData(data: unknown): {
   return { success: false, errors: result.error };
 }
 
-/**
- * Check if a string is a valid hex color
- */
 export function isValidHexColor(color: string): boolean {
   return /^#[0-9A-Fa-f]{6}$/.test(color);
 }
 
-/**
- * Check if a URL is valid
- */
 export function isValidUrl(url: string): boolean {
   try {
     new URL(url);

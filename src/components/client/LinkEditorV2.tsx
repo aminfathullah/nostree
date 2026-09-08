@@ -16,11 +16,16 @@ import {
   ChevronRight,
   Folder,
   Move,
-  CornerDownRight
+  CornerDownRight,
+  Tag,
+  MessageCircle
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import type { Link, LinkItem, LinkGroup } from "../../schemas/nostr";
 import { LinkItemIcon, IconPickerDropdown } from "./LinkItemIcon";
+import { formatWhatsAppUrl } from "../../lib/embeds";
+
+const BADGE_PRESETS = ["Populer", "Promo", "Baru", "Rekomendasi"] as const;
 
 interface LinkEditorItemProps {
   link: Link;
@@ -54,6 +59,7 @@ function LinkEditorItem({
   const [url, setUrl] = useState(link.url);
   const [icon, setIcon] = useState<string | undefined>(link.icon);
   const [emoji, setEmoji] = useState(link.emoji || "");
+  const [badge, setBadge] = useState(link.badge || "");
 
   const handleSave = () => {
     onUpdate({
@@ -63,6 +69,7 @@ function LinkEditorItem({
       url: url.trim() || link.url,
       icon: icon || undefined,
       emoji: emoji.trim() || undefined,
+      badge: badge.trim() || undefined,
     });
     setIsEditing(false);
   };
@@ -73,6 +80,7 @@ function LinkEditorItem({
     setUrl(link.url);
     setIcon(link.icon);
     setEmoji(link.emoji || "");
+    setBadge(link.badge || "");
     setIsEditing(false);
   };
 
@@ -186,6 +194,28 @@ function LinkEditorItem({
                   placeholder="https://example.com"
                   className="w-full h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs font-mono"
                 />
+
+                <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                  <span className="text-[11px] text-txt-dim flex items-center gap-1 font-medium">
+                    <Tag className="w-3 h-3" />
+                    <span>Badge:</span>
+                  </span>
+                  {BADGE_PRESETS.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setBadge(badge === p ? "" : p)}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all cursor-pointer ${
+                        badge === p
+                          ? "bg-brand text-white shadow-2xs"
+                          : "bg-canvas border border-border text-txt-muted hover:border-brand/40"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="flex justify-end gap-2 pt-1">
                   <Button variant="ghost" size="sm" onClick={handleCancel} className="text-xs h-8">
                     Batal
@@ -202,7 +232,14 @@ function LinkEditorItem({
               >
                 <LinkItemIcon icon={link.icon} emoji={link.emoji} url={link.url} size="md" />
                 <div className="w-0 flex-grow overflow-hidden">
-                  <p className="font-semibold text-sm text-txt-main truncate tracking-tight">{link.title}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm text-txt-main truncate tracking-tight">{link.title}</p>
+                    {link.badge && (
+                      <span className="text-[10px] font-bold tracking-wide uppercase px-2 py-0.2 rounded-full bg-brand/15 text-brand border border-brand/25 shrink-0">
+                        {link.badge}
+                      </span>
+                    )}
+                  </div>
                   {link.subtitle && (
                     <p className="text-xs text-txt-dim truncate mt-0.5">{link.subtitle}</p>
                   )}
@@ -543,6 +580,21 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
   const [url, setUrl] = useState("");
   const [icon, setIcon] = useState<string | undefined>();
   const [emoji, setEmoji] = useState("");
+  const [badge, setBadge] = useState("");
+  const [showWhatsAppHelper, setShowWhatsAppHelper] = useState(false);
+  const [waPhone, setWaPhone] = useState("");
+  const [waMessage, setWaMessage] = useState("");
+
+  const applyWhatsApp = () => {
+    if (!waPhone.trim()) return;
+    const generatedUrl = formatWhatsAppUrl(waPhone, waMessage);
+    setUrl(generatedUrl);
+    if (!title.trim()) {
+      setTitle("Chat WhatsApp");
+    }
+    setIcon("message");
+    setShowWhatsAppHelper(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -554,6 +606,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
       url: url.trim(),
       icon: icon || undefined,
       emoji: emoji.trim() || undefined,
+      badge: badge.trim() || undefined,
       visible: true,
       clicks: 0,
     });
@@ -563,6 +616,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
     setUrl("");
     setIcon(undefined);
     setEmoji("");
+    setBadge("");
   };
 
   return (
@@ -609,6 +663,74 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
         placeholder="Keterangan singkat (opsional)"
         className="w-full h-9 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs"
       />
+
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[11px] text-txt-dim flex items-center gap-1 font-medium">
+            <Tag className="w-3 h-3" />
+            <span>Badge:</span>
+          </span>
+          {BADGE_PRESETS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setBadge(badge === p ? "" : p)}
+              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all cursor-pointer ${
+                badge === p
+                  ? "bg-brand text-white shadow-2xs"
+                  : "bg-canvas border border-border text-txt-muted hover:border-brand/40"
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowWhatsAppHelper((prev) => !prev)}
+          className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer ml-auto"
+        >
+          <MessageCircle className="w-3 h-3" />
+          <span>{showWhatsAppHelper ? "Tutup WA" : "Bantuan WhatsApp"}</span>
+        </button>
+      </div>
+
+      {showWhatsAppHelper && (
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-2 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+              Format Tautan Langsung WhatsApp
+            </span>
+            <span className="text-[10px] text-txt-dim">Otomatis wa.me</span>
+          </div>
+          <input
+            type="tel"
+            value={waPhone}
+            onChange={(e) => setWaPhone(e.target.value)}
+            placeholder="Nomor HP / WhatsApp (contoh: 081234567890)"
+            className="w-full h-8 px-3 text-xs bg-canvas border border-border rounded-lg focus:border-emerald-500 focus:outline-none"
+          />
+          <input
+            type="text"
+            value={waMessage}
+            onChange={(e) => setWaMessage(e.target.value)}
+            placeholder="Pesan pembuka (contoh: Halo kak, saya mau tanya produk ini)"
+            className="w-full h-8 px-3 text-xs bg-canvas border border-border rounded-lg focus:border-emerald-500 focus:outline-none"
+          />
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={applyWhatsApp}
+              disabled={!waPhone.trim()}
+              className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold cursor-pointer active:scale-95 transition-all"
+            >
+              Terapkan ke Tautan
+            </button>
+          </div>
+        </div>
+      )}
+
       <input
         type="url"
         value={url}

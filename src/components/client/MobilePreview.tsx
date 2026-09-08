@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import type { Link, NostreeData } from "../../schemas/nostr";
-import { BadgeCheck, ExternalLink, Camera, ImagePlus, Pencil, Upload, X } from "lucide-react";
+import { BadgeCheck, ExternalLink, Camera, ImagePlus, Pencil, Upload, X, Play, ChevronUp, MessageCircle, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { LinkItemIcon } from "./LinkItemIcon";
+import { extractYouTubeId, isWhatsAppUrl } from "../../lib/embeds";
 
 interface MobilePreviewProps {
   profile: {
@@ -120,6 +121,11 @@ export function MobilePreview({
   const [editingHeader, setEditingHeader] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState("");
+  const [expandedVideos, setExpandedVideos] = useState<Record<string, boolean>>({});
+
+  const toggleVideoExpand = (id: string) => {
+    setExpandedVideos(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const displayName = (data && 'treeMeta' in data && data.treeMeta?.title) || data?.profile?.name || profile?.name || "Your Name";
   const displayBio = data?.profile?.bio || profile?.about || "";
@@ -310,6 +316,22 @@ export function MobilePreview({
                   {displayBio}
                 </p>
               )}
+
+              {(data?.profile?.phone || data?.profile?.email) && (
+                <div className="flex items-center gap-1.5 mt-2">
+                  <span
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold"
+                    style={{
+                      backgroundColor: `${primaryColor}20`,
+                      color: primaryColor,
+                      border: `1px solid ${primaryColor}40`,
+                    }}
+                  >
+                    <UserPlus className="w-2.5 h-2.5" />
+                    <span>vCard Siap</span>
+                  </span>
+                </div>
+              )}
             </header>
 
             <div className="space-y-2.5 pt-1">
@@ -318,32 +340,98 @@ export function MobilePreview({
                   No links yet. Add one in the editor!
                 </div>
               )}
-              {visibleLinks.map((link) => (
-                <div
-                  key={link.id}
-                  className="w-full px-3 py-2.5 font-semibold text-xs transition-all flex items-center justify-between shadow-xs text-left"
-                  style={{
-                    backgroundColor: isBackgroundImage ? "rgba(255,255,255,0.12)" : `${fgColor}0a`,
-                    color: textColor,
-                    borderRadius: borderRadius,
-                    border: `1px solid ${isBackgroundImage ? "rgba(255,255,255,0.18)" : `${fgColor}14`}`,
-                    backdropFilter: "blur(8px)",
-                  }}
-                >
-                  <div className="flex items-center gap-2.5 truncate min-w-0 flex-1">
-                    <LinkItemIcon icon={link.icon} emoji={link.emoji} url={link.url} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <span className="truncate block">{link.title}</span>
-                      {link.subtitle && (
-                        <span className="text-[10px] opacity-70 truncate block font-normal leading-tight mt-0.5">
-                          {link.subtitle}
-                        </span>
-                      )}
+              {visibleLinks.map((link) => {
+                const youtubeId = extractYouTubeId(link.url);
+                const isWhatsApp = isWhatsAppUrl(link.url);
+                const isVideoExpanded = !!expandedVideos[link.id];
+
+                return (
+                  <div
+                    key={link.id}
+                    className={`w-full p-2.5 font-semibold text-xs transition-all shadow-xs text-left ${
+                      link.highlight ? "ring-2 ring-offset-1" : ""
+                    }`}
+                    style={{
+                      backgroundColor: isBackgroundImage ? "rgba(255,255,255,0.12)" : `${fgColor}0a`,
+                      color: textColor,
+                      borderRadius: borderRadius,
+                      border: `1px solid ${isBackgroundImage ? "rgba(255,255,255,0.18)" : `${fgColor}14`}`,
+                      backdropFilter: "blur(8px)",
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 truncate min-w-0 flex-1">
+                        <LinkItemIcon icon={link.icon} emoji={link.emoji} url={link.url} size="sm" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="truncate block">{link.title}</span>
+                            {link.badge && (
+                              <span
+                                className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.2 rounded-full shrink-0"
+                                style={{
+                                  backgroundColor: `${primaryColor}20`,
+                                  color: primaryColor,
+                                  border: `1px solid ${primaryColor}35`,
+                                }}
+                              >
+                                {link.badge}
+                              </span>
+                            )}
+                            {isWhatsApp && !link.badge && (
+                              <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shrink-0">
+                                <MessageCircle className="w-2.5 h-2.5" />
+                                <span>WA</span>
+                              </span>
+                            )}
+                          </div>
+                          {link.subtitle && (
+                            <span className="text-[10px] opacity-70 truncate block font-normal leading-tight mt-0.5">
+                              {link.subtitle}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        {youtubeId && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleVideoExpand(link.id);
+                            }}
+                            className="p-1 rounded-md text-[10px] font-semibold flex items-center gap-1 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                            style={{
+                              backgroundColor: isVideoExpanded ? fgColor : `${fgColor}15`,
+                              color: isVideoExpanded ? (isBackgroundImage ? "#000000" : "#ffffff") : textColor,
+                            }}
+                            title={isVideoExpanded ? "Tutup video" : "Putar video"}
+                          >
+                            {isVideoExpanded ? (
+                              <ChevronUp className="w-3 h-3" />
+                            ) : (
+                              <Play className="w-3 h-3 fill-current" />
+                            )}
+                          </button>
+                        )}
+                        <ExternalLink className="w-3 h-3 opacity-40 shrink-0" />
+                      </div>
                     </div>
+
+                    {youtubeId && isVideoExpanded && (
+                      <div className="mt-2 rounded-lg overflow-hidden aspect-video w-full bg-black/90">
+                        <iframe
+                          src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0`}
+                          title={link.title}
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    )}
                   </div>
-                  <ExternalLink className="w-3 h-3 opacity-40 shrink-0 ml-1.5" />
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {socials.length > 0 && (

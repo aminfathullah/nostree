@@ -1,12 +1,13 @@
 import { useState, memo, useMemo } from 'react';
 import type { NostreeDataV2, Link, LinkGroup } from '../../schemas/nostr';
-import { BadgeCheck, ChevronDown, Copy, Check, Globe } from 'lucide-react';
+import { BadgeCheck, ChevronDown, Copy, Check, Globe, UserPlus } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import TreeSkeleton from '../ui/TreeSkeleton';
 import ShareButton from '../ui/ShareButton';
 import QRCodeModal from '../ui/QRCodeModal';
 import { TiltLinkCard } from './TiltLinkCard';
 import { toast } from 'sonner';
+import { generateVCard, downloadVCard } from '../../lib/vcard';
 
 interface UserProfile {
   pubkey: string;
@@ -123,9 +124,22 @@ function PublicTreeViewerComponent({
     try {
       await navigator.clipboard.writeText(currentUrl);
       setCopiedSlug(true);
-      toast.success("Link copied to clipboard");
+      toast.success("Tautan berhasil disalin");
       setTimeout(() => setCopiedSlug(false), 2000);
     } catch {}
+  };
+
+  const handleSaveContact = (displayName: string, displayBio: string) => {
+    const vcard = generateVCard({
+      name: displayName,
+      title: treeData?.treeMeta?.title,
+      bio: displayBio,
+      phone: treeData?.profile?.phone,
+      email: treeData?.profile?.email,
+      url: currentUrl,
+    });
+    downloadVCard(displayName || "kontak", vcard);
+    toast.success("Kontak siap disimpan!");
   };
 
   const displayData = useMemo(() => {
@@ -317,23 +331,41 @@ function PublicTreeViewerComponent({
                   {displayName}
                 </h1>
 
-                <button
-                  onClick={copySlugLink}
-                  className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md mb-2.5 transition-all duration-150 hover:opacity-90 active:scale-[0.98] cursor-pointer"
-                  style={{ 
-                    backgroundColor: cardBg, 
-                    border: `1px solid ${cardBorder}`, 
-                    color: dimColor 
-                  }}
-                  title="Click to copy link"
-                >
-                  <span>{typeof window !== 'undefined' ? window.location.host : 'nostree.me'}/{slug}</span>
-                  {copiedSlug ? (
-                    <Check className="w-3 h-3 text-emerald-500" />
-                  ) : (
-                    <Copy className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-                  )}
-                </button>
+                <div className="flex items-center justify-center gap-2 flex-wrap mb-2.5">
+                  <button
+                    type="button"
+                    onClick={copySlugLink}
+                    className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md transition-all duration-150 hover:opacity-90 active:scale-[0.98] cursor-pointer"
+                    style={{ 
+                      backgroundColor: cardBg, 
+                      border: `1px solid ${cardBorder}`, 
+                      color: dimColor 
+                    }}
+                    title="Klik untuk salin tautan"
+                  >
+                    <span>{typeof window !== 'undefined' ? window.location.host : 'nostree.me'}/{slug}</span>
+                    {copiedSlug ? (
+                      <Check className="w-3 h-3 text-emerald-500" />
+                    ) : (
+                      <Copy className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSaveContact(displayName, displayBio)}
+                    className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md transition-all duration-150 hover:opacity-95 active:scale-[0.98] cursor-pointer shadow-2xs"
+                    style={{
+                      backgroundColor: `${primaryColor}18`,
+                      border: `1px solid ${primaryColor}35`,
+                      color: primaryColor,
+                    }}
+                    title="Simpan kartu kontak (.vcf) ke HP"
+                  >
+                    <UserPlus className="w-3 h-3" />
+                    <span>Simpan Kontak</span>
+                  </button>
+                </div>
 
                 {showVerification && profile?.nip05 && (
                   <p 
@@ -524,6 +556,7 @@ function PublicTreeViewerComponent({
 
       <ShareButton 
         url={currentUrl}
+        title={displayName}
         onQRClick={() => setShowQR(true)}
         primaryColor={primaryColor}
         bgColor={isBackgroundImage ? '#09090b' : bgColor}
@@ -533,6 +566,9 @@ function PublicTreeViewerComponent({
         isOpen={showQR}
         onClose={() => setShowQR(false)}
         url={currentUrl}
+        slug={slug}
+        avatarUrl={treeData?.profile?.picture || profile?.picture}
+        displayName={displayName}
         primaryColor={primaryColor}
         bgColor={isBackgroundImage ? '#09090b' : bgColor}
       />
