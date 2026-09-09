@@ -36,11 +36,6 @@ function TiltLinkCardComponent({
   const youtubeId = extractYouTubeId(link.url);
   const isWhatsApp = isWhatsAppUrl(link.url);
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (isVideoExpanded) {
-      e.preventDefault();
-    }
-  };
 
   return (
     <div
@@ -48,7 +43,7 @@ function TiltLinkCardComponent({
       style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
     >
       <div
-        className={`group relative block w-full px-4 py-3 sm:px-5 sm:py-3.5 backdrop-blur-md transition-all duration-150 ease-out hover:-translate-y-0.5 active:scale-[0.99] cursor-pointer outline-none ${
+        className={`group relative block w-full px-4 py-3 sm:px-5 sm:py-3.5 backdrop-blur-md transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out transform-gpu active:scale-[0.99] outline-none ${
           link.highlight ? "ring-2 ring-offset-2 shadow-md" : ""
         }`}
         style={{
@@ -56,20 +51,19 @@ function TiltLinkCardComponent({
           border: `1px solid ${isHovered ? cardHoverBorder : cardBorder}`,
           borderRadius,
           boxShadow: isHovered
-            ? "0 12px 28px -6px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.06)"
+            ? "0 10px 25px -4px rgba(0, 0, 0, 0.1), 0 4px 10px -2px rgba(0, 0, 0, 0.04)"
             : "0 2px 6px rgba(0, 0, 0, 0.04)",
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <a
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          onClick={handleCardClick}
-          className="flex items-center justify-between gap-3 text-inherit no-underline"
-        >
-          <div className="flex items-center gap-3.5 min-w-0 flex-1 text-left">
+        <div className="flex items-center justify-between gap-3">
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="flex items-center gap-3.5 min-w-0 flex-1 text-left text-inherit no-underline outline-none"
+          >
             <LinkItemIcon
               icon={link.icon}
               emoji={link.emoji}
@@ -77,7 +71,7 @@ function TiltLinkCardComponent({
               size="md"
             />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 min-w-0">
                 <span
                   className="font-semibold text-sm sm:text-base tracking-tight truncate block"
                   style={{ color: textColor }}
@@ -87,7 +81,7 @@ function TiltLinkCardComponent({
 
                 {link.badge && (
                   <span
-                    className="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full shrink-0 shadow-2xs"
+                    className="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full shrink-0 shadow-2xs whitespace-nowrap"
                     style={{
                       backgroundColor: `${fgColor}20`,
                       color: fgColor,
@@ -99,7 +93,7 @@ function TiltLinkCardComponent({
                 )}
 
                 {isWhatsApp && !link.badge && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shrink-0">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shrink-0 whitespace-nowrap">
                     <MessageCircle className="w-2.5 h-2.5" />
                     <span>WhatsApp</span>
                   </span>
@@ -115,18 +109,14 @@ function TiltLinkCardComponent({
                 </span>
               )}
             </div>
-          </div>
+          </a>
 
           <div className="flex items-center gap-1.5 shrink-0">
             {youtubeId && (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsVideoExpanded((prev) => !prev);
-                }}
-                className="px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all duration-150 hover:scale-105 active:scale-95 cursor-pointer shadow-2xs"
+                onClick={() => setIsVideoExpanded((prev) => !prev)}
+                className="px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-[transform,background-color] duration-150 active:scale-95 cursor-pointer shadow-2xs shrink-0"
                 style={{
                   backgroundColor: isVideoExpanded ? fgColor : `${fgColor}18`,
                   color: isVideoExpanded ? "#ffffff" : fgColor,
@@ -137,35 +127,39 @@ function TiltLinkCardComponent({
                 {isVideoExpanded ? (
                   <>
                     <ChevronUp className="w-3 h-3" />
-                    <span className="hidden sm:inline">Tutup</span>
+                    <span className="text-[11px]">Tutup</span>
                   </>
                 ) : (
                   <>
                     <Play className="w-3 h-3 fill-current" />
-                    <span className="hidden sm:inline">Video</span>
+                    <span className="text-[11px]">Video</span>
                   </>
                 )}
               </button>
             )}
 
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="w-7 h-7 rounded-full flex items-center justify-center transition-[background-color,opacity] duration-150"
               style={{
                 backgroundColor: isHovered
                   ? "rgba(255, 255, 255, 0.15)"
                   : "rgba(0, 0, 0, 0.04)",
               }}
+              aria-label={link.title}
             >
               <ExternalLink
-                className="w-3.5 h-3.5 transition-opacity duration-200"
+                className="w-3.5 h-3.5 transition-opacity duration-150"
                 style={{
                   color: dimColor,
                   opacity: isHovered ? 1 : 0.6,
                 }}
               />
-            </div>
+            </a>
           </div>
-        </a>
+        </div>
 
         <AnimatePresence>
           {youtubeId && isVideoExpanded && (

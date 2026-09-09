@@ -363,11 +363,11 @@ export function MobilePreview({
                       <div className="flex items-center gap-2.5 truncate min-w-0 flex-1">
                         <LinkItemIcon icon={link.icon} emoji={link.emoji} url={link.url} size="sm" />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
+                          <div className="flex items-center gap-1.5 min-w-0">
                             <span className="truncate block">{link.title}</span>
                             {link.badge && (
                               <span
-                                className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.2 rounded-full shrink-0"
+                                className="text-[9px] font-bold tracking-wide uppercase px-1.5 py-0.2 rounded-full shrink-0 whitespace-nowrap"
                                 style={{
                                   backgroundColor: `${primaryColor}20`,
                                   color: primaryColor,
@@ -378,7 +378,7 @@ export function MobilePreview({
                               </span>
                             )}
                             {isWhatsApp && !link.badge && (
-                              <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shrink-0">
+                              <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shrink-0 whitespace-nowrap">
                                 <MessageCircle className="w-2.5 h-2.5" />
                                 <span>WA</span>
                               </span>
