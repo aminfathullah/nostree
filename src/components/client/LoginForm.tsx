@@ -4,6 +4,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../ui/Button";
+import { LanguageToggle } from "../ui/LanguageToggle";
+import { useI18n } from "../../i18n/context";
 import { 
   Sparkles, 
   ShieldCheck, 
@@ -17,6 +19,7 @@ export function LoginForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isSwitchMode = searchParams.get("switch") === "true";
+  const { t } = useI18n();
 
   const { 
     status, 
@@ -55,7 +58,7 @@ export function LoginForm() {
     setIsSubmitting(false);
 
     if (ok) {
-      toast.success("Connected!");
+      toast.success(t("auth.connected"));
       navigate("/admin", { replace: true });
     } else if (authError) {
       setLocalError(authError);
@@ -69,7 +72,7 @@ export function LoginForm() {
     setIsSubmitting(false);
 
     if (ok) {
-      toast.success("New local profile created");
+      toast.success(t("auth.localProfileCreated"));
       navigate("/admin", { replace: true });
     } else if (authError) {
       setLocalError(authError);
@@ -79,7 +82,7 @@ export function LoginForm() {
   const handleKeyLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customKey.trim()) {
-      setLocalError("Please enter your secret key");
+      setLocalError(t("auth.enterSecretKey"));
       return;
     }
 
@@ -89,7 +92,7 @@ export function LoginForm() {
     setIsSubmitting(false);
 
     if (ok) {
-      toast.success("Profile loaded!");
+      toast.success(t("auth.profileLoaded"));
       setCustomKey("");
       navigate("/admin", { replace: true });
     } else if (authError) {
@@ -103,8 +106,8 @@ export function LoginForm() {
         <div className="text-center space-y-4">
           <img src={logo} alt="Nostree Logo" className="w-16 h-16 object-contain mx-auto drop-shadow-md animate-pulse" />
           <div>
-            <h2 className="text-xl font-semibold text-txt-main">Opening your link tree...</h2>
-            <p className="text-xs text-txt-muted mt-1">Preparing your workspace</p>
+            <h2 className="text-xl font-semibold text-txt-main">{t("auth.loadingWorkspace")}</h2>
+            <p className="text-xs text-txt-muted mt-1">{t("auth.preparingWorkspace")}</p>
           </div>
           <div className="flex justify-center pt-2">
             <Loader2 className="w-6 h-6 animate-spin text-brand" />
@@ -117,15 +120,19 @@ export function LoginForm() {
   const isLoading = isSubmitting || status === "requesting";
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-canvas">
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-12 bg-canvas">
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageToggle />
+      </div>
+
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="mb-4 flex justify-center">
             <img src={logo} alt="Nostree Logo" className="w-16 h-16 object-contain drop-shadow-md" />
           </div>
-          <h1 className="text-2xl font-bold text-txt-main tracking-tight">Switch Profile</h1>
+          <h1 className="text-2xl font-bold text-txt-main tracking-tight">{t("auth.title")}</h1>
           <p className="text-txt-muted text-xs mt-1">
-            Manage or change your link organizer profile
+            {t("auth.subtitle")}
           </p>
         </div>
 
@@ -138,7 +145,7 @@ export function LoginForm() {
               className="w-full"
               prefixIcon={<ShieldCheck className="w-4 h-4" />}
             >
-              Use Browser Extension
+              {t("auth.useExtension")}
             </Button>
           ) : null}
 
@@ -150,7 +157,7 @@ export function LoginForm() {
             className="w-full"
             prefixIcon={<Sparkles className="w-4 h-4" />}
           >
-            Create Fresh Local Profile
+            {t("auth.createLocalProfile")}
           </Button>
 
           {isAuthenticated && (
@@ -160,7 +167,7 @@ export function LoginForm() {
               size="md"
               className="w-full text-xs text-txt-muted"
             >
-              Return to Current Editor
+              {t("auth.returnToEditor")}
             </Button>
           )}
 
@@ -174,9 +181,9 @@ export function LoginForm() {
             <button
               type="button"
               onClick={() => setShowKeyInput(!showKeyInput)}
-              className="w-full flex items-center justify-center gap-1 text-xs text-txt-dim hover:text-txt-muted transition-colors py-1"
+              className="w-full flex items-center justify-center gap-1 text-xs text-txt-dim hover:text-txt-muted transition-colors py-1 cursor-pointer"
             >
-              <span>Import with secret key</span>
+              <span>{t("auth.importWithKey")}</span>
               {showKeyInput ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
 
@@ -186,7 +193,7 @@ export function LoginForm() {
                   type="password"
                   value={customKey}
                   onChange={(e) => setCustomKey(e.target.value)}
-                  placeholder="nsec1... or hex key"
+                  placeholder={t("auth.keyPlaceholder")}
                   className="w-full px-3 py-2 text-xs bg-canvas border border-border rounded-lg text-txt-main placeholder:text-txt-dim focus:outline-none focus:border-brand font-mono"
                 />
                 <Button
@@ -196,7 +203,7 @@ export function LoginForm() {
                   className="w-full text-xs"
                   isLoading={isLoading}
                 >
-                  Load Profile
+                  {t("auth.loadProfile")}
                 </Button>
               </form>
             )}

@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Check, Loader2 } from 'lucide-react';
+import { useI18n } from '../../i18n/context';
 
 interface SaveIndicatorProps {
   isSaving: boolean;
@@ -13,6 +14,8 @@ function SaveIndicatorComponent({
   showSuccess = false,
   className = '' 
 }: SaveIndicatorProps) {
+  const { t } = useI18n();
+
   return (
     <AnimatePresence mode="wait">
       {isSaving && (
@@ -25,7 +28,7 @@ function SaveIndicatorComponent({
           className={`flex items-center gap-2 text-sm text-brand ${className}`}
         >
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Saving...</span>
+          <span>{t("common.saving")}</span>
         </motion.div>
       )}
       
@@ -45,7 +48,7 @@ function SaveIndicatorComponent({
           >
             <Check className="w-4 h-4 text-emerald-500" />
           </motion.div>
-          <span>Saved</span>
+          <span>{t("common.saved")}</span>
         </motion.div>
       )}
     </AnimatePresence>

@@ -5,6 +5,7 @@ import { BadgeCheck, ExternalLink, Camera, ImagePlus, Pencil, Upload, X, Play, C
 import { toast } from "sonner";
 import { LinkItemIcon } from "./LinkItemIcon";
 import { extractYouTubeId, isWhatsAppUrl } from "../../lib/embeds";
+import { useI18n } from "../../i18n/context";
 
 interface MobilePreviewProps {
   profile: {
@@ -39,6 +40,7 @@ function ImageEditorPopup({
   title: string;
   maxSize?: number;
 }) {
+  const { t } = useI18n();
   const [imageUrl, setImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,7 +96,7 @@ function ImageEditorPopup({
                 className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1 font-medium cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
-                <span>Remove</span>
+                <span>{t("common.remove")}</span>
               </button>
             )}
             <button
@@ -127,7 +129,7 @@ function ImageEditorPopup({
             disabled={!imageUrl.trim()}
             className="px-3.5 py-2 bg-brand text-brand-fg text-xs font-semibold rounded-xl disabled:opacity-50 active:scale-95 transition-all cursor-pointer"
           >
-            Set
+            {t("common.apply")}
           </button>
         </div>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
@@ -155,8 +157,9 @@ export function MobilePreview({
   onAvatarChange,
   onHeaderChange,
   onTitleChange,
-  disabled,
+  disabled = false,
 }: MobilePreviewProps) {
+  const { t } = useI18n();
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [editingHeader, setEditingHeader] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -397,7 +400,7 @@ export function MobilePreview({
                     }}
                   >
                     <UserPlus className="w-2.5 h-2.5" />
-                    <span>vCard Siap</span>
+                    <span>{t("publicTree.saveContact")}</span>
                   </span>
                 </div>
               )}
@@ -406,7 +409,7 @@ export function MobilePreview({
             <div className="space-y-2.5 pt-1">
               {visibleLinks.length === 0 && (
                 <div className="p-4 text-center text-xs opacity-60 border border-dashed rounded-xl">
-                  No links yet. Add one in the editor!
+                  {t("editor.links.emptyTitle")}
                 </div>
               )}
               {visibleLinks.map((link) => {
@@ -474,7 +477,7 @@ export function MobilePreview({
                               backgroundColor: isVideoExpanded ? fgColor : `${fgColor}15`,
                               color: isVideoExpanded ? (isBackgroundImage ? "#000000" : "#ffffff") : textColor,
                             }}
-                            title={isVideoExpanded ? "Tutup video" : "Putar video"}
+                            title={isVideoExpanded ? t("common.close") : t("common.viewLive")}
                           >
                             {isVideoExpanded ? (
                               <ChevronUp className="w-3 h-3" />

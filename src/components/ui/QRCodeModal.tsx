@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { X, Download, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import { useI18n } from "../../i18n/context";
 
 interface QRCodeModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ function QRCodeModalComponent({
   displayName,
   primaryColor = "#6366f1",
 }: QRCodeModalProps) {
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [copiedImage, setCopiedImage] = useState(false);
 
@@ -156,8 +158,8 @@ function QRCodeModalComponent({
     link.download = `${(slug || "nostree").toLowerCase().replace(/[^a-z0-9-_]/g, "-")}-qr.png`;
     link.href = canvasRef.current.toDataURL("image/png");
     link.click();
-    toast.success("QR Code downloaded");
-  }, [slug]);
+    toast.success(t("qrModal.downloadSuccess"));
+  }, [slug, t]);
 
   const handleCopyImage = useCallback(async () => {
     if (!canvasRef.current) return;
@@ -170,13 +172,13 @@ function QRCodeModalComponent({
           }),
         ]);
         setCopiedImage(true);
-        toast.success("QR Code copied to clipboard");
+        toast.success(t("qrModal.imageCopied"));
         setTimeout(() => setCopiedImage(false), 2000);
       });
     } catch {
-      toast.error("Failed to copy image, please download directly");
+      toast.error(t("qrModal.copyFailed"));
     }
-  }, []);
+  }, [t]);
 
   if (!isOpen) return null;
 
@@ -197,14 +199,14 @@ function QRCodeModalComponent({
         >
           <div className="flex items-center justify-between mb-3.5">
             <div>
-              <h3 id="qr-modal-title" className="text-sm font-semibold text-txt-main">Share QR Code</h3>
-              <p className="text-[11px] text-txt-muted">Ready to print or display on your bio</p>
+              <h3 id="qr-modal-title" className="text-sm font-semibold text-txt-main">{t("qrModal.title")}</h3>
+              <p className="text-[11px] text-txt-muted">{t("qrModal.subtitle")}</p>
             </div>
             <button
               type="button"
               onClick={onClose}
               className="p-1 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card-hover transition-colors cursor-pointer"
-              aria-label="Close"
+              aria-label={t("common.close")}
             >
               <X className="w-4 h-4" />
             </button>
@@ -222,14 +224,14 @@ function QRCodeModalComponent({
               style={{ backgroundColor: primaryColor }}
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Download PNG</span>
+              <span>{t("qrModal.downloadQr")}</span>
             </button>
 
             <button
               type="button"
               onClick={handleCopyImage}
               className="px-3 py-2.5 rounded-xl text-xs font-semibold bg-canvas border border-border hover:bg-card-hover text-txt-main transition-colors active:scale-[0.98] cursor-pointer"
-              title="Copy QR Image"
+              title={t("qrModal.copyImage")}
             >
               {copiedImage ? (
                 <Check className="w-3.5 h-3.5 text-emerald-500" />

@@ -14,6 +14,8 @@ import { Button } from "../ui/Button";
 import { LoadingOverlay } from "../ui/LoadingOverlay";
 import { KeyboardShortcutsHelp, KeyboardShortcutsButton } from "../ui/KeyboardShortcutsHelp";
 import { ThemeToggle } from "../ui/ThemeToggle";
+import { LanguageToggle } from "../ui/LanguageToggle";
+import { useI18n } from "../../i18n/context";
 import { 
   LogOut, 
   User, 
@@ -114,6 +116,7 @@ function LinkTreeEditor({
   profile: UserProfile;
   initialData?: NostreeData;
 }) {
+  const { t } = useI18n();
   const linkTree = useLinkTree({ 
     pubkey,
     slug,
@@ -137,7 +140,7 @@ function LinkTreeEditor({
               }`}
             >
               <Link2 className="w-3.5 h-3.5" />
-              <span>Links & Groups</span>
+              <span>{t("editor.tabs.links")}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                 activeTab === "links" ? "bg-white/20 text-white" : "bg-canvas text-txt-dim"
               }`}>
@@ -155,7 +158,7 @@ function LinkTreeEditor({
               }`}
             >
               <Palette className="w-3.5 h-3.5" />
-              <span>Appearance & Theme</span>
+              <span>{t("editor.tabs.appearance")}</span>
             </button>
           </div>
 
@@ -165,9 +168,9 @@ function LinkTreeEditor({
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-canvas border border-border hover:border-brand/40 text-txt-main shadow-2xs transition-all active:scale-[0.97]"
-              title="Open public bio link page"
+              title={t("editor.treeSelector.openPageTitle")}
             >
-              <span>View Live</span>
+              <span>{t("common.viewLive")}</span>
               <ExternalLink className="w-3 h-3 text-txt-dim" />
             </a>
           )}
@@ -226,6 +229,7 @@ function KeyBackupModal({
   privateKey: string | null;
   npub: string | null;
 }) {
+  const { t } = useI18n();
   const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -235,10 +239,10 @@ function KeyBackupModal({
     try {
       await navigator.clipboard.writeText(privateKey);
       setCopied(true);
-      toast.success("Secret key copied to clipboard");
+      toast.success(t("qrModal.linkCopied"));
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      toast.error("Failed to copy key");
+      toast.error(t("common.error"));
     }
   };
 
@@ -259,7 +263,7 @@ function KeyBackupModal({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Backup file saved");
+    toast.success(t("common.saved"));
   };
 
   return (
@@ -281,13 +285,13 @@ function KeyBackupModal({
               <Key className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-txt-main">Secret Backup Key</h3>
-              <p className="text-xs text-txt-muted">Use this to sign in from any other browser or device</p>
+              <h3 className="text-sm font-semibold text-txt-main">{t("auth.backupModalTitle")}</h3>
+              <p className="text-xs text-txt-muted">{t("auth.backupModalDesc")}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card-hover transition-colors"
+            className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card-hover transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -296,22 +300,22 @@ function KeyBackupModal({
         <div className="p-5 space-y-4">
           <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-txt-main space-y-1">
             <p className="font-semibold text-amber-600 dark:text-amber-400">
-              Keep this key private
+              {t("auth.localKeyWarningTitle")}
             </p>
             <p className="text-txt-muted leading-relaxed">
-              Anyone with this key can manage your links. Save it somewhere safe so you never lose access if you clear your browser history.
+              {t("auth.localKeyWarningDesc")}
             </p>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-txt-muted">Your Secret Key (nsec)</label>
+              <label className="text-xs font-medium text-txt-muted">nsec</label>
               <button
                 onClick={() => setShowKey(!showKey)}
-                className="inline-flex items-center gap-1 text-xs text-brand hover:underline"
+                className="inline-flex items-center gap-1 text-xs text-brand hover:underline cursor-pointer"
               >
                 {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                <span>{showKey ? "Hide" : "Reveal"}</span>
+                <span>{showKey ? t("editor.links.hideLink") : t("editor.links.showLink")}</span>
               </button>
             </div>
             <div className="relative">
@@ -332,7 +336,7 @@ function KeyBackupModal({
               className="flex-1 text-xs"
               prefixIcon={copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             >
-              {copied ? "Copied" : "Copy Key"}
+              {copied ? t("common.copied") : t("auth.copyKey")}
             </Button>
             <Button
               onClick={handleDownload}
@@ -341,19 +345,19 @@ function KeyBackupModal({
               className="flex-1 text-xs"
               prefixIcon={<Download className="w-3.5 h-3.5" />}
             >
-              Download Backup
+              {t("auth.downloadKey")}
             </Button>
           </div>
 
           <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-txt-dim">
-            <span>Want multi-device sync?</span>
+            <span>Nostr Extension (NIP-07)</span>
             <a
               href="https://getalby.com"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-brand hover:underline font-medium"
             >
-              <span>Install Alby</span>
+              <span>Alby</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
@@ -361,7 +365,7 @@ function KeyBackupModal({
 
         <div className="px-5 py-3 bg-card-hover border-t border-border flex justify-end">
           <Button onClick={onClose} variant="outline" size="sm" className="text-xs">
-            Done
+            {t("auth.done")}
           </Button>
         </div>
       </motion.div>
@@ -370,6 +374,7 @@ function KeyBackupModal({
 }
 
 function EditorContent() {
+  const { t } = useI18n();
   const { 
     isAuthenticated, 
     isLoading: authLoading, 
@@ -617,7 +622,7 @@ function EditorContent() {
   }, [pubkey, isAuthenticated, claimParam]);
 
   if (authLoading) {
-    return <LoadingOverlay message="Connecting..." showProgress />;
+    return <LoadingOverlay message={t("common.connecting")} showProgress />;
   }
 
   if (!isAuthenticated) {
@@ -626,7 +631,7 @@ function EditorContent() {
     }
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-txt-muted text-sm">Redirecting...</p>
+        <p className="text-txt-muted text-sm">{t("common.loading")}</p>
       </div>
     );
   }
@@ -793,12 +798,12 @@ function EditorContent() {
                         {authMethod === "local" ? (
                           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-medium">
                             <Laptop className="w-3 h-3" />
-                            <span>This Browser Only</span>
+                            <span>{t("auth.browserOnlyBadge")}</span>
                           </div>
                         ) : (
                           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium">
                             <ShieldCheck className="w-3 h-3" />
-                            <span>Extension Synced</span>
+                            <span>{t("auth.extensionSyncedBadge")}</span>
                           </div>
                         )}
                       </div>
@@ -815,7 +820,7 @@ function EditorContent() {
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium cursor-pointer"
                           >
                             <Key className="w-3.5 h-3.5 text-brand" />
-                            <span>Backup Secret Key</span>
+                            <span>{t("auth.backupKey")}</span>
                           </button>
 
                           <button
@@ -823,15 +828,15 @@ function EditorContent() {
                               setShowAccountMenu(false);
                               const ok = await login();
                               if (ok) {
-                                toast.success("Switched to extension session");
+                                toast.success(t("auth.switchedToExtension"));
                               } else {
-                                toast.error("Nostr extension (NIP-07) not detected");
+                                toast.error(t("auth.extensionNotFound"));
                               }
                             }}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium cursor-pointer"
                           >
                             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                            <span>Switch to Extension (Alby / NIP-07)</span>
+                            <span>{t("auth.switchToExtension")}</span>
                           </button>
                         </>
                       ) : (
@@ -841,27 +846,27 @@ function EditorContent() {
                               setShowAccountMenu(false);
                               const ok = await switchToLocalAccount();
                               if (ok) {
-                                toast.success("Switched to local key account");
+                                toast.success(t("auth.switchedToLocal"));
                               } else {
-                                toast.error("Failed to load local account");
+                                toast.error(t("common.error"));
                               }
                             }}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium cursor-pointer"
                           >
                             <Laptop className="w-3.5 h-3.5 text-amber-500" />
-                            <span>Switch to Local Account</span>
+                            <span>{t("auth.switchToLocal")}</span>
                           </button>
 
                           <button
                             onClick={async () => {
                               setShowAccountMenu(false);
                               await switchToLocalAccount();
-                              toast.success("Extension disconnected, restored local account");
+                              toast.success(t("auth.extensionDisconnected"));
                             }}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-muted w-full text-left text-xs cursor-pointer"
                           >
                             <LogOut className="w-3.5 h-3.5" />
-                            <span>Disconnect Extension</span>
+                            <span>{t("auth.disconnectExtension")}</span>
                           </button>
                         </>
                       )}
@@ -871,6 +876,7 @@ function EditorContent() {
               )}
             </div>
             
+            <LanguageToggle />
             <KeyboardShortcutsButton onClick={() => setShowKeyboardHelp(true)} />
             <ThemeToggle />
           </div>
@@ -905,14 +911,14 @@ function EditorContent() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-txt-main">
-                    Browser key in use
+                    {t("auth.localKeyWarningTitle")}
                   </span>
                   <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400">
-                    Local
+                    {t("auth.browserOnlyBadge")}
                   </span>
                 </div>
                 <p className="text-[11px] text-txt-muted">
-                  Back up your secret key so you never lose edit access if your browser cache clears.
+                  {t("auth.localKeyWarningDesc")}
                 </p>
               </div>
             </div>
@@ -925,7 +931,7 @@ function EditorContent() {
                 prefixIcon={<Key className="w-3 h-3" />}
                 className="text-xs h-7 px-2.5 font-semibold bg-card border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/15"
               >
-                Backup
+                {t("auth.backupButton")}
               </Button>
               <button
                 onClick={() => setDismissedLocalWarning(true)}

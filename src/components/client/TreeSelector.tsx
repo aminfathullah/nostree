@@ -5,6 +5,7 @@ import { publishEvent, createNostreeEvent, createDeletionEvent } from "../../lib
 import { Button } from "../ui/Button";
 import { Plus, ChevronDown, Trash2, Copy, Check, ExternalLink, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { useI18n } from "../../i18n/context";
 
 export interface TreeInfo {
   slug: string;
@@ -36,6 +37,7 @@ export function TreeSelector({
   trees: propTrees,
   isLoading: propIsLoading,
 }: TreeSelectorProps) {
+  const { t } = useI18n();
   const [internalTrees, setInternalTrees] = useState<TreeInfo[]>([]);
   const [internalLoading, setInternalLoading] = useState<boolean>(!propTrees);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -110,14 +112,14 @@ export function TreeSelector({
     if (slug.length < 2) return "Slug must be at least 2 characters";
     if (slug.length > 32) return "Slug must be 32 characters or less";
     if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(slug)) {
-      return "Only lowercase letters, numbers, and hyphens allowed";
+      return t("editor.treeSelector.invalidSlug");
     }
     if (trees.some(t => t.slug === slug)) {
-      return "You already have a tree with this slug";
+      return t("editor.treeSelector.slugTaken");
     }
     const reserved = ["admin", "login", "profile", "api", "u", "settings", "help", "about", "default"];
     if (reserved.includes(slug)) {
-      return "This slug is reserved";
+      return t("editor.treeSelector.slugTaken");
     }
     return null;
   };
@@ -134,11 +136,9 @@ export function TreeSelector({
     try {
       const availability = await checkSlugAvailability(newSlug);
       if (!availability.available) {
-        const message = availability.owner === pubkey
-          ? "You already have a tree with this slug"
-          : "This slug is already taken by another user";
+        const message = t("editor.treeSelector.slugTaken");
         setSlugError(message);
-        toast.error("Slug unavailable", { description: message });
+        toast.error(message);
         setInternalLoading(false);
         return;
       }
@@ -191,14 +191,10 @@ export function TreeSelector({
       setNewSlug("");
       setSlugError(null);
       
-      toast.success("Tree created!", {
-        description: `Published to ${result.relaysAccepted} relays. Available at /${newSlug}`,
-      });
+      toast.success(t("editor.treeSelector.createdSuccess", { slug: newSlug }));
     } catch (err) {
       console.error("Failed to create tree:", err);
-      toast.error("Failed to create tree", {
-        description: "An error occurred. Please try again.",
-      });
+      toast.error(t("common.error"));
     } finally {
       setInternalLoading(false);
     }
@@ -209,7 +205,7 @@ export function TreeSelector({
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    toast.success("URL copied!");
+    toast.success(t("common.copied"));
   };
 
   const executeDeleteTree = async (slug: string) => {
@@ -295,9 +291,9 @@ export function TreeSelector({
             <button
               type="button"
               onClick={handleCopyUrl}
-              className="p-2 bg-card border border-border rounded-xl hover:border-border-hover transition-[background-color,border-color,transform] duration-150 shadow-xs cursor-pointer active:scale-[0.92]"
-              title="Copy public link"
-              aria-label="Copy public link"
+              className="p-2 bg-card border border-border rounded-xl hover:border-border-hover transition-colors shadow-xs cursor-pointer active:scale-[0.95]"
+              title={t("editor.treeSelector.copyLinkAria")}
+              aria-label={t("editor.treeSelector.copyLinkAria")}
             >
               {copied ? (
                 <Check className="w-3.5 h-3.5 text-emerald-500 animate-pop" />
@@ -311,7 +307,7 @@ export function TreeSelector({
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 bg-card border border-border rounded-xl hover:border-border-hover transition-colors shadow-xs cursor-pointer active:scale-[0.95]"
-              title="Open public page"
+              title={t("editor.treeSelector.openPageTitle")}
             >
               <ExternalLink className="w-3.5 h-3.5 text-txt-muted" />
             </a>
@@ -349,7 +345,7 @@ export function TreeSelector({
                       {`/${tree.slug}`}
                     </span>
                     {tree.slug === currentSlug && (
-                      <span className="text-[10px] text-brand font-medium">Active</span>
+                      <span className="text-[10px] text-brand font-medium">{t("editor.treeSelector.active")}</span>
                     )}
                   </button>
                   <button
@@ -361,7 +357,7 @@ export function TreeSelector({
                       handleDropdownChange(false);
                     }}
                     className="p-1.5 rounded-lg hover:bg-red-500/15 transition-colors cursor-pointer group active:scale-[0.92]"
-                    title={`Delete /${tree.slug}`}
+                    title={`${t("common.delete")} /${tree.slug}`}
                   >
                     <Trash2 className="w-3.5 h-3.5 text-txt-dim group-hover:text-red-500" />
                   </button>
@@ -379,13 +375,13 @@ export function TreeSelector({
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left hover:bg-card-hover transition-colors text-brand text-xs font-semibold cursor-pointer active:scale-[0.98]"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Create New Tree</span>
+                  <span>{t("editor.treeSelector.createNew")}</span>
                 </button>
               </div>
             ) : (
               <div className="p-3.5 space-y-3">
                 <div>
-                  <label className="text-xs font-medium text-txt-muted block mb-1">Slug / URL</label>
+                  <label className="text-xs font-medium text-txt-muted block mb-1">{t("editor.treeSelector.slugLabel")}</label>
                   <div className="flex items-center gap-1.5 bg-canvas border border-border rounded-xl px-3 py-1.5 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
                     <span className="text-txt-dim text-xs font-mono">/</span>
                     <input
@@ -401,7 +397,7 @@ export function TreeSelector({
                           handleCreateTree();
                         }
                       }}
-                      placeholder="your-handle"
+                      placeholder={t("editor.treeSelector.slugPlaceholder")}
                       className="flex-1 bg-transparent text-xs text-txt-main focus:outline-none font-mono"
                       autoFocus
                     />
@@ -417,7 +413,7 @@ export function TreeSelector({
                     onClick={handleCreateTree}
                     className="flex-1 text-xs"
                   >
-                    Create
+                    {t("common.create")}
                   </Button>
                   <Button
                     size="sm"
@@ -429,7 +425,7 @@ export function TreeSelector({
                     }}
                     className="text-xs"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </Button>
                 </div>
               </div>
@@ -453,7 +449,7 @@ export function TreeSelector({
                   <Trash2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-txt-main">Delete Link Tree?</h3>
+                  <h3 className="text-sm font-semibold text-txt-main">{t("editor.treeSelector.deleteTitle")}</h3>
                   <p className="text-xs font-mono text-txt-muted">/{treeToDelete}</p>
                 </div>
               </div>
@@ -469,9 +465,9 @@ export function TreeSelector({
 
             <div className="p-5 space-y-3">
               <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-600 dark:text-red-400 space-y-1">
-                <p className="font-semibold">This action is permanent on the Nostr network</p>
+                <p className="font-semibold">{t("editor.treeSelector.deleteConfirmMsg")}</p>
                 <p className="text-txt-muted leading-relaxed">
-                  All links and settings for this page will be permanently removed. The handle <span className="font-mono font-semibold text-txt-main">/{treeToDelete}</span> will be released and can be claimed by others.
+                  {t("editor.treeSelector.deleteWarning")}
                 </p>
               </div>
             </div>
@@ -486,7 +482,7 @@ export function TreeSelector({
                 onClick={() => setTreeToDelete(null)}
                 className="text-xs cursor-pointer"
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button
                 id="btn-confirm-delete-tree"
@@ -498,7 +494,7 @@ export function TreeSelector({
                 className="bg-red-600 hover:bg-red-700 text-white text-xs cursor-pointer active:scale-[0.98]"
                 prefixIcon={isDeletingTree ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
               >
-                {isDeletingTree ? "Deleting..." : "Delete Tree"}
+                {isDeletingTree ? t("common.deleting") : t("common.delete")}
               </Button>
             </div>
           </div>

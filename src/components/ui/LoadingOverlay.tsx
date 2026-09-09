@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import logo from "../../assets/logo.png";
+import { useI18n } from "../../i18n/context";
 
 interface LoadingOverlayProps {
   message?: string;
@@ -7,9 +8,11 @@ interface LoadingOverlayProps {
 }
 
 export function LoadingOverlay({ 
-  message = "Loading...", 
+  message, 
   showProgress = false 
 }: LoadingOverlayProps) {
+  const { t } = useI18n();
+  const displayMessage = message ?? t("common.loading");
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -46,7 +49,7 @@ export function LoadingOverlay({
         transition={{ delay: 0.15, duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
         className="text-txt-muted text-sm font-medium"
       >
-        {message}
+        {displayMessage}
       </motion.p>
 
       {showProgress && (

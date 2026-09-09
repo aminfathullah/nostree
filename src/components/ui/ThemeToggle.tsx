@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Sun, Moon, Monitor } from 'lucide-react';
+import { useI18n } from '../../i18n/context';
 
 type Theme = 'light' | 'dark' | 'system';
 
 export function ThemeToggle() {
+  const { t } = useI18n();
   const [theme, setTheme] = useState<Theme>('system');
   const [mounted, setMounted] = useState(false);
 
@@ -57,8 +59,8 @@ export function ThemeToggle() {
       whileTap={{ scale: 0.95 }}
       onClick={cycleTheme}
       className="p-2 rounded-xl bg-card border border-border hover:bg-card-hover hover:border-border-hover transition-colors cursor-pointer shadow-xs"
-      title={`Theme: ${theme} (click to change)`}
-      aria-label={`Current theme: ${theme}. Click to change.`}
+      title={t("theme.toggleTitle", { theme })}
+      aria-label={t("theme.currentTheme", { theme })}
     >
       <motion.div
         key={theme}

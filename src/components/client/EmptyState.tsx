@@ -3,36 +3,38 @@ import { motion } from "motion/react";
 import { Plus, Sparkles, Link2, Palette, Share2 } from "lucide-react";
 import { Button } from "../ui/Button";
 import logo from "../../assets/logo.png";
+import { useI18n } from "../../i18n/context";
 
 interface EmptyStateProps {
   onCreateTree: () => void;
 }
 
-const steps = [
-  { 
-    icon: Link2, 
-    title: "Create your tree", 
-    desc: "Pick a unique slug for your public URL" 
-  },
-  { 
-    icon: Plus, 
-    title: "Add your links", 
-    desc: "Add links to your social profiles, websites, and more" 
-  },
-  { 
-    icon: Palette, 
-    title: "Customize the look", 
-    desc: "Choose from 16+ themes or create your own" 
-  },
-  { 
-    icon: Share2, 
-    title: "Share anywhere", 
-    desc: "Your tree is live and ready to share" 
-  },
-];
-
 export function EmptyState({ onCreateTree }: EmptyStateProps) {
+  const { t } = useI18n();
   const [hoveredStep, setHoveredStep] = useState<number | null>(null);
+
+  const steps = [
+    { 
+      icon: Link2, 
+      title: t("emptyState.step1Title"), 
+      desc: t("emptyState.step1Desc") 
+    },
+    { 
+      icon: Plus, 
+      title: t("emptyState.step2Title"), 
+      desc: t("emptyState.step2Desc") 
+    },
+    { 
+      icon: Palette, 
+      title: t("emptyState.step3Title"), 
+      desc: t("emptyState.step3Desc") 
+    },
+    { 
+      icon: Share2, 
+      title: t("emptyState.step4Title"), 
+      desc: t("emptyState.step4Desc") 
+    },
+  ];
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4">
@@ -59,7 +61,7 @@ export function EmptyState({ onCreateTree }: EmptyStateProps) {
         transition={{ delay: 0.15, duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
         className="text-2xl font-bold text-txt-main mb-2 tracking-tight"
       >
-        Create Your First Tree
+        {t("emptyState.title")}
       </motion.h2>
 
       <motion.p
@@ -68,7 +70,7 @@ export function EmptyState({ onCreateTree }: EmptyStateProps) {
         transition={{ delay: 0.2, duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
         className="text-txt-muted mb-8 text-center max-w-md text-sm leading-relaxed"
       >
-        Get started in seconds. Your links, your style, powered by Nostr.
+        {t("emptyState.subtitle")}
       </motion.p>
 
       <motion.div
@@ -103,7 +105,7 @@ export function EmptyState({ onCreateTree }: EmptyStateProps) {
             </div>
             <div className="min-w-0 flex-1">
               <span className="text-xs font-semibold text-brand mb-1 block">
-                Step {index + 1}
+                {index + 1}
               </span>
               <h3 className="font-semibold text-txt-main text-sm">{step.title}</h3>
               <p className="text-xs text-txt-muted mt-1 leading-normal">{step.desc}</p>
@@ -123,7 +125,7 @@ export function EmptyState({ onCreateTree }: EmptyStateProps) {
           className="shadow-md cursor-pointer active:scale-[0.97]"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Create Your First Tree
+          {t("emptyState.button")}
         </Button>
       </motion.div>
 
@@ -133,7 +135,7 @@ export function EmptyState({ onCreateTree }: EmptyStateProps) {
         transition={{ delay: 0.6 }}
         className="text-xs text-txt-dim mt-6"
       >
-        Or use the tree selector above to switch or create trees
+        {t("emptyState.hint")}
       </motion.p>
     </div>
   );

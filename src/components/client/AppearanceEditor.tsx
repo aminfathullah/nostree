@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { THEME_PRESETS } from "./ThemeSelector";
+import { useI18n } from "../../i18n/context";
 
 interface AppearanceEditorProps {
   currentTheme: Theme | undefined;
@@ -91,6 +92,7 @@ export function AppearanceEditor({
   onHeaderChange,
   disabled = false,
 }: AppearanceEditorProps) {
+  const { t } = useI18n();
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>("all");
   const [activeSection, setActiveSection] = useState<"presets" | "custom">("presets");
   const [imageUrl, setImageUrl] = useState("");
@@ -137,7 +139,7 @@ export function AppearanceEditor({
       colors: preset.colors,
       font: preset.font,
     });
-    toast.success(`Applied ${preset.name}`);
+    toast.success(t("editor.appearance.appliedPreset", { name: preset.name }));
   };
 
   const handleReset = () => {
@@ -148,7 +150,7 @@ export function AppearanceEditor({
       font: defaultTheme.font,
     });
     setImageUrl("");
-    toast.success("Reset appearance to default");
+    toast.success(t("editor.appearance.resetSuccess"));
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,7 +200,7 @@ export function AppearanceEditor({
       const cdnUrl = await uploadImageFile(file);
       onHeaderChange?.(cdnUrl);
       setIsCoverUploading(false);
-      toast.success("Cover image saved");
+      toast.success(t("editor.appearance.coverUpdated"));
     } catch (err: any) {
       toast.error(err?.message || "Failed to upload cover image");
       setIsCoverUploading(false);
@@ -211,18 +213,18 @@ export function AppearanceEditor({
   });
 
   const categories = [
-    { id: "all" as const, label: "All Themes" },
-    { id: "aura" as const, label: "Aura & Dark" },
-    { id: "organic" as const, label: "Organic & Light" },
-    { id: "jewel" as const, label: "Jewel & Rich" },
-    { id: "vibrant" as const, label: "Vibrant" },
+    { id: "all" as const, label: t("editor.appearance.filterAll") },
+    { id: "aura" as const, label: t("editor.appearance.filterAura") },
+    { id: "organic" as const, label: t("editor.appearance.filterOrganic") },
+    { id: "jewel" as const, label: t("editor.appearance.filterJewel") },
+    { id: "vibrant" as const, label: t("editor.appearance.filterVibrant") },
   ];
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-2 border-b border-border">
         <div>
-          <h2 className="text-base font-bold text-txt-main tracking-tight">Appearance & Theme</h2>
+          <h2 className="text-base font-bold text-txt-main tracking-tight">{t("editor.tabs.appearance")}</h2>
           <p className="text-xs text-txt-dim">Customize your profile page visual world, typography, and accents</p>
         </div>
 
@@ -237,7 +239,7 @@ export function AppearanceEditor({
                   : "text-txt-muted hover:text-txt-main"
               }`}
             >
-              Curated Presets
+              {t("editor.appearance.tabPresets")}
             </button>
             <button
               type="button"
@@ -248,7 +250,7 @@ export function AppearanceEditor({
                   : "text-txt-muted hover:text-txt-main"
               }`}
             >
-              Custom Styling
+              {t("editor.appearance.tabCustom")}
             </button>
           </div>
 
@@ -257,10 +259,10 @@ export function AppearanceEditor({
             onClick={handleReset}
             disabled={disabled}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-txt-muted hover:text-txt-main bg-card border border-border hover:border-border-hover transition-colors shadow-2xs cursor-pointer active:scale-[0.97]"
-            title="Reset to default theme"
+            title={t("editor.appearance.resetDefault")}
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Reset</span>
+            <span className="hidden sm:inline">{t("editor.appearance.resetDefault")}</span>
           </button>
         </div>
       </div>

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../i18n/context';
+import { LanguageToggle } from '../components/ui/LanguageToggle';
 import { motion } from 'motion/react';
 import { 
   ArrowRight, 
@@ -17,6 +19,7 @@ import {
 import logo from '../assets/logo.png';
 
 export default function HomePage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { pubkey, status } = useAuth();
   const isAuthenticated = Boolean(pubkey && status === "authenticated");
@@ -42,19 +45,20 @@ export default function HomePage() {
             <span className="font-bold text-base tracking-tight">Nostree</span>
           </Link>
           <div className="flex items-center gap-2">
+            <LanguageToggle />
             {isAuthenticated ? (
               <Link
                 to="/admin"
                 className="text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-brand text-brand-fg hover:bg-brand-hover active:scale-[0.98] transition-all"
               >
-                Dashboard
+                {t("nav.dashboard")}
               </Link>
             ) : (
               <Link
                 to="/admin"
                 className="text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-brand text-brand-fg hover:bg-brand-hover active:scale-[0.98] transition-all"
               >
-                Buka Editor
+                {t("home.openEditor")}
               </Link>
             )}
           </div>
@@ -70,13 +74,13 @@ export default function HomePage() {
         >
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand/10 text-brand text-[11px] font-medium border border-brand/20">
             <Sparkles className="w-3 h-3" />
-            <span>Pusat Tautan Digital</span>
+            <span>{t("home.heroBadge")}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-txt-main leading-snug">
-            Satu Halaman untuk Seluruh Tautan Anda
+            {t("home.heroTitle")}
           </h1>
           <p className="text-xs sm:text-sm text-txt-muted max-w-lg mx-auto leading-relaxed">
-            Kumpulkan dokumen, portofolio, media sosial, atau referensi penting dalam satu halaman ringkas yang mudah dibagikan.
+            {t("home.heroSubtitle")}
           </p>
         </motion.div>
 
@@ -91,7 +95,7 @@ export default function HomePage() {
               to="/admin"
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand-hover active:scale-[0.98] text-brand-fg font-semibold rounded-xl text-sm transition-all cursor-pointer shadow-xs"
             >
-              <span>Buka Dashboard</span>
+              <span>{t("home.openDashboard")}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </motion.div>
@@ -110,7 +114,7 @@ export default function HomePage() {
                   type="text"
                   value={claimedSlug}
                   onChange={(e) => setClaimedSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder="tautan-anda"
+                  placeholder={t("home.claimPlaceholder")}
                   className="w-full bg-transparent text-xs sm:text-sm font-medium text-txt-main placeholder:text-txt-dim focus:outline-none ml-1"
                 />
               </div>
@@ -118,12 +122,12 @@ export default function HomePage() {
                 type="submit"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand-hover active:scale-[0.98] text-brand-fg font-semibold rounded-lg text-xs transition-all shrink-0 cursor-pointer"
               >
-                <span>Buat Halaman</span>
+                <span>{t("home.claimButton")}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
             <p className="text-[11px] text-txt-dim mt-2 text-center">
-              Contoh: tautan-saya, projek, atau referensi
+              {t("home.claimExample")}
             </p>
           </motion.form>
         )}
@@ -139,7 +143,7 @@ export default function HomePage() {
             }`}
           >
             <Globe className="w-3.5 h-3.5" />
-            <span>Tautan Pilihan</span>
+            <span>{t("home.tabFeatured")}</span>
           </button>
           <button
             type="button"
@@ -151,7 +155,7 @@ export default function HomePage() {
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>Koleksi &amp; Dokumen</span>
+            <span>{t("home.tabCollections")}</span>
           </button>
         </div>
 
@@ -170,12 +174,12 @@ export default function HomePage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h2 className="font-bold text-xs sm:text-sm text-txt-main">Tautan Terpilih</h2>
+                    <h2 className="font-bold text-xs sm:text-sm text-txt-main">{t("home.featuredTitle")}</h2>
                     <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-medium">
-                      Aktif
+                      {t("home.activeBadge")}
                     </span>
                   </div>
-                  <p className="text-[11px] text-txt-dim">Akses Cepat &amp; Terorganisir</p>
+                  <p className="text-[11px] text-txt-dim">{t("home.featuredSubtitle")}</p>
                 </div>
               </div>
 
@@ -186,8 +190,8 @@ export default function HomePage() {
                       <FileText className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Dokumentasi &amp; Catatan</p>
-                      <p className="text-[10px] text-txt-dim">Ringkasan materi &amp; referensi</p>
+                      <p className="font-semibold text-xs text-txt-main">{t("home.previewDocTitle")}</p>
+                      <p className="text-[10px] text-txt-dim">{t("home.previewDocDesc")}</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -199,8 +203,8 @@ export default function HomePage() {
                       <Video className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Ruang Diskusi Virtual</p>
-                      <p className="text-[10px] text-txt-dim">Tautan pertemuan &amp; sesi online</p>
+                      <p className="font-semibold text-xs text-txt-main">{t("home.previewVideoTitle")}</p>
+                      <p className="text-[10px] text-txt-dim">{t("home.previewVideoDesc")}</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -212,8 +216,8 @@ export default function HomePage() {
                       <BarChart3 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Dashboard &amp; Ringkasan</p>
-                      <p className="text-[10px] text-txt-dim">Laporan berkala &amp; pemantauan</p>
+                      <p className="font-semibold text-xs text-txt-main">{t("home.previewDashboardTitle")}</p>
+                      <p className="text-[10px] text-txt-dim">{t("home.previewDashboardDesc")}</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -225,8 +229,8 @@ export default function HomePage() {
                       <Folder className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Folder Berkas Penting</p>
-                      <p className="text-[10px] text-txt-dim">Penyimpanan &amp; arsip dokumen</p>
+                      <p className="font-semibold text-xs text-txt-main">{t("home.previewFolderTitle")}</p>
+                      <p className="text-[10px] text-txt-dim">{t("home.previewFolderDesc")}</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -241,12 +245,12 @@ export default function HomePage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h2 className="font-bold text-xs sm:text-sm text-txt-main">Koleksi Tautan</h2>
+                    <h2 className="font-bold text-xs sm:text-sm text-txt-main">{t("home.collectionsTitle")}</h2>
                     <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-medium">
-                      Direktori
+                      {t("home.directoryBadge")}
                     </span>
                   </div>
-                  <p className="text-[11px] text-txt-dim">Kumpulan Tautan Terkelola</p>
+                  <p className="text-[11px] text-txt-dim">{t("home.collectionsSubtitle")}</p>
                 </div>
               </div>
 
@@ -257,8 +261,8 @@ export default function HomePage() {
                       <Folder className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Panduan &amp; Dokumentasi</p>
-                      <p className="text-[10px] text-txt-dim">Koleksi referensi</p>
+                      <p className="font-semibold text-xs text-txt-main">{t("home.previewGuideTitle")}</p>
+                      <p className="text-[10px] text-txt-dim">{t("home.previewGuideDesc")}</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -270,8 +274,8 @@ export default function HomePage() {
                       <Mail className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-xs text-txt-main">Kontak &amp; Dukungan</p>
-                      <p className="text-[10px] text-txt-dim">Saluran komunikasi</p>
+                      <p className="font-semibold text-xs text-txt-main">{t("home.previewContactTitle")}</p>
+                      <p className="text-[10px] text-txt-dim">{t("home.previewContactDesc")}</p>
                     </div>
                   </div>
                   <ExternalLink className="w-3 h-3 text-txt-dim" />
@@ -283,28 +287,28 @@ export default function HomePage() {
 
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full text-left">
           <div className="p-3 rounded-xl bg-card/60 border border-border">
-            <p className="text-xs font-semibold text-txt-main">Cukup Satu Tautan</p>
+            <p className="text-xs font-semibold text-txt-main">{t("home.card1Title")}</p>
             <p className="text-[11px] text-txt-dim mt-0.5 leading-relaxed">
-              Semua link penting tersusun rapi dalam satu alamat praktis.
+              {t("home.card1Desc")}
             </p>
           </div>
           <div className="p-3 rounded-xl bg-card/60 border border-border">
-            <p className="text-xs font-semibold text-txt-main">Rapi di Segala Perangkat</p>
+            <p className="text-xs font-semibold text-txt-main">{t("home.card2Title")}</p>
             <p className="text-[11px] text-txt-dim mt-0.5 leading-relaxed">
-              Tampil proporsional di layar ponsel, tablet, maupun desktop.
+              {t("home.card2Desc")}
             </p>
           </div>
           <div className="p-3 rounded-xl bg-card/60 border border-border">
-            <p className="text-xs font-semibold text-txt-main">Mudah Dikelola</p>
+            <p className="text-xs font-semibold text-txt-main">{t("home.card3Title")}</p>
             <p className="text-[11px] text-txt-dim mt-0.5 leading-relaxed">
-              Ubah atau tambah tautan baru kapan saja secara instan.
+              {t("home.card3Desc")}
             </p>
           </div>
         </div>
       </div>
 
       <footer className="border-t border-border py-4 px-4 text-center text-[11px] text-txt-dim">
-        <p>Nostree: Platform Berbagi Tautan</p>
+        <p>{t("home.footerText")}</p>
       </footer>
     </main>
   );

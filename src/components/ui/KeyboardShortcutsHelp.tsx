@@ -1,17 +1,18 @@
 import { motion, AnimatePresence } from "motion/react";
 import { Keyboard, X } from "lucide-react";
 import { formatShortcut } from "../../hooks/useKeyboardShortcuts";
+import { useI18n, type TranslationKey } from "../../i18n/context";
 
 interface ShortcutDef {
   key: string;
-  description: string;
+  descKey: TranslationKey;
 }
 
 const shortcuts: ShortcutDef[] = [
-  { key: "mod+s", description: "Save changes" },
-  { key: "mod+n", description: "Add new link" },
-  { key: "escape", description: "Cancel / Close modal" },
-  { key: "mod+/", description: "Show this help" },
+  { key: "mod+s", descKey: "shortcuts.saveChanges" },
+  { key: "mod+n", descKey: "shortcuts.addNewLink" },
+  { key: "escape", descKey: "shortcuts.cancelClose" },
+  { key: "mod+/", descKey: "shortcuts.showHelp" },
 ];
 
 interface KeyboardShortcutsHelpProps {
@@ -20,6 +21,8 @@ interface KeyboardShortcutsHelpProps {
 }
 
 export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelpProps) {
+  const { t } = useI18n();
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -45,7 +48,7 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="flex items-center gap-2">
                   <Keyboard className="w-5 h-5 text-brand" />
-                  <h2 className="font-semibold text-txt-main">Keyboard Shortcuts</h2>
+                  <h2 className="font-semibold text-txt-main">{t("shortcuts.title")}</h2>
                 </div>
                 <button
                   type="button"
@@ -62,7 +65,7 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
                     key={shortcut.key}
                     className="flex items-center justify-between"
                   >
-                    <span className="text-txt-main text-sm">{shortcut.description}</span>
+                    <span className="text-txt-main text-sm">{t(shortcut.descKey)}</span>
                     <kbd className="px-2 py-1 text-xs font-mono bg-canvas border border-border rounded-md text-txt-muted">
                       {formatShortcut(shortcut.key)}
                     </kbd>
@@ -72,7 +75,7 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
 
               <div className="px-4 py-3 bg-card-hover border-t border-border">
                 <p className="text-xs text-txt-dim text-center">
-                  Press <kbd className="px-1 py-0.5 bg-canvas rounded text-txt-muted">Esc</kbd> to close
+                  {t("shortcuts.escToClose")}
                 </p>
               </div>
             </div>
@@ -84,12 +87,15 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
 }
 
 export function KeyboardShortcutsButton({ onClick }: { onClick: () => void }) {
+  const { t } = useI18n();
+
   return (
     <button
       type="button"
       onClick={onClick}
       className="p-2 rounded-lg hover:bg-card-hover transition-colors group cursor-pointer"
-      title="Keyboard shortcuts (Ctrl+/)"
+      title={t("shortcuts.buttonTitle")}
+      aria-label={t("shortcuts.buttonTitle")}
     >
       <Keyboard className="w-4 h-4 text-txt-dim group-hover:text-txt-muted" />
     </button>

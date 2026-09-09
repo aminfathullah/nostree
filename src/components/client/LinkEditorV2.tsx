@@ -24,6 +24,7 @@ import { Button } from "../ui/Button";
 import type { Link, LinkItem, LinkGroup } from "../../schemas/nostr";
 import { LinkItemIcon, IconPickerDropdown } from "./LinkItemIcon";
 import { formatWhatsAppUrl } from "../../lib/embeds";
+import { useI18n } from "../../i18n/context";
 
 const BADGE_PRESETS = ["Popular", "New", "Featured", "Promo"] as const;
 
@@ -52,6 +53,7 @@ function LinkEditorItem({
   onMoveDown,
   availableGroups = [],
 }: LinkEditorItemProps) {
+  const { t } = useI18n();
   const [isEditing, setIsEditing] = useState(false);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
   const [title, setTitle] = useState(link.title);
@@ -163,7 +165,7 @@ function LinkEditorItem({
                         handleSave();
                       }
                     }}
-                    placeholder="Link title"
+                    placeholder={t("editor.links.titlePlaceholder")}
                     className="flex-1 h-10 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
                     autoFocus
                   />
@@ -178,7 +180,7 @@ function LinkEditorItem({
                       handleSave();
                     }
                   }}
-                  placeholder="Subtitle (optional)"
+                  placeholder={t("editor.links.subtitlePlaceholder")}
                   className="w-full h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs"
                 />
                 <input
@@ -191,14 +193,14 @@ function LinkEditorItem({
                       handleSave();
                     }
                   }}
-                  placeholder="https://example.com"
+                  placeholder="https://..."
                   className="w-full h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs font-mono"
                 />
 
                 <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
                   <span className="text-[11px] text-txt-dim flex items-center gap-1 font-medium">
                     <Tag className="w-3 h-3" />
-                    <span>Badge:</span>
+                    <span>{t("editor.links.badgeSelect")}:</span>
                   </span>
                   {BADGE_PRESETS.map((p) => (
                     <button
@@ -218,10 +220,10 @@ function LinkEditorItem({
 
                 <div className="flex justify-end gap-2 pt-1">
                   <Button variant="ghost" size="sm" onClick={handleCancel} className="text-xs h-8">
-                    Cancel
+                    {t("common.cancel")}
                   </Button>
                   <Button size="sm" onClick={handleSave} className="text-xs h-8" prefixIcon={<Save className="w-3.5 h-3.5" />}>
-                    Save
+                    {t("common.save")}
                   </Button>
                 </div>
               </div>
@@ -256,7 +258,7 @@ function LinkEditorItem({
                   <button
                     onClick={() => setShowMoveMenu(!showMoveMenu)}
                     className="p-2 rounded-xl text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors cursor-pointer active:scale-[0.92]"
-                    title="Move to group"
+                    title={t("editor.links.moveToGroup")}
                   >
                     <Move className="w-4 h-4" />
                   </button>
@@ -275,7 +277,7 @@ function LinkEditorItem({
                           className="w-full px-3 py-1.5 text-left text-xs hover:bg-card-hover transition-colors text-txt-main flex items-center gap-2 cursor-pointer"
                         >
                           <CornerDownRight className="w-3.5 h-3.5 text-txt-dim" />
-                          <span>Root Level</span>
+                          <span>{t("editor.links.removeFromGroup")}</span>
                         </button>
                         {availableGroups.map((group) => (
                           <button
@@ -298,7 +300,7 @@ function LinkEditorItem({
               <button
                 onClick={() => onToggleVisibility(link.id)}
                 className="p-2 rounded-xl text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors cursor-pointer active:scale-[0.92]"
-                title={link.visible ? "Hide link" : "Show link"}
+                title={link.visible ? t("editor.links.hideLink") : t("editor.links.showLink")}
               >
                 {link.visible ? (
                   <Eye className="w-4 h-4" />
@@ -309,7 +311,7 @@ function LinkEditorItem({
               <button
                 onClick={() => onDelete(link.id)}
                 className="p-2 rounded-xl text-txt-dim hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer active:scale-[0.92]"
-                title="Delete link"
+                title={t("common.delete")}
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -346,6 +348,7 @@ function LinkGroupEditor({
   onMoveToGroup,
   availableGroups = [],
 }: LinkGroupEditorProps) {
+  const { t } = useI18n();
   const [isEditingGroup, setIsEditingGroup] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [title, setTitle] = useState(group.title);
@@ -388,8 +391,8 @@ function LinkGroupEditor({
       <div className="flex items-center justify-between gap-2 p-3 bg-canvas/40 border-b border-border rounded-t-2xl">
         <button
           onClick={() => onToggleCollapse(group.id)}
-          className="p-1 rounded-lg text-brand hover:bg-brand/10 transition-colors"
-          title={group.collapsed ? "Expand group" : "Collapse group"}
+          className="p-1 rounded-lg text-brand hover:bg-brand/10 transition-colors cursor-pointer"
+          title={group.collapsed ? t("editor.links.expandGroup") : t("editor.links.collapseGroup")}
         >
           {group.collapsed ? (
             <ChevronRight className="w-4 h-4" />
@@ -411,7 +414,7 @@ function LinkGroupEditor({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Nama grup"
+              placeholder={t("editor.links.groupNamePlaceholder")}
               className="flex-1 h-8 px-3 bg-canvas border border-border rounded-lg focus:border-brand focus:outline-none text-txt-main text-xs font-semibold"
               autoFocus
             />
@@ -438,8 +441,8 @@ function LinkGroupEditor({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => onToggleVisibility(group.id)}
-                className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors"
-                title={group.visible ? "Hide group" : "Show group"}
+                className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors cursor-pointer"
+                title={group.visible ? t("editor.links.hideLink") : t("editor.links.showLink")}
               >
                 {group.visible ? (
                   <Eye className="w-4 h-4" />
@@ -457,7 +460,7 @@ function LinkGroupEditor({
                   }
                 }}
                 className="p-1.5 rounded-lg text-txt-dim hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer active:scale-[0.92]"
-                title="Delete group"
+                title={t("common.delete")}
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -518,7 +521,7 @@ function LinkGroupEditor({
                   <Trash2 className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-semibold text-txt-main truncate">Delete Group?</h3>
+                  <h3 className="text-sm font-semibold text-txt-main truncate">{t("editor.links.confirmDeleteGroup")}</h3>
                   <p className="text-xs text-txt-muted truncate">{group.title}</p>
                 </div>
               </div>
@@ -532,7 +535,7 @@ function LinkGroupEditor({
             </div>
             <div className="p-5">
               <p className="text-xs text-txt-muted leading-relaxed">
-                This group contains <span className="font-semibold text-txt-main">{group.links.length} links</span>. Deleting this group will also delete all links inside it.
+                {t("editor.links.deleteGroupWarning")}
               </p>
             </div>
             <div className="px-5 py-3.5 bg-canvas/60 border-t border-border flex items-center justify-end gap-2.5">
@@ -544,7 +547,7 @@ function LinkGroupEditor({
                 onClick={() => setConfirmDelete(false)}
                 className="text-xs cursor-pointer"
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button
                 id="btn-confirm-delete-group"
@@ -558,7 +561,7 @@ function LinkGroupEditor({
                 className="bg-red-600 hover:bg-red-700 text-white text-xs cursor-pointer active:scale-[0.98]"
                 prefixIcon={<Trash2 className="w-3.5 h-3.5" />}
               >
-                Delete Group
+                {t("common.delete")}
               </Button>
             </div>
           </div>
@@ -575,6 +578,7 @@ interface AddLinkFormProps {
 }
 
 function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
+  const { t } = useI18n();
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [url, setUrl] = useState("");
@@ -590,7 +594,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
     const generatedUrl = formatWhatsAppUrl(waPhone, waMessage);
     setUrl(generatedUrl);
     if (!title.trim()) {
-      setTitle("Chat WhatsApp");
+      setTitle("WhatsApp");
     }
     setIcon("message");
     setShowWhatsAppHelper(false);
@@ -651,7 +655,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Link title"
+          placeholder={t("editor.links.titlePlaceholder")}
           className="flex-1 h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
           autoFocus
         />
@@ -660,7 +664,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
         type="text"
         value={subtitle}
         onChange={(e) => setSubtitle(e.target.value)}
-        placeholder="Subtitle (optional)"
+        placeholder={t("editor.links.subtitlePlaceholder")}
         className="w-full h-9 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs"
       />
 
@@ -668,7 +672,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-[11px] text-txt-dim flex items-center gap-1 font-medium">
             <Tag className="w-3 h-3" />
-            <span>Badge:</span>
+            <span>{t("editor.links.badgeSelect")}:</span>
           </span>
           {BADGE_PRESETS.map((p) => (
             <button
@@ -692,7 +696,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
           className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer ml-auto"
         >
           <MessageCircle className="w-3 h-3" />
-          <span>{showWhatsAppHelper ? "Close WA helper" : "WhatsApp link helper"}</span>
+          <span>{showWhatsAppHelper ? t("common.close") : "WhatsApp"}</span>
         </button>
       </div>
 
@@ -700,22 +704,22 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
         <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-2 animate-fade-in">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-              WhatsApp Direct Link Generator
+              {t("editor.links.whatsAppTitle")}
             </span>
-            <span className="text-[10px] text-txt-dim">Generates wa.me link</span>
+            <span className="text-[10px] text-txt-dim">{t("editor.links.whatsAppSub")}</span>
           </div>
           <input
             type="tel"
             value={waPhone}
             onChange={(e) => setWaPhone(e.target.value)}
-            placeholder="Phone number (e.g. +1234567890)"
+            placeholder={t("editor.links.whatsAppPhone")}
             className="w-full h-8 px-3 text-xs bg-canvas border border-border rounded-lg focus:border-emerald-500 focus:outline-none"
           />
           <input
             type="text"
             value={waMessage}
             onChange={(e) => setWaMessage(e.target.value)}
-            placeholder="Prefilled message (e.g. Hi, I'd like to ask about this)"
+            placeholder={t("editor.links.whatsAppMessage")}
             className="w-full h-8 px-3 text-xs bg-canvas border border-border rounded-lg focus:border-emerald-500 focus:outline-none"
           />
           <div className="flex justify-end">
@@ -725,7 +729,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
               disabled={!waPhone.trim()}
               className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold cursor-pointer active:scale-95 transition-all"
             >
-              Apply to Link
+              {t("editor.links.whatsAppApply")}
             </button>
           </div>
         </div>
@@ -735,15 +739,15 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
         type="url"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        placeholder="https://..."
+        placeholder={t("editor.links.urlPlaceholder")}
         className="w-full h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs font-mono"
       />
       <div className="flex justify-end gap-2 pt-1">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button type="submit" size="sm" disabled={!title.trim() || !url.trim()} className="text-xs" prefixIcon={<Plus className="w-3.5 h-3.5" />}>
-          Add Link
+          {t("editor.links.addLink")}
         </Button>
       </div>
     </motion.form>
@@ -756,6 +760,7 @@ interface AddGroupFormProps {
 }
 
 function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
+  const { t } = useI18n();
   const [title, setTitle] = useState("");
   const [emoji, setEmoji] = useState("");
 
@@ -800,17 +805,17 @@ function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Group name"
+          placeholder={t("editor.links.groupNamePlaceholder")}
           className="flex-1 h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
           autoFocus
         />
       </div>
       <div className="flex justify-end gap-2 pt-1">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button type="submit" size="sm" disabled={!title.trim()} className="text-xs" prefixIcon={<Folder className="w-3.5 h-3.5" />}>
-          Create Group
+          {t("editor.links.addGroup")}
         </Button>
       </div>
     </motion.form>
@@ -848,6 +853,7 @@ export function LinkEditorV2({
   onMoveToGroup,
   onReorderWithinGroup,
 }: LinkEditorV2Props) {
+  const { t } = useI18n();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAddGroupForm, setShowAddGroupForm] = useState(false);
 
@@ -885,13 +891,13 @@ export function LinkEditorV2({
     <div className="space-y-4">
       <div className="flex items-center justify-between pb-1">
         <div>
-          <h2 className="text-base font-bold text-txt-main tracking-tight">Your Links &amp; Groups</h2>
-          <p className="text-xs text-txt-dim">Drag cards or use arrow buttons to organize your tree</p>
+          <h2 className="text-base font-bold text-txt-main tracking-tight">{t("editor.tabs.links")}</h2>
+          <p className="text-xs text-txt-dim">{t("editor.links.emptySubtitle")}</p>
         </div>
         {isSaving && (
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand/10 text-brand text-xs font-semibold animate-pulse">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            <span>Saved</span>
+            <span>{t("common.saved")}</span>
           </div>
         )}
       </div>
@@ -917,7 +923,7 @@ export function LinkEditorV2({
               onClick={() => setShowAddForm(true)}
               prefixIcon={<Plus className="w-4 h-4" />}
             >
-              Add Link
+              {t("editor.links.addLink")}
             </Button>
             <Button
               variant="outline"
@@ -925,7 +931,7 @@ export function LinkEditorV2({
               onClick={() => setShowAddGroupForm(true)}
               prefixIcon={<Folder className="w-4 h-4" />}
             >
-              New Group
+              {t("editor.links.addGroup")}
             </Button>
           </motion.div>
         )}
@@ -982,9 +988,9 @@ export function LinkEditorV2({
 
       {links.length === 0 && !showAddForm && !showAddGroupForm && (
         <div className="text-center py-12 px-4 rounded-2xl border-2 border-dashed border-border bg-card/50">
-          <p className="text-sm font-semibold text-txt-main">No links yet</p>
+          <p className="text-sm font-semibold text-txt-main">{t("editor.links.emptyTitle")}</p>
           <p className="text-xs text-txt-dim mt-1 max-w-xs mx-auto">
-            Click &quot;Add Link&quot; above to add your first destination or social profile.
+            {t("editor.links.emptySubtitle")}
           </p>
         </div>
       )}

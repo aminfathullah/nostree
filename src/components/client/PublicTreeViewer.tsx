@@ -8,6 +8,8 @@ import QRCodeModal from '../ui/QRCodeModal';
 import { TiltLinkCard } from './TiltLinkCard';
 import { toast } from 'sonner';
 import { generateVCard, downloadVCard } from '../../lib/vcard';
+import { useI18n } from '../../i18n/context';
+import { LanguageToggle } from '../ui/LanguageToggle';
 
 interface UserProfile {
   pubkey: string;
@@ -103,6 +105,7 @@ function PublicTreeViewerComponent({
   profile, 
   slug 
 }: PublicTreeViewerProps) {
+  const { t } = useI18n();
   const [showQR, setShowQR] = useState(false);
   const [copiedSlug, setCopiedSlug] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
@@ -500,10 +503,10 @@ function PublicTreeViewerComponent({
                 >
                   <FolderOpen className="w-7 h-7 mx-auto mb-2 text-txt-dim" />
                   <p className="text-xs font-semibold mb-1" style={{ color: textColor }}>
-                    No links yet
+                    {t("publicTree.noLinks")}
                   </p>
                   <p className="text-[11px]" style={{ color: dimColor }}>
-                    This page is ready to display your links and collections.
+                    {t("publicTree.noLinksDesc")}
                   </p>
                 </div>
               )}
@@ -548,24 +551,27 @@ function PublicTreeViewerComponent({
                     }}
                   >
                     <Zap className="w-3.5 h-3.5 fill-current" />
-                    <span>Send Lightning Tip</span>
+                    <span>{t("publicTree.sendTip")}</span>
                   </a>
                 </div>
               )}
             </div>
 
             <footer 
-              className="pt-6 pb-1 text-center text-[11px] border-t mt-8 transition-opacity hover:opacity-100 opacity-60"
+              className="pt-6 pb-1 text-center text-[11px] border-t mt-8 transition-opacity hover:opacity-100 opacity-70"
               style={{ 
                 color: dimColor,
                 borderColor: cardBorder,
               }}
             >
-              <a href="/admin" className="inline-flex items-center gap-1.5 font-medium">
-                <span>Powered by</span>
-                <span className="font-semibold" style={{ color: textColor }}>Nostree</span>
-                <img src={logo} alt="Logo" className="w-3.5 h-3.5 object-contain" />
-              </a>
+              <div className="flex flex-col items-center gap-2">
+                <a href="/admin" className="inline-flex items-center gap-1.5 font-medium">
+                  <span>{t("publicTree.poweredBy")}</span>
+                  <span className="font-semibold" style={{ color: textColor }}>Nostree</span>
+                  <img src={logo} alt="Logo" className="w-3.5 h-3.5 object-contain" />
+                </a>
+                <LanguageToggle variant="pill" />
+              </div>
             </footer>
           </div>
       </main>
