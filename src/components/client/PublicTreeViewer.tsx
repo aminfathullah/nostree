@@ -265,7 +265,6 @@ function PublicTreeViewerComponent({
     socials,
     isBackgroundImage,
     isGradient,
-    isDark,
     bgValue,
     bgColor,
     bgImage,
@@ -285,36 +284,27 @@ function PublicTreeViewerComponent({
   return (
     <>
       <main 
-        className="min-h-screen w-full flex flex-col items-center justify-start sm:justify-center p-0 sm:p-6 md:p-10 transition-colors selection:bg-brand selection:text-brand-fg relative overflow-x-hidden"
+        className="min-h-screen w-full flex flex-col items-center justify-start p-0 transition-colors selection:bg-brand selection:text-brand-fg relative overflow-x-hidden"
         style={{ 
           backgroundColor: isBackgroundImage ? '#08080a' : isGradient ? '#09090b' : bgColor,
-          backgroundImage: isGradient ? bgValue : isBackgroundImage ? bgImage : `radial-gradient(circle at 50% 35%, ${primaryColor}14 0%, transparent 70%)`,
+          backgroundImage: isGradient ? bgValue : isBackgroundImage ? bgImage : undefined,
           fontFamily,
+          color: textColor,
         }}
       >
-        <div 
-          className="w-full sm:max-w-[450px] mx-auto sm:my-auto rounded-none sm:rounded-[36px] border-0 sm:border overflow-hidden transition-all duration-300 flex flex-col justify-between relative shadow-none sm:shadow-2xl min-h-screen sm:min-h-0"
-          style={{ 
-            backgroundColor: isGradient ? (isDark ? 'rgba(9, 9, 14, 0.75)' : 'rgba(255, 255, 255, 0.85)') : isBackgroundImage ? 'rgba(10, 10, 14, 0.96)' : bgColor,
-            backgroundImage: isGradient ? undefined : bgImage,
-            backdropFilter: isGradient ? 'blur(24px)' : undefined,
-            color: textColor,
-            borderColor: cardBorder,
-          }}
-        >
-          {treeData?.profile?.headerImage && (
-            <div className="w-full h-32 sm:h-38 overflow-hidden shrink-0">
-              <img 
-                src={treeData.profile.headerImage} 
-                alt="Header" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-          
-          <div className="p-5 sm:p-7 flex-1 flex flex-col justify-between">
-            <div>
-              <header className={`flex flex-col items-center text-center mb-6 animate-slide-up ${treeData?.profile?.headerImage ? '-mt-14 sm:-mt-16' : 'pt-2'}`}>
+        <div className="w-full max-w-[580px] mx-auto min-h-screen px-4 sm:px-6 py-10 sm:py-16 flex flex-col justify-between relative">
+          <div>
+            {treeData?.profile?.headerImage && (
+              <div className="w-full h-36 sm:h-44 rounded-3xl overflow-hidden shadow-xs mb-[-3.5rem] shrink-0 border" style={{ borderColor: cardBorder }}>
+                <img 
+                  src={treeData.profile.headerImage} 
+                  alt="Header" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            
+            <header className={`flex flex-col items-center text-center mb-6 animate-slide-up ${treeData?.profile?.headerImage ? 'pt-0 relative z-10' : 'pt-2'}`}>
                 <div className="relative mb-3">
                   <div 
                     className="w-20 h-20 sm:w-22 sm:h-22 rounded-full overflow-hidden shadow-elevated transition-transform duration-200 hover:scale-105"
@@ -569,7 +559,6 @@ function PublicTreeViewerComponent({
               </a>
             </footer>
           </div>
-        </div>
       </main>
 
       <ShareButton 

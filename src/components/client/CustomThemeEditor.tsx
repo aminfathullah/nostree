@@ -48,7 +48,9 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
   
   const bgValue = currentTheme?.colors.background || "#ffffff";
   const isBackgroundImage = bgValue.startsWith("url(");
-  const bgColor = isBackgroundImage ? "#ffffff" : bgValue;
+  const isGradient = bgValue.startsWith("linear-gradient(") || bgValue.startsWith("radial-gradient(");
+  const isSolidColor = /^#[0-9A-Fa-f]{3,8}$/.test(bgValue);
+  const hexBgColor = isSolidColor ? (bgValue.length === 4 ? `#${bgValue[1]}${bgValue[1]}${bgValue[2]}${bgValue[2]}${bgValue[3]}${bgValue[3]}` : bgValue.slice(0, 7)) : "#ffffff";
   const bgImage = isBackgroundImage ? bgValue : "";
   const fgColor = currentTheme?.colors.foreground || "#1f2937";
   const primaryColor = currentTheme?.colors.primary || "#5E47B8";
@@ -150,7 +152,7 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
           />
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="absolute top-full right-0 mt-2 w-80 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden max-h-[80vh] overflow-y-auto origin-top-right animate-pop"
+            className="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 w-80 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden max-h-[80vh] overflow-y-auto origin-top-left animate-pop"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border sticky top-0 bg-card/95 backdrop-blur-md z-10">
               <h4 className="text-xs font-semibold text-txt-main uppercase tracking-wider">Customize Appearance</h4>
@@ -184,19 +186,19 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
             <div className="p-4">
               {activeTab === "colors" && (
                 <div className="space-y-4">
-                  {!isBackgroundImage && (
+                  {!isBackgroundImage && !isGradient && (
                     <div className="flex items-center gap-3">
                       <label className="text-xs text-txt-muted w-20">Background</label>
                       <div className="flex-1 flex items-center gap-2">
                         <input
                           type="color"
-                          value={bgColor}
+                          value={hexBgColor}
                           onChange={(e) => updateTheme({ background: e.target.value })}
                           className="w-8 h-8 rounded-lg border border-border cursor-pointer"
                         />
                         <input
                           type="text"
-                          value={bgColor}
+                          value={bgValue}
                           onChange={(e) => {
                             if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
                               updateTheme({ background: e.target.value });
@@ -205,6 +207,21 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
                           className="flex-1 px-2 py-1 text-xs font-mono bg-canvas border border-border rounded-lg"
                         />
                       </div>
+                    </div>
+                  )}
+                  {isGradient && (
+                    <div className="p-2.5 rounded-xl border border-brand/20 bg-brand/5 flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-semibold text-txt-main block">Gradasi Atmosferik Aktif</span>
+                        <span className="text-[10px] text-txt-dim block truncate">Pilih preset di tab Background atau ubah ke solid</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => updateTheme({ background: "#ffffff" })}
+                        className="px-2 py-1 text-[11px] font-medium bg-card border border-border rounded-lg hover:border-border-hover transition-colors cursor-pointer shrink-0"
+                      >
+                        Ubah Solid
+                      </button>
                     </div>
                   )}
 
@@ -439,10 +456,9 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
               <div className="mt-4 p-3 rounded-xl border border-border bg-canvas/50">
                 <p className="text-[11px] text-txt-dim mb-2 text-center uppercase tracking-wider font-semibold">Live Preview</p>
                 <div 
-                  className="p-3 rounded-xl transition-all bg-cover bg-center"
+                  className="p-3 rounded-xl transition-all bg-cover bg-center border border-border/50"
                   style={{ 
-                    backgroundColor: isBackgroundImage ? "#ffffff" : bgColor,
-                    backgroundImage: isBackgroundImage ? bgImage : undefined,
+                    background: isBackgroundImage ? bgImage : isGradient ? bgValue : hexBgColor,
                     fontFamily: font === "Serif" ? "Georgia, serif" : font === "Mono" ? "monospace" : font,
                   }}
                 >
@@ -453,10 +469,10 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
                     Sample Text
                   </div>
                   <div 
-                    className="px-3 py-1.5 text-xs text-center transition-all"
+                    className="px-3 py-1.5 text-xs text-center transition-all shadow-xs"
                     style={{ 
                       backgroundColor: primaryColor, 
-                      color: isBackgroundImage ? "#ffffff" : bgColor,
+                      color: "#ffffff",
                       borderRadius: radius,
                     }}
                   >
