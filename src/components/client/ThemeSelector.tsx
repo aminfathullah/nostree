@@ -4,11 +4,63 @@ import { Check, Palette, X } from "lucide-react";
 
 export interface ThemePresetInfo extends Theme {
   name: string;
-  category: "aura" | "organic" | "jewel" | "vibrant";
+  category: "aura" | "organic" | "jewel" | "vibrant" | "corporate";
   previewGradient: string;
 }
 
 export const THEME_PRESETS: Record<string, ThemePresetInfo> = {
+  executive: {
+    name: "Executive Navy",
+    category: "corporate",
+    mode: "light",
+    colors: {
+      background: "#f8fafc",
+      foreground: "#0f172a",
+      primary: "#1e40af",
+      radius: "0.5rem",
+    },
+    font: "Inter",
+    previewGradient: "linear-gradient(135deg, #f8fafc 0%, #1e40af 100%)",
+  },
+  institutional: {
+    name: "Institutional Slate",
+    category: "corporate",
+    mode: "light",
+    colors: {
+      background: "#f1f5f9",
+      foreground: "#09090b",
+      primary: "#0e7490",
+      radius: "0.5rem",
+    },
+    font: "Plus Jakarta Sans",
+    previewGradient: "linear-gradient(135deg, #f1f5f9 0%, #0e7490 100%)",
+  },
+  swiss: {
+    name: "Swiss Enterprise",
+    category: "corporate",
+    mode: "light",
+    colors: {
+      background: "#ffffff",
+      foreground: "#18181b",
+      primary: "#09090b",
+      radius: "0",
+    },
+    font: "Inter",
+    previewGradient: "linear-gradient(135deg, #ffffff 0%, #18181b 100%)",
+  },
+  boardroom: {
+    name: "Boardroom Dark",
+    category: "corporate",
+    mode: "dark",
+    colors: {
+      background: "#0f172a",
+      foreground: "#f8fafc",
+      primary: "#38bdf8",
+      radius: "0.5rem",
+    },
+    font: "Inter",
+    previewGradient: "linear-gradient(135deg, #0f172a 0%, #38bdf8 100%)",
+  },
   obsidian: {
     name: "Obsidian Glow",
     category: "aura",
@@ -415,6 +467,10 @@ export const THEME_PRESETS: Record<string, ThemePresetInfo> = {
 };
 
 const PRIMARY_PRESET_KEYS = [
+  "executive",
+  "institutional",
+  "swiss",
+  "boardroom",
   "obsidian",
   "cosmic",
   "sunset",
@@ -433,7 +489,7 @@ const PRIMARY_PRESET_KEYS = [
   "neonsynth",
 ];
 
-type CategoryFilter = "all" | "aura" | "organic" | "jewel" | "vibrant";
+type CategoryFilter = "all" | "corporate" | "aura" | "organic" | "jewel" | "vibrant";
 
 interface ThemeSelectorProps {
   currentTheme: Theme | undefined;
@@ -488,6 +544,7 @@ export function ThemeSelector({
 
   const categories = [
     { id: "all" as const, label: "All" },
+    { id: "corporate" as const, label: "Corporate" },
     { id: "aura" as const, label: "Aura & Dark" },
     { id: "organic" as const, label: "Organic & Light" },
     { id: "jewel" as const, label: "Jewel" },

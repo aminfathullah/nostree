@@ -149,6 +149,7 @@ export const id: TranslationSchema = {
       tabPresets: "Pilihan Tema",
       tabCustom: "Kustomisasi Gaya",
       filterAll: "Semua",
+      filterCorporate: "Resmi & Korporat",
       filterAura: "Aura",
       filterOrganic: "Organik",
       filterJewel: "Jewel",

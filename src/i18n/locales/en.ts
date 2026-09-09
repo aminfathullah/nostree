@@ -149,6 +149,7 @@ export const en: TranslationSchema = {
       tabPresets: "Theme Presets",
       tabCustom: "Custom Styling",
       filterAll: "All",
+      filterCorporate: "Corporate & Official",
       filterAura: "Aura",
       filterOrganic: "Organic",
       filterJewel: "Jewel",

@@ -149,6 +149,7 @@ export interface TranslationSchema {
       tabPresets: string;
       tabCustom: string;
       filterAll: string;
+      filterCorporate: string;
       filterAura: string;
       filterOrganic: string;
       filterJewel: string;

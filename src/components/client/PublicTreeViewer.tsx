@@ -202,6 +202,7 @@ function PublicTreeViewerComponent({
       font === 'Serif' ? "'Playfair Display', Georgia, serif" :
       font === 'Mono' ? "'Space Grotesk', monospace" :
       font === 'Roboto' ? "'Roboto', system-ui, -apple-system, sans-serif" :
+      font === 'Inter' ? "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" :
       `${font}, system-ui, -apple-system, sans-serif`;
 
     return {

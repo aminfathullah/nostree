@@ -30,6 +30,7 @@ function SocialLinkPreviewModalComponent({
   const [activeTab, setActiveTab] = useState<"whatsapp" | "twitter">("whatsapp");
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [cardPreviewUrl, setCardPreviewUrl] = useState<string>("");
 
   const cleanSlug = (slug || "hub").replace(/^\/+/, "");
   const hostName = typeof window !== "undefined" && window.location.host ? window.location.host : "link.majapah.it";
@@ -232,6 +233,13 @@ function SocialLinkPreviewModalComponent({
       ctx.fill();
       ctx.stroke();
       ctx.restore();
+
+      if (isMounted) {
+        try {
+          const dataUrl = canvas.toDataURL("image/png");
+          setCardPreviewUrl(dataUrl);
+        } catch {}
+      }
     };
 
     if (avatarUrl) {
@@ -272,12 +280,13 @@ function SocialLinkPreviewModalComponent({
   }, [titleText, bioText, fullUrl]);
 
   const handleDownloadCard = useCallback(() => {
-    if (!canvasRef.current) return;
+    const dataUrl = cardPreviewUrl || canvasRef.current?.toDataURL("image/png");
+    if (!dataUrl) return;
     setDownloading(true);
     try {
       const link = document.createElement("a");
       link.download = `${cleanSlug}-social-card.png`;
-      link.href = canvasRef.current.toDataURL("image/png");
+      link.href = dataUrl;
       link.click();
       toast.success(t("socialPreview.cardDownloaded"));
     } catch {
@@ -285,7 +294,7 @@ function SocialLinkPreviewModalComponent({
     } finally {
       setDownloading(false);
     }
-  }, [cleanSlug, t]);
+  }, [cardPreviewUrl, cleanSlug, t]);
 
   if (!isOpen) return null;
 
@@ -406,7 +415,17 @@ function SocialLinkPreviewModalComponent({
                 >
                   <div className="bg-[#1f2c34] text-white rounded-2xl overflow-hidden shadow-md border border-white/10 text-left">
                     <div className="relative aspect-[1.91/1] w-full bg-black/40 overflow-hidden">
-                      <canvas ref={canvasRef} className="w-full h-full object-cover" />
+                      {cardPreviewUrl ? (
+                        <img
+                          src={cardPreviewUrl}
+                          alt="WhatsApp link preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-black/20">
+                          <div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
                     </div>
 
                     <div className="p-3 bg-[#182229]">
@@ -443,7 +462,17 @@ function SocialLinkPreviewModalComponent({
                 >
                   <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs text-left">
                     <div className="relative aspect-[1.91/1] w-full bg-black/30 overflow-hidden">
-                      <canvas ref={canvasRef} className="w-full h-full object-cover" />
+                      {cardPreviewUrl ? (
+                        <img
+                          src={cardPreviewUrl}
+                          alt="Twitter card preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-black/20">
+                          <div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
                     </div>
                     <div className="p-3 bg-canvas/60">
                       <span className="text-[11px] text-txt-dim font-mono">{hostName}</span>
@@ -458,6 +487,7 @@ function SocialLinkPreviewModalComponent({
                 </motion.div>
               )}
             </AnimatePresence>
+            <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
           </div>
 
           <div className="flex flex-wrap items-center gap-2">

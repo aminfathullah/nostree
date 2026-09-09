@@ -31,6 +31,10 @@ interface AppearanceEditorProps {
 }
 
 const PRIMARY_PRESET_KEYS = [
+  "executive",
+  "institutional",
+  "swiss",
+  "boardroom",
   "obsidian",
   "cosmic",
   "sunset",
@@ -87,7 +91,7 @@ const QUICK_ACCENTS = [
   "#8b5cf6"
 ];
 
-type CategoryFilter = "all" | "aura" | "organic" | "jewel" | "vibrant";
+type CategoryFilter = "all" | "corporate" | "aura" | "organic" | "jewel" | "vibrant";
 
 export function AppearanceEditor({
   currentTheme,
@@ -237,6 +241,7 @@ export function AppearanceEditor({
 
   const categories = [
     { id: "all" as const, label: t("editor.appearance.filterAll") },
+    { id: "corporate" as const, label: t("editor.appearance.filterCorporate") },
     { id: "aura" as const, label: t("editor.appearance.filterAura") },
     { id: "organic" as const, label: t("editor.appearance.filterOrganic") },
     { id: "jewel" as const, label: t("editor.appearance.filterJewel") },
