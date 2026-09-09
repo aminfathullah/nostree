@@ -49,7 +49,7 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
         const result = parseNostreeData(resolution.data, slug);
         
         if (!result.success) {
-          setError("Gagal memuat data tautan");
+          setError("Failed to load link data");
           setStatus("error");
           return;
         }

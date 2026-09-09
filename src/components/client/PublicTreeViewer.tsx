@@ -1,6 +1,6 @@
 import { useState, memo, useMemo } from 'react';
 import type { NostreeDataV2, Link, LinkGroup } from '../../schemas/nostr';
-import { BadgeCheck, ChevronDown, Copy, Check, Globe, UserPlus } from 'lucide-react';
+import { BadgeCheck, ChevronDown, Copy, Check, Globe, UserPlus, FolderOpen, Zap } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import TreeSkeleton from '../ui/TreeSkeleton';
 import ShareButton from '../ui/ShareButton';
@@ -124,7 +124,7 @@ function PublicTreeViewerComponent({
     try {
       await navigator.clipboard.writeText(currentUrl);
       setCopiedSlug(true);
-      toast.success("Tautan berhasil disalin");
+      toast.success("Link copied to clipboard");
       setTimeout(() => setCopiedSlug(false), 2000);
     } catch {}
   };
@@ -138,8 +138,8 @@ function PublicTreeViewerComponent({
       email: treeData?.profile?.email,
       url: currentUrl,
     });
-    downloadVCard(displayName || "kontak", vcard);
-    toast.success("Kontak siap disimpan!");
+    downloadVCard(displayName || "contact", vcard);
+    toast.success("Contact card ready to save");
   };
 
   const displayData = useMemo(() => {
@@ -354,7 +354,7 @@ function PublicTreeViewerComponent({
                       border: `1px solid ${cardBorder}`, 
                       color: dimColor 
                     }}
-                    title="Klik untuk salin tautan"
+                    title="Click to copy link"
                   >
                     <span>{typeof window !== 'undefined' ? window.location.host : 'nostree.me'}/{slug}</span>
                     {copiedSlug ? (
@@ -373,10 +373,10 @@ function PublicTreeViewerComponent({
                       border: `1px solid ${primaryColor}35`,
                       color: primaryColor,
                     }}
-                    title="Simpan kartu kontak (.vcf) ke HP"
+                    title="Save contact card (.vcf) to device"
                   >
                     <UserPlus className="w-3 h-3" />
-                    <span>Simpan Kontak</span>
+                    <span>Save Contact</span>
                   </button>
                 </div>
 
@@ -494,12 +494,12 @@ function PublicTreeViewerComponent({
                     border: `1px solid ${cardBorder}`,
                   }}
                 >
-                  <div className="text-2xl mb-2">📁</div>
+                  <FolderOpen className="w-7 h-7 mx-auto mb-2 text-txt-dim" />
                   <p className="text-xs font-semibold mb-1" style={{ color: textColor }}>
-                    Belum ada tautan
+                    No links yet
                   </p>
                   <p className="text-[11px]" style={{ color: dimColor }}>
-                    Halaman ini siap menerima daftar tautan dari editor.
+                    This page is ready to display your links and collections.
                   </p>
                 </div>
               )}
@@ -543,8 +543,8 @@ function PublicTreeViewerComponent({
                       color: '#ffffff',
                     }}
                   >
-                    <span>⚡</span>
-                    <span>Kirim Tip Lightning</span>
+                    <Zap className="w-3.5 h-3.5 fill-current" />
+                    <span>Send Lightning Tip</span>
                   </a>
                 </div>
               )}
@@ -558,7 +558,7 @@ function PublicTreeViewerComponent({
               }}
             >
               <a href="/admin" className="inline-flex items-center gap-1.5 font-medium">
-                <span>Dikelola dengan</span>
+                <span>Powered by</span>
                 <span className="font-semibold" style={{ color: textColor }}>Nostree</span>
                 <img src={logo} alt="Logo" className="w-3.5 h-3.5 object-contain" />
               </a>

@@ -8,8 +8,7 @@ import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { LinkEditorV2 } from "./LinkEditorV2";
 import { MobilePreview } from "./MobilePreview";
 import { TreeSelector, TreeInfo } from "./TreeSelector";
-import { ThemeSelector } from "./ThemeSelector";
-import { CustomThemeEditor } from "./CustomThemeEditor";
+import { AppearanceEditor } from "./AppearanceEditor";
 import { EmptyState } from "./EmptyState";
 import { Button } from "../ui/Button";
 import { LoadingOverlay } from "../ui/LoadingOverlay";
@@ -28,7 +27,9 @@ import {
   EyeOff, 
   X,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Link2,
+  Palette
 } from "lucide-react";
 import { fetchEventsWithTimeout, createNostreeEvent, publishEvent } from "../../lib/ndk";
 import { dTagToSlug, isNostreeDTag, slugToDTag } from "../../lib/slug-resolver";
@@ -119,76 +120,85 @@ function LinkTreeEditor({
     initialData,
   });
 
-  const [activeThemeTool, setActiveThemeTool] = useState<"preset" | "custom" | null>(null);
+  const [activeTab, setActiveTab] = useState<"links" | "appearance">("links");
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
-      <div className="space-y-6">
-        <div className="flex lg:hidden items-center justify-between p-3 rounded-2xl bg-card border border-border">
-          <div className="flex items-center gap-2">
-            <ThemeSelector
-              currentTheme={linkTree.data?.theme}
-              onThemeChange={linkTree.updateTheme}
-              disabled={linkTree.isSaving}
-              isOpen={activeThemeTool === "preset"}
-              onOpenChange={(open) => setActiveThemeTool(open ? "preset" : null)}
-            />
-            <CustomThemeEditor
-              currentTheme={linkTree.data?.theme}
-              onThemeChange={linkTree.updateTheme}
-              disabled={linkTree.isSaving}
-              isOpen={activeThemeTool === "custom"}
-              onOpenChange={(open) => setActiveThemeTool(open ? "custom" : null)}
-            />
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
+      <div className="space-y-5 min-w-0">
+        <div className="flex items-center justify-between gap-3 p-1.5 bg-card border border-border rounded-2xl shadow-2xs">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab("links")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === "links"
+                  ? "bg-brand text-brand-fg shadow-xs"
+                  : "text-txt-muted hover:text-txt-main hover:bg-card-hover"
+              }`}
+            >
+              <Link2 className="w-3.5 h-3.5" />
+              <span>Links & Groups</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                activeTab === "links" ? "bg-white/20 text-white" : "bg-canvas text-txt-dim"
+              }`}>
+                {linkTree.links.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("appearance")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === "appearance"
+                  ? "bg-brand text-brand-fg shadow-xs"
+                  : "text-txt-muted hover:text-txt-main hover:bg-card-hover"
+              }`}
+            >
+              <Palette className="w-3.5 h-3.5" />
+              <span>Appearance & Theme</span>
+            </button>
           </div>
+
           {slug && (
             <a
               href={`/${slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand text-brand-fg shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-canvas border border-border hover:border-brand/40 text-txt-main shadow-2xs transition-all active:scale-[0.97]"
+              title="Open public bio link page"
             >
-              <span>Preview</span>
-              <ExternalLink className="w-3 h-3" />
+              <span>View Live</span>
+              <ExternalLink className="w-3 h-3 text-txt-dim" />
             </a>
           )}
         </div>
 
-        <LinkEditorV2
-          links={linkTree.links}
-          isSaving={linkTree.isSaving}
-          onReorder={linkTree.reorderLinks}
-          onAdd={linkTree.addLink}
-          onAddGroup={linkTree.addGroup}
-          onUpdate={linkTree.updateLink}
-          onUpdateGroup={linkTree.updateGroup}
-          onDelete={linkTree.deleteLink}
-          onDeleteGroup={linkTree.deleteGroup}
-          onToggleVisibility={linkTree.toggleVisibility}
-          onToggleGroupCollapse={linkTree.toggleGroupCollapse}
-          onMoveToGroup={linkTree.moveToGroup}
-          onReorderWithinGroup={linkTree.reorderWithinGroup}
-        />
+        {activeTab === "links" ? (
+          <LinkEditorV2
+            links={linkTree.links}
+            isSaving={linkTree.isSaving}
+            onReorder={linkTree.reorderLinks}
+            onAdd={linkTree.addLink}
+            onAddGroup={linkTree.addGroup}
+            onUpdate={linkTree.updateLink}
+            onUpdateGroup={linkTree.updateGroup}
+            onDelete={linkTree.deleteLink}
+            onDeleteGroup={linkTree.deleteGroup}
+            onToggleVisibility={linkTree.toggleVisibility}
+            onToggleGroupCollapse={linkTree.toggleGroupCollapse}
+            onMoveToGroup={linkTree.moveToGroup}
+            onReorderWithinGroup={linkTree.reorderWithinGroup}
+          />
+        ) : (
+          <AppearanceEditor
+            currentTheme={linkTree.data?.theme}
+            onThemeChange={linkTree.updateTheme}
+            disabled={linkTree.isSaving}
+          />
+        )}
       </div>
 
-      <div className="hidden lg:block space-y-4 sticky top-20 self-start relative">
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <ThemeSelector
-            currentTheme={linkTree.data?.theme}
-            onThemeChange={linkTree.updateTheme}
-            disabled={linkTree.isSaving}
-            isOpen={activeThemeTool === "preset"}
-            onOpenChange={(open) => setActiveThemeTool(open ? "preset" : null)}
-          />
-          <CustomThemeEditor
-            currentTheme={linkTree.data?.theme}
-            onThemeChange={linkTree.updateTheme}
-            disabled={linkTree.isSaving}
-            isOpen={activeThemeTool === "custom"}
-            onOpenChange={(open) => setActiveThemeTool(open ? "custom" : null)}
-          />
-        </div>
-        
+      <div className="hidden lg:block space-y-4 sticky top-20 self-start">
         <MobilePreview
           profile={profile}
           data={linkTree.data}
@@ -726,7 +736,7 @@ function EditorContent() {
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium cursor-pointer"
                           >
                             <Key className="w-3.5 h-3.5 text-brand" />
-                            <span>Cadangkan Kunci Rahasia</span>
+                            <span>Backup Secret Key</span>
                           </button>
 
                           <button
@@ -734,15 +744,15 @@ function EditorContent() {
                               setShowAccountMenu(false);
                               const ok = await login();
                               if (ok) {
-                                toast.success("Beralih ke sesi ekstensi");
+                                toast.success("Switched to extension session");
                               } else {
-                                toast.error("Ekstensi Nostr (Alby) tidak terdeteksi");
+                                toast.error("Nostr extension (NIP-07) not detected");
                               }
                             }}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium cursor-pointer"
                           >
                             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                            <span>Beralih ke Ekstensi (Alby / NIP-07)</span>
+                            <span>Switch to Extension (Alby / NIP-07)</span>
                           </button>
                         </>
                       ) : (
@@ -752,27 +762,27 @@ function EditorContent() {
                               setShowAccountMenu(false);
                               const ok = await switchToLocalAccount();
                               if (ok) {
-                                toast.success("Beralih ke akun lokal");
+                                toast.success("Switched to local key account");
                               } else {
-                                toast.error("Gagal memuat akun lokal");
+                                toast.error("Failed to load local account");
                               }
                             }}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-main w-full text-left text-xs font-medium cursor-pointer"
                           >
                             <Laptop className="w-3.5 h-3.5 text-amber-500" />
-                            <span>Beralih ke Akun Lokal</span>
+                            <span>Switch to Local Account</span>
                           </button>
 
                           <button
                             onClick={async () => {
                               setShowAccountMenu(false);
                               await switchToLocalAccount();
-                              toast.success("Ekstensi diputuskan, kembali ke akun lokal");
+                              toast.success("Extension disconnected, restored local account");
                             }}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-card-hover transition-colors text-txt-muted w-full text-left text-xs cursor-pointer"
                           >
                             <LogOut className="w-3.5 h-3.5" />
-                            <span>Putuskan Ekstensi</span>
+                            <span>Disconnect Extension</span>
                           </button>
                         </>
                       )}
@@ -804,45 +814,46 @@ function EditorContent() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {authMethod === "local" && !dismissedLocalWarning && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+            exit={{ opacity: 0, y: -6 }}
+            className="mb-5 px-4 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs"
           >
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                <Laptop className="w-4 h-4" />
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <Key className="w-3.5 h-3.5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-xs sm:text-sm font-semibold text-txt-main">
-                    Profile saved in this browser
-                  </p>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">
-                    Local Only
+                  <span className="text-xs font-semibold text-txt-main">
+                    Browser key in use
+                  </span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                    Local
                   </span>
                 </div>
-                <p className="text-xs text-txt-muted mt-0.5 leading-relaxed">
-                  Back up your key so you never lose edit access if your cache is cleared.
+                <p className="text-[11px] text-txt-muted">
+                  Back up your secret key so you never lose edit access if your browser cache clears.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
               <Button
                 size="sm"
+                variant="outline"
                 onClick={() => setShowBackupModal(true)}
-                prefixIcon={<Key className="w-3.5 h-3.5" />}
-                className="text-xs font-semibold"
+                prefixIcon={<Key className="w-3 h-3" />}
+                className="text-xs h-7 px-2.5 font-semibold bg-card border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500/15"
               >
-                Backup Key
+                Backup
               </Button>
               <button
                 onClick={() => setDismissedLocalWarning(true)}
-                className="p-1.5 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card/50 transition-colors ml-auto sm:ml-0"
-                title="Dismiss warning"
+                className="p-1 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card/50 transition-colors"
+                title="Dismiss message"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           </motion.div>

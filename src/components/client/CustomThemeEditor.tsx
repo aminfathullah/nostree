@@ -244,15 +244,15 @@ export function CustomThemeEditor({
                   {isGradient && (
                     <div className="p-2.5 rounded-xl border border-brand/20 bg-brand/5 flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <span className="text-xs font-semibold text-txt-main block">Gradasi Atmosferik Aktif</span>
-                        <span className="text-[10px] text-txt-dim block truncate">Pilih preset di tab Background atau ubah ke solid</span>
+                        <span className="text-xs font-semibold text-txt-main block">Atmospheric Gradient Active</span>
+                        <span className="text-[10px] text-txt-dim block truncate">Choose presets in Background or switch to solid</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => updateTheme({ background: "#ffffff" })}
                         className="px-2 py-1 text-[11px] font-medium bg-card border border-border rounded-lg hover:border-border-hover transition-colors cursor-pointer shrink-0"
                       >
-                        Ubah Solid
+                        Use Solid
                       </button>
                     </div>
                   )}
@@ -308,7 +308,7 @@ export function CustomThemeEditor({
                   <div>
                     <label className="text-xs text-txt-muted mb-2 flex items-center gap-1 font-semibold">
                       <Sparkles className="w-3.5 h-3.5 text-brand" />
-                      Preset Gradasi Atmosferik
+                      Atmospheric Gradients
                     </label>
                     <div className="grid grid-cols-4 gap-2">
                       {GRADIENT_PRESETS.map((p) => (
@@ -484,34 +484,6 @@ export function CustomThemeEditor({
                   </div>
                 </div>
               )}
-
-              <div className="mt-4 p-3 rounded-xl border border-border bg-canvas/50">
-                <p className="text-[11px] text-txt-dim mb-2 text-center uppercase tracking-wider font-semibold">Live Preview</p>
-                <div 
-                  className="p-3 rounded-xl transition-all bg-cover bg-center border border-border/50"
-                  style={{ 
-                    background: isBackgroundImage ? bgImage : isGradient ? bgValue : hexBgColor,
-                    fontFamily: font === "Serif" ? "Georgia, serif" : font === "Mono" ? "monospace" : font,
-                  }}
-                >
-                  <div 
-                    className="text-xs font-medium text-center mb-2"
-                    style={{ color: fgColor }}
-                  >
-                    Sample Text
-                  </div>
-                  <div 
-                    className="px-3 py-1.5 text-xs text-center transition-all shadow-xs"
-                    style={{ 
-                      backgroundColor: primaryColor, 
-                      color: "#ffffff",
-                      borderRadius: radius,
-                    }}
-                  >
-                    Button
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </>

@@ -18,17 +18,17 @@ import {
 
 export const ICON_MAP = {
   folder: { label: 'Folder', icon: Folder, color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-  chart: { label: 'Grafik', icon: BarChart3, color: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' },
-  calendar: { label: 'Kalender', icon: Calendar, color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+  chart: { label: 'Chart', icon: BarChart3, color: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' },
+  calendar: { label: 'Calendar', icon: Calendar, color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
   mail: { label: 'Email', icon: Mail, color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
-  file: { label: 'Dokumen', icon: FileText, color: 'bg-rose-500/10 text-rose-500 border-rose-500/20' },
+  file: { label: 'Document', icon: FileText, color: 'bg-rose-500/10 text-rose-500 border-rose-500/20' },
   sheet: { label: 'Spreadsheet', icon: Table, color: 'bg-teal-500/10 text-teal-500 border-teal-500/20' },
   database: { label: 'Database', icon: Database, color: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' },
   globe: { label: 'Web', icon: Globe, color: 'bg-sky-500/10 text-sky-500 border-sky-500/20' },
-  message: { label: 'Pesan', icon: MessageSquare, color: 'bg-green-500/10 text-green-500 border-green-500/20' },
+  message: { label: 'Message', icon: MessageSquare, color: 'bg-green-500/10 text-green-500 border-green-500/20' },
   video: { label: 'Video', icon: Video, color: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
-  code: { label: 'Kode', icon: Code, color: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20' },
-  link: { label: 'Tautan', icon: ExternalLink, color: 'bg-brand/10 text-brand border-brand/20' },
+  code: { label: 'Code', icon: Code, color: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20' },
+  link: { label: 'Link', icon: ExternalLink, color: 'bg-brand/10 text-brand border-brand/20' },
 } as const;
 
 export type IconKey = keyof typeof ICON_MAP;
@@ -181,7 +181,7 @@ export function IconPickerDropdown({
         type="button"
         onClick={handleToggle}
         className="h-10 px-2.5 rounded-xl bg-canvas border border-border hover:border-brand/40 flex items-center gap-1.5 transition-colors cursor-pointer active:scale-[0.98]"
-        title="Pilih ikon / favicon"
+        title="Choose icon / favicon"
       >
         <LinkItemIcon icon={selectedIcon} emoji={selectedEmoji} url={url} size="sm" />
         <ChevronDown className="w-3 h-3 text-txt-dim" />
@@ -196,7 +196,7 @@ export function IconPickerDropdown({
           }`}
         >
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-border">
-            <span className="text-xs font-semibold text-txt-main">Pilih Ikon Tautan</span>
+            <span className="text-xs font-semibold text-txt-main">Choose Link Icon</span>
             {(selectedIcon || selectedEmoji) && (
               <button
                 type="button"
@@ -207,7 +207,7 @@ export function IconPickerDropdown({
                 className="text-[10px] text-brand hover:underline flex items-center gap-1 cursor-pointer font-medium"
               >
                 <Sparkles className="w-3 h-3" />
-                <span>Gunakan Favicon</span>
+                <span>Use Favicon</span>
               </button>
             )}
           </div>
@@ -238,15 +238,15 @@ export function IconPickerDropdown({
                 )}
               </div>
               <div className="text-left min-w-0 flex-1">
-                <p className="text-xs font-semibold truncate leading-tight">Favicon Otomatis</p>
+                <p className="text-xs font-semibold truncate leading-tight">Automatic Favicon</p>
                 <p className="text-[10px] text-txt-dim truncate">
-                  {domain ? `Favicon dari ${domain}` : 'Otomatis dari URL'}
+                  {domain ? `Favicon from ${domain}` : 'Auto-detected from URL'}
                 </p>
               </div>
             </button>
           </div>
 
-          <div className="text-[10px] text-txt-dim font-medium mb-1.5">Atau pilih ikon khusus:</div>
+          <div className="text-[10px] text-txt-dim font-medium mb-1.5">Or select a custom icon:</div>
           <div className="grid grid-cols-4 gap-1.5 mb-3">
             {(Object.keys(ICON_MAP) as IconKey[]).map((key) => {
               const item = ICON_MAP[key];
@@ -276,7 +276,7 @@ export function IconPickerDropdown({
           </div>
 
           <div className="pt-2 border-t border-border">
-            <label className="block text-[10px] text-txt-dim mb-1 font-medium">Atau gunakan karakter / emoji:</label>
+            <label className="block text-[10px] text-txt-dim mb-1 font-medium">Or enter a custom character / emoji:</label>
             <input
               type="text"
               value={selectedEmoji || ''}
@@ -285,7 +285,7 @@ export function IconPickerDropdown({
                 onSelectEmoji(val || undefined);
                 if (val) onSelectIcon(undefined);
               }}
-              placeholder="Contoh: ✦"
+              placeholder="e.g. ✦"
               className="w-full h-8 px-2.5 text-xs bg-canvas border border-border rounded-lg focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
               maxLength={4}
             />

@@ -145,7 +145,7 @@ function QRCodeModalComponent({
     link.download = `${(slug || "nostree").toLowerCase().replace(/[^a-z0-9-_]/g, "-")}-qr.png`;
     link.href = canvasRef.current.toDataURL("image/png");
     link.click();
-    toast.success("QR Code berhasil diunduh");
+    toast.success("QR Code downloaded");
   }, [slug]);
 
   const handleCopyImage = useCallback(async () => {
@@ -159,11 +159,11 @@ function QRCodeModalComponent({
           }),
         ]);
         setCopiedImage(true);
-        toast.success("Gambar QR berhasil disalin");
+        toast.success("QR Code copied to clipboard");
         setTimeout(() => setCopiedImage(false), 2000);
       });
     } catch {
-      toast.error("Gagal menyalin gambar, silakan unduh langsung");
+      toast.error("Failed to copy image, please download directly");
     }
   }, []);
 
@@ -183,14 +183,14 @@ function QRCodeModalComponent({
         >
           <div className="flex items-center justify-between mb-3.5">
             <div>
-              <h3 className="text-sm font-semibold text-txt-main">Bagikan QR Code</h3>
-              <p className="text-[11px] text-txt-muted">Siap dicetak atau dipajang di bio</p>
+              <h3 className="text-sm font-semibold text-txt-main">Share QR Code</h3>
+              <p className="text-[11px] text-txt-muted">Ready to print or display on your bio</p>
             </div>
             <button
               type="button"
               onClick={onClose}
               className="p-1 rounded-lg text-txt-dim hover:text-txt-main hover:bg-card-hover transition-colors cursor-pointer"
-              aria-label="Tutup"
+              aria-label="Close"
             >
               <X className="w-4 h-4" />
             </button>
@@ -208,14 +208,14 @@ function QRCodeModalComponent({
               style={{ backgroundColor: primaryColor }}
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Unduh PNG</span>
+              <span>Download PNG</span>
             </button>
 
             <button
               type="button"
               onClick={handleCopyImage}
               className="px-3 py-2.5 rounded-xl text-xs font-semibold bg-canvas border border-border hover:bg-card-hover text-txt-main transition-colors active:scale-[0.98] cursor-pointer"
-              title="Salin Gambar QR"
+              title="Copy QR Image"
             >
               {copiedImage ? (
                 <Check className="w-3.5 h-3.5 text-emerald-500" />

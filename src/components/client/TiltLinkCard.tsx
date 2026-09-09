@@ -121,17 +121,17 @@ function TiltLinkCardComponent({
                   color: isVideoExpanded ? "#ffffff" : fgColor,
                   border: `1px solid ${fgColor}35`,
                 }}
-                title={isVideoExpanded ? "Tutup video" : "Tonton video langsung"}
+                title={isVideoExpanded ? "Close video preview" : "Watch video preview"}
               >
                 {isVideoExpanded ? (
                   <>
                     <ChevronUp className="w-3 h-3" />
-                    <span className="text-[11px]">Tutup</span>
+                    <span className="text-[11px]">Close</span>
                   </>
                 ) : (
                   <>
                     <Play className="w-3 h-3 fill-current" />
-                    <span className="text-[11px]">Video</span>
+                    <span className="text-[11px]">Watch</span>
                   </>
                 )}
               </button>

@@ -25,7 +25,7 @@ import type { Link, LinkItem, LinkGroup } from "../../schemas/nostr";
 import { LinkItemIcon, IconPickerDropdown } from "./LinkItemIcon";
 import { formatWhatsAppUrl } from "../../lib/embeds";
 
-const BADGE_PRESETS = ["Populer", "Promo", "Baru", "Rekomendasi"] as const;
+const BADGE_PRESETS = ["Popular", "New", "Featured", "Promo"] as const;
 
 interface LinkEditorItemProps {
   link: Link;
@@ -110,8 +110,8 @@ function LinkEditorItem({
                 onClick={onMoveUp}
                 disabled={index === 0}
                 className="p-0.5 text-txt-dim hover:text-txt-main disabled:opacity-20 disabled:hover:text-txt-dim transition-colors cursor-pointer active:scale-[0.92]"
-                title="Pindah ke atas"
-                aria-label="Pindah ke atas"
+                title="Move up"
+                aria-label="Move up"
               >
                 <ChevronUp className="w-3 h-3" />
               </button>
@@ -120,8 +120,8 @@ function LinkEditorItem({
                 onClick={onMoveDown}
                 disabled={index === totalCount - 1}
                 className="p-0.5 text-txt-dim hover:text-txt-main disabled:opacity-20 disabled:hover:text-txt-dim transition-colors cursor-pointer active:scale-[0.92]"
-                title="Pindah ke bawah"
-                aria-label="Pindah ke bawah"
+                title="Move down"
+                aria-label="Move down"
               >
                 <ChevronDown className="w-3 h-3" />
               </button>
@@ -163,7 +163,7 @@ function LinkEditorItem({
                         handleSave();
                       }
                     }}
-                    placeholder="Judul tautan"
+                    placeholder="Link title"
                     className="flex-1 h-10 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
                     autoFocus
                   />
@@ -178,7 +178,7 @@ function LinkEditorItem({
                       handleSave();
                     }
                   }}
-                  placeholder="Keterangan singkat (opsional)"
+                  placeholder="Subtitle (optional)"
                   className="w-full h-9 px-3 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs"
                 />
                 <input
@@ -218,10 +218,10 @@ function LinkEditorItem({
 
                 <div className="flex justify-end gap-2 pt-1">
                   <Button variant="ghost" size="sm" onClick={handleCancel} className="text-xs h-8">
-                    Batal
+                    Cancel
                   </Button>
                   <Button size="sm" onClick={handleSave} className="text-xs h-8" prefixIcon={<Save className="w-3.5 h-3.5" />}>
-                    Simpan
+                    Save
                   </Button>
                 </div>
               </div>
@@ -256,7 +256,7 @@ function LinkEditorItem({
                   <button
                     onClick={() => setShowMoveMenu(!showMoveMenu)}
                     className="p-2 rounded-xl text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors cursor-pointer active:scale-[0.92]"
-                    title="Pindah ke grup"
+                    title="Move to group"
                   >
                     <Move className="w-4 h-4" />
                   </button>
@@ -275,7 +275,7 @@ function LinkEditorItem({
                           className="w-full px-3 py-1.5 text-left text-xs hover:bg-card-hover transition-colors text-txt-main flex items-center gap-2 cursor-pointer"
                         >
                           <CornerDownRight className="w-3.5 h-3.5 text-txt-dim" />
-                          <span>Level Utama (Root)</span>
+                          <span>Root Level</span>
                         </button>
                         {availableGroups.map((group) => (
                           <button
@@ -298,7 +298,7 @@ function LinkEditorItem({
               <button
                 onClick={() => onToggleVisibility(link.id)}
                 className="p-2 rounded-xl text-txt-dim hover:text-txt-main hover:bg-canvas transition-colors cursor-pointer active:scale-[0.92]"
-                title={link.visible ? "Sembunyikan tautan" : "Tampilkan tautan"}
+                title={link.visible ? "Hide link" : "Show link"}
               >
                 {link.visible ? (
                   <Eye className="w-4 h-4" />
@@ -309,7 +309,7 @@ function LinkEditorItem({
               <button
                 onClick={() => onDelete(link.id)}
                 className="p-2 rounded-xl text-txt-dim hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer active:scale-[0.92]"
-                title="Hapus tautan"
+                title="Delete link"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -457,7 +457,7 @@ function LinkGroupEditor({
                   }
                 }}
                 className="p-1.5 rounded-lg text-txt-dim hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer active:scale-[0.92]"
-                title="Hapus grup"
+                title="Delete group"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -518,7 +518,7 @@ function LinkGroupEditor({
                   <Trash2 className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-semibold text-txt-main truncate">Hapus Grup?</h3>
+                  <h3 className="text-sm font-semibold text-txt-main truncate">Delete Group?</h3>
                   <p className="text-xs text-txt-muted truncate">{group.title}</p>
                 </div>
               </div>
@@ -532,7 +532,7 @@ function LinkGroupEditor({
             </div>
             <div className="p-5">
               <p className="text-xs text-txt-muted leading-relaxed">
-                Grup ini berisi <span className="font-semibold text-txt-main">{group.links.length} tautan</span>. Menghapus grup ini juga akan menghapus seluruh tautan di dalamnya.
+                This group contains <span className="font-semibold text-txt-main">{group.links.length} links</span>. Deleting this group will also delete all links inside it.
               </p>
             </div>
             <div className="px-5 py-3.5 bg-canvas/60 border-t border-border flex items-center justify-end gap-2.5">
@@ -544,7 +544,7 @@ function LinkGroupEditor({
                 onClick={() => setConfirmDelete(false)}
                 className="text-xs cursor-pointer"
               >
-                Batal
+                Cancel
               </Button>
               <Button
                 id="btn-confirm-delete-group"
@@ -558,7 +558,7 @@ function LinkGroupEditor({
                 className="bg-red-600 hover:bg-red-700 text-white text-xs cursor-pointer active:scale-[0.98]"
                 prefixIcon={<Trash2 className="w-3.5 h-3.5" />}
               >
-                Hapus Grup
+                Delete Group
               </Button>
             </div>
           </div>
@@ -651,7 +651,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Judul tautan"
+          placeholder="Link title"
           className="flex-1 h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
           autoFocus
         />
@@ -660,7 +660,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
         type="text"
         value={subtitle}
         onChange={(e) => setSubtitle(e.target.value)}
-        placeholder="Keterangan singkat (opsional)"
+        placeholder="Subtitle (optional)"
         className="w-full h-9 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-xs"
       />
 
@@ -692,7 +692,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
           className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer ml-auto"
         >
           <MessageCircle className="w-3 h-3" />
-          <span>{showWhatsAppHelper ? "Tutup WA" : "Bantuan WhatsApp"}</span>
+          <span>{showWhatsAppHelper ? "Close WA helper" : "WhatsApp link helper"}</span>
         </button>
       </div>
 
@@ -700,22 +700,22 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
         <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-2 animate-fade-in">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-              Format Tautan Langsung WhatsApp
+              WhatsApp Direct Link Generator
             </span>
-            <span className="text-[10px] text-txt-dim">Otomatis wa.me</span>
+            <span className="text-[10px] text-txt-dim">Generates wa.me link</span>
           </div>
           <input
             type="tel"
             value={waPhone}
             onChange={(e) => setWaPhone(e.target.value)}
-            placeholder="Nomor HP / WhatsApp (contoh: 081234567890)"
+            placeholder="Phone number (e.g. +1234567890)"
             className="w-full h-8 px-3 text-xs bg-canvas border border-border rounded-lg focus:border-emerald-500 focus:outline-none"
           />
           <input
             type="text"
             value={waMessage}
             onChange={(e) => setWaMessage(e.target.value)}
-            placeholder="Pesan pembuka (contoh: Halo kak, saya mau tanya produk ini)"
+            placeholder="Prefilled message (e.g. Hi, I'd like to ask about this)"
             className="w-full h-8 px-3 text-xs bg-canvas border border-border rounded-lg focus:border-emerald-500 focus:outline-none"
           />
           <div className="flex justify-end">
@@ -725,7 +725,7 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
               disabled={!waPhone.trim()}
               className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold cursor-pointer active:scale-95 transition-all"
             >
-              Terapkan ke Tautan
+              Apply to Link
             </button>
           </div>
         </div>
@@ -740,10 +740,10 @@ function AddLinkForm({ onAdd, onCancel }: AddLinkFormProps) {
       />
       <div className="flex justify-end gap-2 pt-1">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
-          Batal
+          Cancel
         </Button>
         <Button type="submit" size="sm" disabled={!title.trim() || !url.trim()} className="text-xs" prefixIcon={<Plus className="w-3.5 h-3.5" />}>
-          Tambah Tautan
+          Add Link
         </Button>
       </div>
     </motion.form>
@@ -786,7 +786,7 @@ function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
           onCancel();
         }
       }}
-      className="bg-card border-2 border-dashed border-brand/40 rounded-2xl p-4 space-y-3 shadow-elevated"
+      className="bg-card border-2 border-brand/40 rounded-2xl p-4 space-y-3 shadow-elevated"
     >
       <div className="flex gap-2">
         <input
@@ -800,17 +800,17 @@ function AddGroupForm({ onAdd, onCancel }: AddGroupFormProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Nama grup"
+          placeholder="Group name"
           className="flex-1 h-10 px-3.5 bg-canvas border border-border rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none text-txt-main text-sm font-medium"
           autoFocus
         />
       </div>
       <div className="flex justify-end gap-2 pt-1">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
-          Batal
+          Cancel
         </Button>
         <Button type="submit" size="sm" disabled={!title.trim()} className="text-xs" prefixIcon={<Folder className="w-3.5 h-3.5" />}>
-          Buat Grup
+          Create Group
         </Button>
       </div>
     </motion.form>
@@ -912,8 +912,8 @@ export function LinkEditorV2({
         ) : (
           <motion.div key="buttons" layout className="flex gap-2.5">
             <Button
-              variant="outline"
-              className="flex-1 text-xs font-semibold py-2.5 rounded-xl border-dashed hover:border-brand"
+              variant="solid"
+              className="flex-1 text-xs font-semibold py-2.5 rounded-xl shadow-xs"
               onClick={() => setShowAddForm(true)}
               prefixIcon={<Plus className="w-4 h-4" />}
             >
@@ -921,7 +921,7 @@ export function LinkEditorV2({
             </Button>
             <Button
               variant="outline"
-              className="flex-1 text-xs font-semibold py-2.5 rounded-xl border-dashed hover:border-brand"
+              className="flex-1 text-xs font-semibold py-2.5 rounded-xl border-border hover:border-border-hover bg-card shadow-2xs"
               onClick={() => setShowAddGroupForm(true)}
               prefixIcon={<Folder className="w-4 h-4" />}
             >
