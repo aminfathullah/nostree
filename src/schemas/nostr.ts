@@ -23,7 +23,16 @@ export const PlatformEnum = z.enum([
   "substack",
 ]);
 
-export const FontEnum = z.enum(["Inter", "Roboto", "Serif", "Mono"]);
+export const FontEnum = z.enum([
+  "Inter",
+  "Roboto",
+  "Serif",
+  "Mono",
+  "Plus Jakarta Sans",
+  "Outfit",
+  "Space Grotesk",
+  "Playfair",
+]);
 
 export const RadiusEnum = z.enum(["0", "0.5rem", "1rem", "9999px"]);
 
@@ -69,7 +78,7 @@ export const SocialSchema = z.object({
 export const ThemeSchema = z.object({
   mode: ThemeIdEnum,
   colors: z.object({
-    background: z.string().regex(/^#[0-9A-Fa-f]{6}$|^url\(/, "Invalid background"),
+    background: z.string().regex(/^#[0-9A-Fa-f]{6}$|^#[0-9A-Fa-f]{8}$|^url\(|^linear-gradient\(|^radial-gradient\(/, "Invalid background"),
     foreground: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid foreground color"),
     primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid primary color"),
     radius: RadiusEnum,

@@ -174,21 +174,32 @@ function PublicTreeViewerComponent({
 
     const bgValue = theme?.colors.background || '#f8fafc';
     const isBackgroundImage = bgValue.startsWith('url(');
-    const bgColor = isBackgroundImage ? 'rgba(10,10,12,0.85)' : bgValue;
-    const bgImage = isBackgroundImage ? bgValue : undefined;
+    const isGradient = bgValue.startsWith('linear-gradient(') || bgValue.startsWith('radial-gradient(');
+    const isDark = theme?.mode === 'dark' || (theme?.colors.foreground && /^#[e-fE-F]/.test(theme.colors.foreground));
+
+    const bgColor = isBackgroundImage ? 'rgba(10,10,12,0.85)' : isGradient ? '#09090b' : bgValue;
+    const bgImage = isBackgroundImage ? bgValue : isGradient ? bgValue : undefined;
     const fgColor = theme?.colors.foreground || '#0f172a';
     const primaryColor = theme?.colors.primary || '#6366f1';
     const borderRadius = theme?.colors.radius || '1rem';
     const font = theme?.font || 'Plus Jakarta Sans';
     
-    const cardBg = isBackgroundImage ? 'rgba(255,255,255,0.08)' : `${fgColor}0a`;
-    const cardBorder = isBackgroundImage ? 'rgba(255,255,255,0.12)' : `${fgColor}14`;
-    const cardHoverBg = isBackgroundImage ? 'rgba(255,255,255,0.15)' : `${fgColor}12`;
-    const cardHoverBorder = isBackgroundImage ? 'rgba(255,255,255,0.25)' : `${fgColor}24`;
-    const dimColor = isBackgroundImage ? 'rgba(255,255,255,0.65)' : `${fgColor}90`;
-    const textColor = isBackgroundImage ? '#ffffff' : fgColor;
+    const cardBg = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.92)';
+    const cardBorder = isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(15, 23, 42, 0.08)';
+    const cardHoverBg = isDark ? 'rgba(255, 255, 255, 0.13)' : '#ffffff';
+    const cardHoverBorder = isDark ? 'rgba(255, 255, 255, 0.28)' : 'rgba(15, 23, 42, 0.18)';
+    const dimColor = isDark ? 'rgba(255, 255, 255, 0.65)' : `${fgColor}99`;
+    const textColor = isBackgroundImage || (isDark && isGradient) ? '#ffffff' : fgColor;
     
-    const fontFamily = font === 'Serif' ? 'Georgia, serif' : font === 'Mono' ? 'Space Grotesk, monospace' : `${font}, system-ui, sans-serif`;
+    const fontFamily = 
+      font === 'Outfit' ? "'Outfit', system-ui, -apple-system, sans-serif" :
+      font === 'Plus Jakarta Sans' ? "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" :
+      font === 'Space Grotesk' ? "'Space Grotesk', monospace" :
+      font === 'Playfair' ? "'Playfair Display', Georgia, serif" :
+      font === 'Serif' ? "'Playfair Display', Georgia, serif" :
+      font === 'Mono' ? "'Space Grotesk', monospace" :
+      font === 'Roboto' ? "'Roboto', system-ui, -apple-system, sans-serif" :
+      `${font}, system-ui, -apple-system, sans-serif`;
 
     return {
       displayName,
@@ -198,6 +209,9 @@ function PublicTreeViewerComponent({
       groups,
       socials,
       isBackgroundImage,
+      isGradient,
+      isDark,
+      bgValue,
       bgColor,
       bgImage,
       primaryColor,
@@ -250,6 +264,9 @@ function PublicTreeViewerComponent({
     groups,
     socials,
     isBackgroundImage,
+    isGradient,
+    isDark,
+    bgValue,
     bgColor,
     bgImage,
     primaryColor,
@@ -270,16 +287,17 @@ function PublicTreeViewerComponent({
       <main 
         className="min-h-screen w-full flex flex-col items-center justify-start sm:justify-center p-0 sm:p-6 md:p-10 transition-colors selection:bg-brand selection:text-brand-fg relative overflow-x-hidden"
         style={{ 
-          backgroundColor: isBackgroundImage ? '#08080a' : bgColor,
-          backgroundImage: isBackgroundImage ? bgImage : `radial-gradient(circle at 50% 35%, ${primaryColor}14 0%, transparent 70%)`,
+          backgroundColor: isBackgroundImage ? '#08080a' : isGradient ? '#09090b' : bgColor,
+          backgroundImage: isGradient ? bgValue : isBackgroundImage ? bgImage : `radial-gradient(circle at 50% 35%, ${primaryColor}14 0%, transparent 70%)`,
           fontFamily,
         }}
       >
         <div 
           className="w-full sm:max-w-[450px] mx-auto sm:my-auto rounded-none sm:rounded-[36px] border-0 sm:border overflow-hidden transition-all duration-300 flex flex-col justify-between relative shadow-none sm:shadow-2xl min-h-screen sm:min-h-0"
           style={{ 
-            backgroundColor: isBackgroundImage ? 'rgba(10, 10, 14, 0.96)' : bgColor,
-            backgroundImage: bgImage,
+            backgroundColor: isGradient ? (isDark ? 'rgba(9, 9, 14, 0.75)' : 'rgba(255, 255, 255, 0.85)') : isBackgroundImage ? 'rgba(10, 10, 14, 0.96)' : bgColor,
+            backgroundImage: isGradient ? undefined : bgImage,
+            backdropFilter: isGradient ? 'blur(24px)' : undefined,
             color: textColor,
             borderColor: cardBorder,
           }}

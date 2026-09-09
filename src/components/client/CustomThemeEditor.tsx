@@ -18,10 +18,25 @@ const RADIUS_OPTIONS: { value: Radius; label: string }[] = [
 ];
 
 const FONT_OPTIONS: { value: Font; label: string; sample: string }[] = [
+  { value: "Outfit", label: "Outfit", sample: "Vibrant & Geometric" },
+  { value: "Plus Jakarta Sans", label: "Jakarta", sample: "Clean Modern SaaS" },
+  { value: "Space Grotesk", label: "Space", sample: "Cyber & Web3 Tech" },
+  { value: "Playfair", label: "Playfair", sample: "Luxury & Editorial" },
   { value: "Inter", label: "Inter", sample: "Clean & Modern" },
   { value: "Roboto", label: "Roboto", sample: "Friendly & Open" },
-  { value: "Serif", label: "Serif", sample: "Classic & Elegant" },
-  { value: "Mono", label: "Mono", sample: "Technical & Code" },
+  { value: "Serif", label: "Serif", sample: "Classic Serif" },
+  { value: "Mono", label: "Mono", sample: "Technical Code" },
+];
+
+const GRADIENT_PRESETS = [
+  { label: "Obsidian", gradient: "linear-gradient(145deg, #09090b 0%, #17152b 50%, #0d0b1a 100%)" },
+  { label: "Cosmic", gradient: "linear-gradient(145deg, #0b0518 0%, #200d3d 50%, #120625 100%)" },
+  { label: "Sunset", gradient: "linear-gradient(145deg, #0f051d 0%, #2c0d3d 40%, #59133b 75%, #7e2439 100%)" },
+  { label: "Emerald", gradient: "linear-gradient(145deg, #021a12 0%, #063d28 50%, #032216 100%)" },
+  { label: "Sapphire", gradient: "linear-gradient(145deg, #030d1e 0%, #0a234c 50%, #051631 100%)" },
+  { label: "Ruby", gradient: "linear-gradient(145deg, #1f0409 0%, #440b18 50%, #28060f 100%)" },
+  { label: "Candy", gradient: "linear-gradient(145deg, #fdf4ff 0%, #fae8ff 50%, #f5d0fe 100%)" },
+  { label: "Synth", gradient: "linear-gradient(145deg, #050510 0%, #15092a 50%, #09031a 100%)" },
 ];
 
 export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: CustomThemeEditorProps) {
@@ -241,6 +256,30 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
 
               {activeTab === "background" && (
                 <div className="space-y-4">
+                  <div>
+                    <label className="text-xs text-txt-muted mb-2 flex items-center gap-1 font-semibold">
+                      <Sparkles className="w-3.5 h-3.5 text-brand" />
+                      Preset Gradasi Atmosferik
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {GRADIENT_PRESETS.map((p) => (
+                        <button
+                          key={p.label}
+                          type="button"
+                          onClick={() => updateTheme({ background: p.gradient })}
+                          className={`h-10 rounded-xl border text-[10px] font-bold text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs ${
+                            bgValue === p.gradient
+                              ? "ring-2 ring-brand border-brand shadow-sm"
+                              : "border-white/20 hover:scale-105"
+                          }`}
+                          style={{ background: p.gradient }}
+                          title={p.label}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   {isBackgroundImage && (
                     <div className="relative">
                       <div 

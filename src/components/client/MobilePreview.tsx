@@ -136,15 +136,28 @@ export function MobilePreview({
 
   const bgValue = theme?.colors.background || "#f8fafc";
   const isBackgroundImage = bgValue.startsWith("url(");
-  const bgColor = isBackgroundImage ? "#09090b" : bgValue;
-  const bgImage = isBackgroundImage ? bgValue : undefined;
+  const isGradient = bgValue.startsWith("linear-gradient(") || bgValue.startsWith("radial-gradient(");
+  const isDark = theme?.mode === "dark" || (theme?.colors.foreground && /^#[e-fE-F]/.test(theme.colors.foreground));
+  const bgColor = isBackgroundImage ? "#09090b" : isGradient ? "#09090b" : bgValue;
+  const bgImage = isBackgroundImage ? bgValue : isGradient ? bgValue : undefined;
   const fgColor = theme?.colors.foreground || "#0f172a";
   const primaryColor = theme?.colors.primary || "#6366f1";
   const borderRadius = theme?.colors.radius || "1rem";
   const font = theme?.font || "Plus Jakarta Sans";
-  const textColor = isBackgroundImage ? "#ffffff" : fgColor;
+  const textColor = isBackgroundImage || (isDark && isGradient) ? "#ffffff" : fgColor;
   
-  const fontFamily = font === "Serif" ? "Georgia, serif" : font === "Mono" ? "Space Grotesk, monospace" : `${font}, system-ui, sans-serif`;
+  const cardBg = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.92)";
+  const cardBorder = isDark ? "rgba(255, 255, 255, 0.14)" : "rgba(15, 23, 42, 0.08)";
+
+  const fontFamily = 
+    font === "Outfit" ? "'Outfit', system-ui, -apple-system, sans-serif" :
+    font === "Plus Jakarta Sans" ? "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" :
+    font === "Space Grotesk" ? "'Space Grotesk', monospace" :
+    font === "Playfair" ? "'Playfair Display', Georgia, serif" :
+    font === "Serif" ? "'Playfair Display', Georgia, serif" :
+    font === "Mono" ? "'Space Grotesk', monospace" :
+    font === "Roboto" ? "'Roboto', system-ui, -apple-system, sans-serif" :
+    `${font}, system-ui, -apple-system, sans-serif`;
 
   const avatarSrc = data?.profile?.picture || profile?.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`;
   const headerImage = data?.profile?.headerImage;
@@ -352,10 +365,10 @@ export function MobilePreview({
                       link.highlight ? "ring-2 ring-offset-1" : ""
                     }`}
                     style={{
-                      backgroundColor: isBackgroundImage ? "rgba(255,255,255,0.12)" : `${fgColor}0a`,
+                      backgroundColor: isBackgroundImage ? "rgba(255, 255, 255, 0.12)" : cardBg,
                       color: textColor,
                       borderRadius: borderRadius,
-                      border: `1px solid ${isBackgroundImage ? "rgba(255,255,255,0.18)" : `${fgColor}14`}`,
+                      border: `1px solid ${isBackgroundImage ? "rgba(255, 255, 255, 0.18)" : cardBorder}`,
                       backdropFilter: "blur(8px)",
                     }}
                   >
@@ -441,8 +454,8 @@ export function MobilePreview({
                     key={i}
                     className="w-8 h-8 rounded-lg flex items-center justify-center shadow-xs"
                     style={{ 
-                      backgroundColor: isBackgroundImage ? "rgba(255,255,255,0.12)" : `${fgColor}0a`,
-                      border: `1px solid ${isBackgroundImage ? "rgba(255,255,255,0.18)" : `${fgColor}14`}`,
+                      backgroundColor: isBackgroundImage ? "rgba(255, 255, 255, 0.12)" : cardBg,
+                      border: `1px solid ${isBackgroundImage ? "rgba(255, 255, 255, 0.18)" : cardBorder}`,
                       color: textColor 
                     }}
                   >
