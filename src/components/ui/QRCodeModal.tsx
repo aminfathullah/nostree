@@ -27,6 +27,17 @@ function QRCodeModalComponent({
   const [copiedImage, setCopiedImage] = useState(false);
 
   useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
     if (!isOpen || !canvasRef.current) return;
 
     let isMounted = true;
@@ -178,12 +189,15 @@ function QRCodeModalComponent({
 
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="qr-modal-title"
           className="bg-card border border-border rounded-2xl shadow-elevated p-5 max-w-xs w-full pointer-events-auto animate-pop"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between mb-3.5">
             <div>
-              <h3 className="text-sm font-semibold text-txt-main">Share QR Code</h3>
+              <h3 id="qr-modal-title" className="text-sm font-semibold text-txt-main">Share QR Code</h3>
               <p className="text-[11px] text-txt-muted">Ready to print or display on your bio</p>
             </div>
             <button

@@ -52,13 +52,13 @@ function TiltLinkCardComponent({
           borderRadius,
         }}
       >
-        <a
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          className="flex items-center justify-between gap-3 text-left text-inherit no-underline outline-none w-full"
-        >
-          <div className="flex items-center gap-3.5 min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-3 text-left w-full">
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="flex items-center gap-3.5 min-w-0 flex-1 text-inherit no-underline outline-none"
+          >
             <LinkItemIcon
               icon={link.icon}
               emoji={link.emoji}
@@ -104,17 +104,13 @@ function TiltLinkCardComponent({
                 </span>
               )}
             </div>
-          </div>
+          </a>
 
           <div className="flex items-center gap-2 shrink-0">
             {youtubeId && (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsVideoExpanded((prev) => !prev);
-                }}
+                onClick={() => setIsVideoExpanded((prev) => !prev)}
                 className="px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all duration-150 active:scale-95 cursor-pointer shadow-2xs shrink-0 hover:scale-105"
                 style={{
                   backgroundColor: isVideoExpanded ? fgColor : `${fgColor}18`,
@@ -137,19 +133,23 @@ function TiltLinkCardComponent({
               </button>
             )}
 
-            <div
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
               className="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-150 group-hover:translate-x-0.5"
               style={{
                 backgroundColor: `${fgColor}0d`,
               }}
+              aria-label={`Open ${link.title}`}
             >
               <ExternalLink
                 className="w-3.5 h-3.5 transition-opacity duration-150 opacity-60 group-hover:opacity-100"
                 style={{ color: dimColor }}
               />
-            </div>
+            </a>
           </div>
-        </a>
+        </div>
 
         <AnimatePresence>
           {youtubeId && isVideoExpanded && (

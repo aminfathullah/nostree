@@ -20,17 +20,44 @@ interface SlugTreeViewerProps {
 }
 
 export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
-  const [treeData, setTreeData] = useState<NostreeDataV2 | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const getInitialCache = () => {
+    if (typeof window === "undefined" || !slug) return null;
+    try {
+      const raw = sessionStorage.getItem(`nostree_slug_cache_${slug}`) || localStorage.getItem(`nostree_slug_cache_${slug}`);
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch {}
+    return null;
+  };
+
+  const initialCache = getInitialCache();
+  const [treeData, setTreeData] = useState<NostreeDataV2 | null>(initialCache?.treeData || null);
+  const [profile, setProfile] = useState<UserProfile | null>(initialCache?.profile || null);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(initialCache?.treeData ? "ready" : "loading");
   const [error, setError] = useState<string | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  const persistToCache = (updatedTree: NostreeDataV2, updatedProfile?: UserProfile | null) => {
+    if (typeof window === "undefined" || !slug) return;
+    try {
+      const payload = JSON.stringify({
+        treeData: updatedTree,
+        profile: updatedProfile !== undefined ? updatedProfile : profile,
+        timestamp: Date.now(),
+      });
+      sessionStorage.setItem(`nostree_slug_cache_${slug}`, payload);
+      localStorage.setItem(`nostree_slug_cache_${slug}`, payload);
+    } catch {}
+  };
 
   useEffect(() => {
     let cancelled = false;
-    let foundAny = false;
+    let foundAny = Boolean(initialCache?.treeData);
 
     async function loadTree() {
-      setStatus("loading");
+      if (!initialCache?.treeData) {
+        setStatus("loading");
+      }
       setError(null);
 
       try {
@@ -41,6 +68,7 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
             foundAny = true;
             setTreeData(result.data);
             setStatus("ready");
+            persistToCache(result.data);
           }
         });
 
@@ -52,6 +80,7 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
             foundAny = true;
             setTreeData(result.data);
             setStatus("ready");
+            persistToCache(result.data);
 
             const ownerPubkey = resolution.ownerPubkey || resolution.event?.pubkey;
             if (ownerPubkey) {
@@ -67,7 +96,7 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
                 if (ev?.content) {
                   try {
                     const data = JSON.parse(ev.content);
-                    setProfile({
+                    const parsedProfile: UserProfile = {
                       pubkey: ownerPubkey,
                       name: data.name || data.display_name,
                       about: data.about,
@@ -75,7 +104,9 @@ export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
                       banner: data.banner,
                       nip05: data.nip05,
                       lud16: data.lud16,
-                    });
+                    };
+                    setProfile(parsedProfile);
+                    persistToCache(result.data, parsedProfile);
                   } catch {}
                 }
               });

@@ -180,13 +180,14 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
     >
       <div className="w-full max-w-md mx-auto">
         {appData?.profile?.headerImage && (
-          <div className="-mt-6 mb-0 overflow-hidden rounded-2xl shadow-elevated">
-            <div className="w-full h-36 sm:h-44 overflow-hidden bg-zinc-900">
+          <div className="-mt-6 mb-0 overflow-hidden rounded-2xl shadow-elevated relative">
+            <div className="w-full aspect-[2.6/1] sm:aspect-[2.9/1] min-h-[150px] sm:min-h-[185px] overflow-hidden bg-zinc-900">
               <img 
                 src={appData.profile.headerImage} 
                 alt="Cover" 
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-cover object-top" 
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
         )}

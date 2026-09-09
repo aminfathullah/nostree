@@ -1,4 +1,4 @@
-import { useState, useCallback, memo } from "react";
+import { useState, useCallback, useEffect, memo } from "react";
 import { Share2, Check, Link2, QrCode, MessageCircle, Send, X, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,6 +18,17 @@ function ShareButtonComponent({
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowMenu(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showMenu]);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -77,7 +88,7 @@ function ShareButtonComponent({
           />
           <div
             onClick={(e) => e.stopPropagation()}
-            className="absolute bottom-14 right-0 glass-card bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-elevated overflow-hidden z-50 animate-pop min-w-[210px] p-1.5 space-y-0.5"
+            className="absolute bottom-14 right-0 glass-card bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-elevated overflow-hidden z-50 animate-pop origin-bottom-right min-w-[210px] p-1.5 space-y-0.5"
           >
             <div className="px-3 py-1.5 border-b border-border/60 mb-1">
               <p className="text-[11px] font-semibold text-txt-muted uppercase tracking-wider">Share</p>

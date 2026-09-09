@@ -300,12 +300,16 @@ function PublicTreeViewerComponent({
         <div className="w-full max-w-[580px] mx-auto min-h-screen px-4 sm:px-6 py-10 sm:py-16 flex flex-col justify-between relative">
           <div>
             {treeData?.profile?.headerImage && (
-              <div className="w-full h-36 sm:h-44 rounded-3xl overflow-hidden shadow-xs mb-[-3.5rem] shrink-0 border" style={{ borderColor: cardBorder }}>
+              <div 
+                className="w-full aspect-[2.6/1] sm:aspect-[2.9/1] min-h-[150px] sm:min-h-[185px] rounded-3xl overflow-hidden shadow-sm mb-[-3.5rem] shrink-0 border relative" 
+                style={{ borderColor: cardBorder }}
+              >
                 <img 
                   src={treeData.profile.headerImage} 
                   alt="Header" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
               </div>
             )}
             

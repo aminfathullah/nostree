@@ -202,8 +202,8 @@ export function MobilePreview({
           <div className="flex-1 overflow-y-auto px-5 py-6 space-y-4" style={{ scrollbarWidth: 'none' }}>
             {headerImage ? (
               <div className="relative -mx-5 -mt-6 mb-0 overflow-hidden group">
-                <div className="w-full h-28 overflow-hidden bg-zinc-900">
-                  <img src={headerImage} alt="Cover" className="w-full h-full object-cover" />
+                <div className="w-full h-32 overflow-hidden bg-zinc-900">
+                  <img src={headerImage} alt="Cover" className="w-full h-full object-cover object-top" />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50 pointer-events-none" />
                 {onHeaderChange && !disabled && (

@@ -364,21 +364,39 @@ export function AppearanceEditor({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {GRADIENT_PRESETS.map((p) => {
                 const isSelected = bgValue === p.gradient;
+                const isLightPreset = p.label === "Candy";
                 return (
                   <button
                     key={p.label}
                     type="button"
-                    onClick={() => updateTheme({ background: p.gradient })}
-                    className={`h-11 rounded-xl border text-[11px] font-semibold text-white flex items-center justify-center transition-all cursor-pointer active:scale-[0.96] shadow-2xs relative ${
+                    onClick={() => {
+                      if (p.label === "Candy") {
+                        updateTheme({
+                          background: p.gradient,
+                          foreground: "#4a044e",
+                          primary: "#d946ef",
+                          mode: "light",
+                        });
+                      } else {
+                        updateTheme({ background: p.gradient });
+                      }
+                    }}
+                    className={`h-11 rounded-xl border text-[11px] font-semibold flex items-center justify-center transition-all cursor-pointer active:scale-[0.96] shadow-2xs relative ${
+                      isLightPreset ? "text-fuchsia-950 font-bold" : "text-white"
+                    } ${
                       isSelected
                         ? "ring-2 ring-brand border-brand shadow-sm font-bold"
+                        : isLightPreset
+                        ? "border-fuchsia-300/60 hover:scale-[1.02]"
                         : "border-white/20 hover:scale-[1.02]"
                     }`}
                     style={{ background: p.gradient }}
                   >
                     <span>{p.label}</span>
                     {isSelected && (
-                      <Check className="w-3.5 h-3.5 absolute right-2 text-white stroke-[3]" />
+                      <Check className={`w-3.5 h-3.5 absolute right-2 stroke-[3] ${
+                        isLightPreset ? "text-fuchsia-950" : "text-white"
+                      }`} />
                     )}
                   </button>
                 );
@@ -556,7 +574,7 @@ export function AppearanceEditor({
 
             {headerImage ? (
               <div className="relative w-full h-28 rounded-xl overflow-hidden border border-border shadow-2xs group bg-zinc-950">
-                <img src={headerImage} alt="Cover preview" className="w-full h-full object-cover" />
+                <img src={headerImage} alt="Cover preview" className="w-full h-full object-cover object-top" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <button
                     type="button"
