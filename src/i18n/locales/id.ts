@@ -35,6 +35,7 @@ export const id: TranslationSchema = {
     openEditor: "Buka Editor",
     switchProfile: "Ganti Profil",
     viewLivePage: "Buka Halaman Live",
+    sharePreview: "Pratinjau Tautan Sosial",
   },
   auth: {
     title: "Ganti Profil",
@@ -241,5 +242,19 @@ export const id: TranslationSchema = {
     title: "Tidak Ditemukan",
     desc: "Halaman yang Anda cari tidak tersedia.",
     returnDashboard: "Kembali ke Dasbor",
+  },
+  socialPreview: {
+    buttonLabel: "Pratinjau & Bagikan",
+    modalTitle: "Pratinjau Tautan Sosial",
+    modalSubtitle: "Pratinjau tampilan tautan Anda saat dibagikan di WhatsApp, X (Twitter), dan media sosial",
+    whatsappTab: "Obrolan WhatsApp",
+    twitterTab: "Kartu X / Twitter",
+    downloadCard: "Unduh Kartu Sosial",
+    shareWhatsapp: "Bagikan ke WhatsApp",
+    copyLink: "Salin Tautan",
+    linkCopied: "Tautan berhasil disalin ke papan klip!",
+    cardDownloaded: "Gambar pratinjau berhasil diunduh!",
+    downloading: "Membuat Gambar...",
+    previewBadge: "Pratinjau Langsung",
   },
 };

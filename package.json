@@ -4,13 +4,15 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "generate-og": "node scripts/generate-og-default.mjs",
+    "build": "node scripts/generate-og-default.mjs && vite build",
     "preview": "vite preview",
-    "deploy": "vite build && wrangler pages deploy dist",
+    "deploy": "node scripts/generate-og-default.mjs && vite build && wrangler pages deploy dist",
     "select-relays": "node scripts/select-relays.mjs"
   },
   "dependencies": {
     "@nostr-dev-kit/ndk": "^2.18.1",
+    "@resvg/resvg-wasm": "^2.6.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
     "motion": "^12.26.2",

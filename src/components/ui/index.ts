@@ -15,3 +15,4 @@ export { LoadingOverlay } from "./LoadingOverlay";
 export { KeyboardShortcutsHelp, KeyboardShortcutsButton } from "./KeyboardShortcutsHelp";
 export { QRCodeModal } from "./QRCodeModal";
 export { ShareButton } from "./ShareButton";
+export { SocialLinkPreviewModal } from "./SocialLinkPreviewModal";

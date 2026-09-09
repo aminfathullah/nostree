@@ -31,8 +31,10 @@ import {
   ExternalLink,
   ShieldCheck,
   Link2,
-  Palette
+  Palette,
+  Share2
 } from "lucide-react";
+import { SocialLinkPreviewModal } from "../ui/SocialLinkPreviewModal";
 import { fetchEventsWithTimeout, createNostreeEvent, publishEvent } from "../../lib/ndk";
 import { dTagToSlug, isNostreeDTag, slugToDTag } from "../../lib/slug-resolver";
 import { toast } from "sonner";
@@ -124,6 +126,7 @@ function LinkTreeEditor({
   });
 
   const [activeTab, setActiveTab] = useState<"links" | "appearance">("links");
+  const [isSocialPreviewOpen, setIsSocialPreviewOpen] = useState(false);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
@@ -162,18 +165,32 @@ function LinkTreeEditor({
             </button>
           </div>
 
-          {slug && (
-            <a
-              href={`/${slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-canvas border border-border hover:border-brand/40 text-txt-main shadow-2xs transition-all active:scale-[0.97]"
-              title={t("editor.treeSelector.openPageTitle")}
-            >
-              <span>{t("common.viewLive")}</span>
-              <ExternalLink className="w-3 h-3 text-txt-dim" />
-            </a>
-          )}
+          <div className="flex items-center gap-2">
+            {slug && (
+              <button
+                type="button"
+                onClick={() => setIsSocialPreviewOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand/10 border border-brand/20 hover:bg-brand/15 text-brand shadow-2xs transition-all active:scale-[0.97] cursor-pointer"
+                title={t("socialPreview.modalSubtitle")}
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>{t("socialPreview.buttonLabel")}</span>
+              </button>
+            )}
+
+            {slug && (
+              <a
+                href={`/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-canvas border border-border hover:border-brand/40 text-txt-main shadow-2xs transition-all active:scale-[0.97]"
+                title={t("editor.treeSelector.openPageTitle")}
+              >
+                <span>{t("common.viewLive")}</span>
+                <ExternalLink className="w-3 h-3 text-txt-dim" />
+              </a>
+            )}
+          </div>
         </div>
 
         {activeTab === "links" ? (
@@ -214,6 +231,17 @@ function LinkTreeEditor({
           disabled={linkTree.isSaving}
         />
       </div>
+
+      <SocialLinkPreviewModal
+        isOpen={isSocialPreviewOpen}
+        onClose={() => setIsSocialPreviewOpen(false)}
+        slug={slug}
+        displayName={(linkTree.data && "treeMeta" in linkTree.data ? linkTree.data.treeMeta?.title : undefined) || profile?.name}
+        bio={profile?.about}
+        avatarUrl={profile?.picture}
+        linksCount={linkTree.links.length}
+        primaryColor={linkTree.data?.theme?.colors?.primary}
+      />
     </div>
   );
 }

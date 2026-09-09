@@ -35,6 +35,7 @@ export interface TranslationSchema {
     openEditor: string;
     switchProfile: string;
     viewLivePage: string;
+    sharePreview: string;
   };
   auth: {
     title: string;
@@ -241,5 +242,19 @@ export interface TranslationSchema {
     title: string;
     desc: string;
     returnDashboard: string;
+  };
+  socialPreview: {
+    buttonLabel: string;
+    modalTitle: string;
+    modalSubtitle: string;
+    whatsappTab: string;
+    twitterTab: string;
+    downloadCard: string;
+    shareWhatsapp: string;
+    copyLink: string;
+    linkCopied: string;
+    cardDownloaded: string;
+    downloading: string;
+    previewBadge: string;
   };
 }

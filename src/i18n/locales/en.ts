@@ -35,6 +35,7 @@ export const en: TranslationSchema = {
     openEditor: "Open Editor",
     switchProfile: "Switch Profile",
     viewLivePage: "View Live Page",
+    sharePreview: "Share & Link Preview",
   },
   auth: {
     title: "Switch Profile",
@@ -241,5 +242,19 @@ export const en: TranslationSchema = {
     title: "Not Found",
     desc: "The page you are looking for does not exist.",
     returnDashboard: "Return to Dashboard",
+  },
+  socialPreview: {
+    buttonLabel: "Share & Preview",
+    modalTitle: "Social Link Preview",
+    modalSubtitle: "Real-time preview of your link card on WhatsApp, X (Twitter), and social feeds",
+    whatsappTab: "WhatsApp Chat",
+    twitterTab: "X / Twitter Card",
+    downloadCard: "Download Social Card",
+    shareWhatsapp: "Share to WhatsApp",
+    copyLink: "Copy Link",
+    linkCopied: "Link copied to clipboard!",
+    cardDownloaded: "Social preview card downloaded!",
+    downloading: "Generating Card...",
+    previewBadge: "Live Social Preview",
   },
 };
