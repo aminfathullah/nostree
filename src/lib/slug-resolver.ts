@@ -1,4 +1,4 @@
-import { fetchEventsWithTimeout } from "./ndk";
+import { fetchEventsWithTimeout, subscribeLatestEvent } from "./ndk";
 
 export interface ResolvedTree {
   pubkey: string;
@@ -193,7 +193,10 @@ export interface CanonicalSlugResolution {
   data?: any;
 }
 
-export async function resolveCanonicalSlugEvent(slug: string): Promise<CanonicalSlugResolution> {
+export async function resolveCanonicalSlugEvent(
+  slug: string,
+  onProgress?: (resolution: CanonicalSlugResolution) => void
+): Promise<CanonicalSlugResolution> {
   const reserved = ["admin", "login", "profile", "api", "u", "settings", "help", "about", "default"];
   if (reserved.includes(slug)) {
     return { status: "reserved" };
@@ -201,68 +204,43 @@ export async function resolveCanonicalSlugEvent(slug: string): Promise<Canonical
 
   const dTag = slugToDTag(slug);
 
-  try {
-    const events = await fetchEventsWithTimeout({
-      kinds: [30078],
-      "#d": [dTag],
-    }, 2000, 70);
+  return new Promise<CanonicalSlugResolution>((resolve) => {
+    let resolved = false;
+    let latestCandidate: CanonicalSlugResolution | null = null;
+    let latestTimestamp = 0;
 
-    if (!events || events.size === 0) {
-      return { status: "available" };
-    }
-
-    const latestByPubkey = new Map<string, any>();
-    for (const event of events) {
-      const existing = latestByPubkey.get(event.pubkey);
-      if (!existing || (event.created_at || 0) > (existing.created_at || 0)) {
-        latestByPubkey.set(event.pubkey, event);
+    const finalize = () => {
+      if (!resolved) {
+        resolved = true;
+        stopSub();
+        resolve(latestCandidate || { status: "available" });
       }
-    }
-
-    let latestDeletionTimestamp = 0;
-    const activeCandidates: { event: any; data: any; createdAt: number }[] = [];
-
-    for (const [_, event] of latestByPubkey.entries()) {
-      if (!event?.content) continue;
-      try {
-        const data = JSON.parse(event.content);
-        if (data?.treeMeta?.deletedAt) {
-          const delTime = Number(data.treeMeta.deletedAt) || (event.created_at || 0);
-          if (delTime > latestDeletionTimestamp) {
-            latestDeletionTimestamp = delTime;
-          }
-          continue;
-        }
-
-        const createdAt = Number(data?.treeMeta?.createdAt) || (event.created_at || 0);
-        activeCandidates.push({
-          event,
-          data,
-          createdAt,
-        });
-      } catch {}
-    }
-
-    const validActive = activeCandidates.filter(
-      c => c.createdAt >= latestDeletionTimestamp || (c.event.created_at || 0) >= latestDeletionTimestamp
-    );
-
-    if (validActive.length === 0) {
-      return { status: "available" };
-    }
-
-    validActive.sort((a, b) => a.createdAt - b.createdAt);
-    const canonical = validActive[0];
-
-    return {
-      status: "claimed",
-      ownerPubkey: canonical.event.pubkey,
-      event: canonical.event,
-      data: canonical.data,
     };
-  } catch {
-    return { status: "available" };
-  }
+
+    const stopSub = subscribeLatestEvent(
+      { kinds: [30078], "#d": [dTag] },
+      (event) => {
+        if (!event?.content) return;
+        try {
+          const data = JSON.parse(event.content);
+          if (data?.treeMeta?.deletedAt) return;
+          const evTime = Number(data?.treeMeta?.createdAt) || (event.created_at || 0);
+          if (evTime >= latestTimestamp) {
+            latestTimestamp = evTime;
+            latestCandidate = {
+              status: "claimed",
+              ownerPubkey: event.pubkey,
+              event,
+              data,
+            };
+            onProgress?.(latestCandidate);
+          }
+        } catch {}
+      },
+      finalize,
+      2500
+    );
+  });
 }
 
 export async function checkSlugAvailability(slug: string): Promise<{

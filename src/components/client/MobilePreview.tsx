@@ -4,6 +4,7 @@ import { BadgeCheck, ExternalLink, Camera, ImagePlus, Pencil, Upload, X, Play, C
 import { toast } from "sonner";
 import { LinkItemIcon } from "./LinkItemIcon";
 import { extractYouTubeId, isWhatsAppUrl } from "../../lib/embeds";
+import { uploadImageFile } from "../../lib/upload";
 
 interface MobilePreviewProps {
   profile: {
@@ -51,14 +52,15 @@ function ImageEditorPopup({
       return;
     }
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      onSubmit(event.target?.result as string);
+    try {
+      const cdnUrl = await uploadImageFile(file);
+      onSubmit(cdnUrl);
       setIsUploading(false);
       onClose();
-    };
-    reader.onerror = () => setIsUploading(false);
-    reader.readAsDataURL(file);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to upload image");
+      setIsUploading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -198,65 +200,81 @@ export function MobilePreview({
           </div>
 
           <div className="flex-1 overflow-y-auto px-5 py-6 space-y-4" style={{ scrollbarWidth: 'none' }}>
-            {headerImage && (
-              <div className="relative group -mx-2 mb-4">
-                <div className="w-full h-28 rounded-xl overflow-hidden shadow-xs">
-                  <img src={headerImage} alt="Header" className="w-full h-full object-cover" />
+            {headerImage ? (
+              <div className="relative -mx-5 -mt-6 mb-0 overflow-hidden group">
+                <div className="w-full h-28 overflow-hidden bg-zinc-900">
+                  <img src={headerImage} alt="Cover" className="w-full h-full object-cover" />
                 </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50 pointer-events-none" />
                 {onHeaderChange && !disabled && (
+                  <div className="absolute top-2 right-2 flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={() => setEditingHeader(true)}
+                      className="px-2 py-1 bg-black/70 hover:bg-black/90 backdrop-blur-xs text-white rounded-lg text-[10px] font-medium flex items-center gap-1 cursor-pointer transition-colors shadow-xs active:scale-95"
+                      title="Edit cover photo"
+                    >
+                      <Camera className="w-3 h-3" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onHeaderChange(undefined)}
+                      className="p-1 bg-black/70 hover:bg-red-600/90 backdrop-blur-xs text-white rounded-lg text-[10px] cursor-pointer transition-colors shadow-xs active:scale-95"
+                      title="Remove cover photo"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+                {editingHeader && (
+                  <ImageEditorPopup
+                    isOpen={editingHeader}
+                    onClose={() => setEditingHeader(false)}
+                    onSubmit={(url) => onHeaderChange?.(url)}
+                    onRemove={() => { onHeaderChange?.(undefined); setEditingHeader(false); }}
+                    currentImage={headerImage}
+                    title="Cover Photo"
+                    maxSize={5}
+                  />
+                )}
+              </div>
+            ) : (
+              onHeaderChange && !disabled && (
+                <div className="relative text-center mb-1">
                   <button
+                    type="button"
                     onClick={() => setEditingHeader(true)}
-                    className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
+                    className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+                    style={{ color: textColor }}
                   >
-                    <div className="flex items-center gap-1 text-white text-xs font-semibold">
-                      <ImagePlus className="w-3.5 h-3.5" />
-                      <span>Change</span>
-                    </div>
+                    <ImagePlus className="w-3 h-3" />
+                    <span>Add cover photo</span>
                   </button>
-                )}
-                {editingHeader && (
-                  <ImageEditorPopup
-                    isOpen={editingHeader}
-                    onClose={() => setEditingHeader(false)}
-                    onSubmit={(url) => onHeaderChange?.(url)}
-                    onRemove={() => { onHeaderChange?.(undefined); setEditingHeader(false); }}
-                    currentImage={headerImage}
-                    title="Header Image"
-                    maxSize={5}
-                  />
-                )}
-              </div>
+                  {editingHeader && (
+                    <ImageEditorPopup
+                      isOpen={editingHeader}
+                      onClose={() => setEditingHeader(false)}
+                      onSubmit={(url) => onHeaderChange?.(url)}
+                      onRemove={() => { onHeaderChange?.(undefined); setEditingHeader(false); }}
+                      currentImage={headerImage}
+                      title="Cover Photo"
+                      maxSize={5}
+                    />
+                  )}
+                </div>
+              )
             )}
             
-            {!headerImage && onHeaderChange && !disabled && (
-              <div className="relative text-center mb-1">
-                <button
-                  onClick={() => setEditingHeader(true)}
-                  className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60 hover:opacity-100 transition-opacity"
-                  style={{ color: textColor }}
-                >
-                  <ImagePlus className="w-3 h-3" />
-                  <span>Add header cover</span>
-                </button>
-                {editingHeader && (
-                  <ImageEditorPopup
-                    isOpen={editingHeader}
-                    onClose={() => setEditingHeader(false)}
-                    onSubmit={(url) => onHeaderChange?.(url)}
-                    onRemove={() => { onHeaderChange?.(undefined); setEditingHeader(false); }}
-                    currentImage={headerImage}
-                    title="Header Image"
-                    maxSize={5}
-                  />
-                )}
-              </div>
-            )}
-            
-            <header className="flex flex-col items-center text-center">
+            <header className={`flex flex-col items-center text-center ${headerImage ? '-mt-10 relative z-10' : ''}`}>
               <div className="relative mb-3 group">
                 <div 
-                  className="w-16 h-16 rounded-full overflow-hidden shadow-elevated"
-                  style={{ backgroundColor: bgColor, border: `2px solid ${primaryColor}40` }}
+                  className="w-18 h-18 rounded-full overflow-hidden shadow-elevated"
+                  style={{ 
+                    backgroundColor: bgColor, 
+                    border: headerImage ? `3.5px solid ${bgColor}` : `2px solid ${primaryColor}40`,
+                    boxShadow: headerImage ? '0 4px 14px rgba(0,0,0,0.45)' : undefined,
+                  }}
                 >
                   <img src={avatarSrc} alt="Avatar" className="w-full h-full object-cover" />
                 </div>

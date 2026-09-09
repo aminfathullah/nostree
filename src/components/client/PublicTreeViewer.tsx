@@ -315,7 +315,7 @@ function PublicTreeViewerComponent({
                     className="w-20 h-20 sm:w-22 sm:h-22 rounded-full overflow-hidden shadow-elevated transition-transform duration-200 hover:scale-105"
                     style={{ 
                       backgroundColor: cardBg,
-                      border: `3px solid ${primaryColor}40`,
+                      border: treeData?.profile?.headerImage ? `4px solid ${bgColor}` : `3px solid ${primaryColor}40`,
                     }}
                   >
                     <img 

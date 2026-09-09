@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useState, useEffect } from "react";
 import ProfileViewer from "./ProfileViewer";
 import logo from "../../assets/logo.png";

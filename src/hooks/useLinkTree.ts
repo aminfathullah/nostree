@@ -179,11 +179,19 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     linkReducer
   );
 
+  const persistLocally = useCallback((updated: NostreeData) => {
+    if (typeof window === "undefined" || !pubkey || !slug) return;
+    try {
+      localStorage.setItem(`nostree_tree_${pubkey}_${slug}`, JSON.stringify(updated));
+    } catch {}
+  }, [pubkey, slug]);
+
   useEffect(() => {
     if (initialData) {
       const validated = NostreeDataSchema.safeParse(initialData);
       if (validated.success) {
         setData(validated.data);
+        persistLocally(validated.data);
         setIsLoading(false);
         return;
       }
@@ -191,7 +199,18 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
 
     if (!pubkey || !slug) return;
 
-    setIsLoading(true);
+    try {
+      const cached = localStorage.getItem(`nostree_tree_${pubkey}_${slug}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const validated = NostreeDataSchema.safeParse(parsed);
+        if (validated.success) {
+          setData(validated.data);
+          setIsLoading(false);
+        }
+      }
+    } catch {}
+
     let cancelled = false;
 
     (async () => {
@@ -200,7 +219,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
           kinds: [30078],
           authors: [pubkey],
           "#d": [dTag],
-        }, 1800, 60);
+        }, 3500, 60);
 
         if (cancelled) return;
 
@@ -216,6 +235,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
             
             if (validated.success) {
               setData(validated.data);
+              persistLocally(validated.data);
             }
           }
         }
@@ -231,7 +251,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     return () => {
       cancelled = true;
     };
-  }, [pubkey, dTag, slug, initialData]);
+  }, [pubkey, dTag, slug, initialData, persistLocally]);
 
   const fetchData = useCallback(async () => {
     if (!data) {
@@ -244,7 +264,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
         kinds: [30078],
         authors: [pubkey],
         "#d": [dTag],
-      }, 1800, 60);
+      }, 3500, 60);
 
       if (events.size > 0) {
         const sorted = Array.from(events).sort(
@@ -301,6 +321,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
       };
       
       setData(updatedData);
+      persistLocally(updatedData);
 
       const event = createNostreeEvent(updatedData, pubkey, dTag);
       const result = await publishEvent(event);
@@ -324,7 +345,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     } finally {
       setIsSaving(false);
     }
-  }, [data, pubkey, dTag, slug]);
+  }, [data, pubkey, dTag, slug, persistLocally]);
 
   const reorderLinks = useCallback(async (newOrder: LinkItem[]) => {
     startTransition(() => {
@@ -549,6 +570,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
       };
       
       setData(updatedData);
+      persistLocally(updatedData);
 
       const event = createNostreeEvent(updatedData, pubkey, dTag);
       const result = await publishEvent(event);
@@ -569,7 +591,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     } finally {
       setIsSaving(false);
     }
-  }, [data, pubkey, dTag, slug]);
+  }, [data, pubkey, dTag, slug, persistLocally]);
 
   const updateTreeMeta = useCallback(async (updates: Partial<TreeMeta>) => {
     const currentData: NostreeData = data || { 
@@ -596,16 +618,26 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     setIsSaving(true);
     
     try {
+      const currentMeta: TreeMeta = ("treeMeta" in currentData && currentData.treeMeta)
+        ? currentData.treeMeta
+        : {
+            slug: slug,
+            isDefault: slug === DEFAULT_SLUG,
+            createdAt: Math.floor(Date.now() / 1000),
+          };
+
       const updatedData: NostreeData = {
         ...currentData,
+        version: "2.0",
         treeMeta: {
-          ...currentData.treeMeta,
+          ...currentMeta,
           ...updates,
-          slug: currentData.treeMeta.slug,
+          slug: currentMeta.slug,
         },
       };
       
       setData(updatedData);
+      persistLocally(updatedData);
 
       const event = createNostreeEvent(updatedData, pubkey, dTag);
       const result = await publishEvent(event);
@@ -626,7 +658,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     } finally {
       setIsSaving(false);
     }
-  }, [data, pubkey, dTag, slug]);
+  }, [data, pubkey, dTag, slug, persistLocally]);
 
   const updateProfile = useCallback(async (updates: Partial<ProfileOverride>) => {
     const currentData: NostreeData = data || { 
@@ -653,16 +685,32 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     setIsSaving(true);
     
     try {
+      const nextProfile: ProfileOverride = {
+        show_verification: true,
+        ...currentData.profile,
+        ...updates,
+      };
+      if ("headerImage" in updates && updates.headerImage === undefined) {
+        delete nextProfile.headerImage;
+      }
+      if (nextProfile.picture && nextProfile.picture.startsWith("data:image/")) {
+        try {
+          const res = await fetch(nextProfile.picture);
+          const blob = await res.blob();
+          const { uploadImageFile } = await import("../lib/upload");
+          const file = new File([blob], "avatar.jpg", { type: blob.type || "image/jpeg" });
+          const cdnUrl = await uploadImageFile(file);
+          nextProfile.picture = cdnUrl;
+        } catch {}
+      }
+
       const updatedData: NostreeData = {
         ...currentData,
-        profile: {
-          show_verification: true,
-          ...currentData.profile,
-          ...updates,
-        },
+        profile: nextProfile,
       };
       
       setData(updatedData);
+      persistLocally(updatedData);
 
       const event = createNostreeEvent(updatedData, pubkey, dTag);
       const result = await publishEvent(event);
@@ -683,7 +731,7 @@ export function useLinkTree({ pubkey, slug = DEFAULT_SLUG, initialData }: UseLin
     } finally {
       setIsSaving(false);
     }
-  }, [data, pubkey, dTag, slug]);
+  }, [data, pubkey, dTag, slug, persistLocally]);
 
   return {
     links: optimisticLinks,

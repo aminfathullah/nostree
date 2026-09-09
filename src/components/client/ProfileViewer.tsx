@@ -2,9 +2,8 @@
 import { useState, useEffect } from "react";
 import { getNDK, fetchEventsWithTimeout } from "../../lib/ndk";
 import { npubToHex, isNpub, shortenNpub } from "../../lib/utils/nip19";
-import { NostreeDataSchema, type NostreeData, type Link, type Social } from "../../schemas/nostr";
+import { NostreeDataSchema, type NostreeData, type Link, type LinkGroup, type Social } from "../../schemas/nostr";
 import { BadgeCheck, ExternalLink, Loader2 } from "lucide-react";
-import logo from "../../assets/logo.png";
 
 interface NostreeProfile {
   pubkey: string;
@@ -180,25 +179,37 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
       style={{ backgroundColor: bgColor, color: fgColor }}
     >
       <div className="w-full max-w-md mx-auto">
-        {/* Profile Header */}
-        <header className="flex flex-col items-center text-center mb-8">
-          {/* Avatar */}
+        {appData?.profile?.headerImage && (
+          <div className="-mt-6 mb-0 overflow-hidden rounded-2xl shadow-elevated">
+            <div className="w-full h-36 sm:h-44 overflow-hidden bg-zinc-900">
+              <img 
+                src={appData.profile.headerImage} 
+                alt="Cover" 
+                className="w-full h-full object-cover" 
+              />
+            </div>
+          </div>
+        )}
+
+        <header className={`flex flex-col items-center text-center mb-8 ${appData?.profile?.headerImage ? '-mt-12 relative z-10' : ''}`}>
           <div className="relative mb-4">
             <div 
-              className="w-24 h-24 rounded-full overflow-hidden"
-              style={{ backgroundColor: cardBg, boxShadow: `0 0 0 4px ${bgColor}` }}
+              className="w-24 h-24 rounded-full overflow-hidden shadow-elevated"
+              style={{ 
+                backgroundColor: cardBg, 
+                border: appData?.profile?.headerImage ? `4px solid ${bgColor}` : `2px solid ${cardBorder}` 
+              }}
             >
               <img 
-                src={profile.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`}
+                src={appData?.profile?.picture || profile.picture || `https://api.dicebear.com/7.x/shapes/svg?seed=${displayName}`}
                 alt={`${displayName}'s avatar`}
                 className="w-full h-full object-cover"
               />
             </div>
             
-            {/* Verification Badge */}
             {showVerification && profile.nip05 && (
               <div 
-                className="absolute -bottom-1 -right-1 p-1 rounded-full"
+                className="absolute -bottom-1 -right-1 p-1 rounded-full shadow-xs"
                 style={{ backgroundColor: primaryColor, color: bgColor }}
                 title={`Verified: ${profile.nip05}`}
               >
@@ -207,10 +218,8 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
             )}
           </div>
 
-          {/* Name */}
           <h1 className="text-2xl font-bold mb-1" style={{ color: fgColor }}>{displayName}</h1>
 
-          {/* NIP-05 */}
           {showVerification && profile.nip05 && (
             <p className="text-sm mb-2 flex items-center gap-1" style={{ color: primaryColor }}>
               <span>✓</span>
@@ -218,28 +227,46 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
             </p>
           )}
 
-          {/* Bio */}
           {displayBio && (
             <p className="max-w-sm text-sm leading-relaxed" style={{ color: dimColor }}>{displayBio}</p>
           )}
         </header>
 
-        {/* Links */}
         {links.length > 0 && (
           <nav className="flex flex-col gap-3" aria-label="Links">
-            {links.map((link, index) => (
-              <LinkCard 
-                key={link.id} 
-                link={link} 
-                index={index} 
-                fgColor={fgColor}
-                cardBg={cardBg}
-                cardBorder={cardBorder}
-                cardHoverBorder={cardHoverBorder}
-                borderRadius={borderRadius}
-                dimColor={dimColor}
-              />
-            ))}
+            {links.flatMap((item, index) => {
+              if ('type' in item && item.type === 'group') {
+                const group = item as LinkGroup;
+                if (!group.visible) return [];
+                return group.links.filter(l => l.visible).map((link, subIndex) => (
+                  <LinkCard 
+                    key={link.id} 
+                    link={link} 
+                    index={index + subIndex} 
+                    fgColor={fgColor}
+                    cardBg={cardBg}
+                    cardBorder={cardBorder}
+                    cardHoverBorder={cardHoverBorder}
+                    borderRadius={borderRadius}
+                    dimColor={dimColor}
+                  />
+                ));
+              }
+              const link = item as Link;
+              return [
+                <LinkCard 
+                  key={link.id} 
+                  link={link} 
+                  index={index} 
+                  fgColor={fgColor}
+                  cardBg={cardBg}
+                  cardBorder={cardBorder}
+                  cardHoverBorder={cardHoverBorder}
+                  borderRadius={borderRadius}
+                  dimColor={dimColor}
+                />
+              ];
+            })}
           </nav>
         )}
 

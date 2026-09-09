@@ -39,46 +39,123 @@ export function setNDKSigner(signer: NDKSigner | undefined): void {
   ndk.signer = signer;
 }
 
-export async function connectNDK(): Promise<void> {
+export async function connectNDK(timeoutMs: number = 2500): Promise<void> {
   const ndk = getNDK();
-  if (!connectionPromise) {
-    connectionPromise = ndk.connect(1000);
+  if (ndk.pool.connectedRelays().length > 0) {
+    return;
   }
+
+  if (!connectionPromise) {
+    connectionPromise = new Promise<void>((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve();
+        }
+      };
+
+      const timer = setTimeout(finish, timeoutMs);
+
+      ndk.pool.on("relay:connect", () => {
+        if (ndk.pool.connectedRelays().length > 0) {
+          finish();
+        }
+      });
+
+      ndk.connect(timeoutMs).catch(() => {}).finally(finish);
+    });
+  }
+
   await connectionPromise;
+}
+
+if (typeof window !== "undefined") {
+  setTimeout(() => {
+    connectNDK().catch(() => {});
+  }, 0);
+}
+
+export function subscribeLatestEvent(
+  filter: NDKFilter,
+  onEvent: (event: NDKEvent) => void,
+  onComplete?: () => void,
+  timeoutMs: number = 2500
+): () => void {
+  const ndk = getNDK();
+  let stopped = false;
+  let latestEvent: NDKEvent | null = null;
+  let eoseCount = 0;
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const relaySet = NDKRelaySet.fromRelayUrls(relaysConfig.readRelays, ndk);
+  const subscription = ndk.subscribe(filter, { 
+    closeOnEose: false,
+    relaySet,
+  });
+
+  const stop = () => {
+    if (stopped) return;
+    stopped = true;
+    if (debounceTimer) clearTimeout(debounceTimer);
+    clearTimeout(hardTimer);
+    try {
+      subscription.stop();
+    } catch {}
+    onComplete?.();
+  };
+
+  const hardTimer = setTimeout(stop, timeoutMs);
+
+  subscription.on("event", (event: NDKEvent) => {
+    if (stopped) return;
+    const evTime = event.created_at || 0;
+    const curTime = latestEvent?.created_at || 0;
+    if (!latestEvent || evTime >= curTime) {
+      latestEvent = event;
+      onEvent(event);
+    }
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      if (eoseCount > 0) {
+        stop();
+      }
+    }, 150);
+  });
+
+  subscription.on("eose", () => {
+    if (stopped) return;
+    eoseCount++;
+    const connectedCount = Math.max(1, ndk.pool.connectedRelays().length);
+    if (eoseCount >= connectedCount || (latestEvent && eoseCount >= 1)) {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(stop, 80);
+    }
+  });
+
+  return stop;
 }
 
 export async function fetchEventsWithTimeout(
   filter: NDKFilter,
-  timeoutMs: number = 1200,
-  debounceMs: number = 60
+  timeoutMs: number = 2500,
+  earlyDebounceMs: number = 150
 ): Promise<Set<NDKEvent>> {
   const ndk = getNDK();
 
-  if (!connectionPromise) {
-    connectionPromise = ndk.connect(1000);
-  }
-
-  const relayPool = ndk.pool.relays;
-  const targetRelays = relaysConfig.readRelays
-    .map(url => {
-      const normalized = url.endsWith('/') ? url : url + '/';
-      const unnormalized = url.endsWith('/') ? url.slice(0, -1) : url;
-      return relayPool.get(url) || relayPool.get(normalized) || relayPool.get(unnormalized);
-    })
-    .filter((r): r is NonNullable<typeof r> => Boolean(r));
-
-  if (targetRelays.length === 0 && ndk.pool.connectedRelays().length === 0) {
+  if (ndk.pool.connectedRelays().length === 0) {
     await Promise.race([
-      connectionPromise,
-      new Promise<void>(r => setTimeout(r, 120))
+      connectNDK(1500),
+      new Promise<void>(r => setTimeout(r, 800))
     ]);
   }
 
   return new Promise((resolve) => {
     const events = new Set<NDKEvent>();
     let resolved = false;
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     let eoseCount = 0;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     const cleanup = () => {
       if (!resolved) {
@@ -93,24 +170,30 @@ export async function fetchEventsWithTimeout(
     };
 
     const hardTimer = setTimeout(cleanup, timeoutMs);
-
     const relaySet = NDKRelaySet.fromRelayUrls(relaysConfig.readRelays, ndk);
-
     const subscription = ndk.subscribe(filter, { 
       closeOnEose: false,
       relaySet,
     });
 
     subscription.on("event", (event: NDKEvent) => {
+      if (resolved) return;
       events.add(event);
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(cleanup, debounceMs);
+      if (earlyDebounceMs > 0 && eoseCount > 0) {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(cleanup, earlyDebounceMs);
+      }
     });
 
     subscription.on("eose", () => {
+      if (resolved) return;
       eoseCount++;
-      if (events.size > 0 || eoseCount >= 2) {
+      const connectedCount = Math.max(1, ndk.pool.connectedRelays().length);
+      if (eoseCount >= connectedCount) {
         cleanup();
+      } else if (events.size > 0 && earlyDebounceMs > 0) {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(cleanup, earlyDebounceMs);
       }
     });
   });
@@ -130,64 +213,73 @@ export async function publishEvent(event: NDKEvent): Promise<PublishResult> {
   }
   
   if (ndk.pool.connectedRelays().length === 0) {
-    await connectNDK();
+    await connectNDK(1500);
   }
 
   const primaryRelayUrl = relaysConfig.fastestWriteRelay;
   const secondaryRelayUrls = relaysConfig.asyncWriteRelays.filter(url => url !== primaryRelayUrl);
-  const totalWriteCount = 1 + secondaryRelayUrls.length;
+  const writeUrls = Array.from(new Set([primaryRelayUrl, ...secondaryRelayUrls]));
+  const totalWriteCount = writeUrls.length;
 
-  let syncAccepted = false;
+  let confirmed = false;
+  let acceptedCount = 0;
 
-  try {
-    const primaryRelaySet = NDKRelaySet.fromRelayUrls([primaryRelayUrl], ndk);
-    await Promise.race([
-      event.publish(primaryRelaySet),
-      new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Primary write timeout")), 1500))
-    ]);
-    syncAccepted = true;
-  } catch {}
-
-  if (!syncAccepted) {
+  const writePromises = writeUrls.map(async (url) => {
     try {
-      const fallbackUrl = secondaryRelayUrls[0];
-      if (fallbackUrl) {
-        const fallbackRelaySet = NDKRelaySet.fromRelayUrls([fallbackUrl], ndk);
-        await Promise.race([
-          event.publish(fallbackRelaySet),
-          new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Fallback write timeout")), 1500))
-        ]);
-        syncAccepted = true;
+      const singleSet = NDKRelaySet.fromRelayUrls([url], ndk);
+      const res = await Promise.race([
+        event.publish(singleSet),
+        new Promise<Set<any>>((_, reject) => setTimeout(() => reject(new Error("Write timeout")), 2000))
+      ]);
+      if (res && res.size > 0) {
+        acceptedCount++;
+        confirmed = true;
+        return true;
       }
+    } catch {}
+    return false;
+  });
+
+  const anySuccess = new Promise<boolean>((resolve) => {
+    let pending = writePromises.length;
+    if (pending === 0) {
+      resolve(false);
+      return;
+    }
+    writePromises.forEach((p) => {
+      p.then((ok) => {
+        if (ok) resolve(true);
+        else if (--pending === 0) resolve(false);
+      }).catch(() => {
+        if (--pending === 0) resolve(false);
+      });
+    });
+  });
+
+  await Promise.race([
+    anySuccess,
+    new Promise<void>(r => setTimeout(r, 1200))
+  ]);
+
+  if (!confirmed) {
+    try {
+      const fallback = await event.publish();
+      confirmed = fallback.size > 0;
+      acceptedCount = fallback.size;
     } catch {}
   }
 
-  if (!syncAccepted) {
-    try {
-      const relays = await event.publish();
-      syncAccepted = relays.size > 0;
-    } catch {}
-  }
-
-  (async () => {
-    try {
-      if (secondaryRelayUrls.length > 0) {
-        const secondaryRelaySet = NDKRelaySet.fromRelayUrls(secondaryRelayUrls, ndk);
-        await event.publish(secondaryRelaySet);
-      }
-    } catch {}
-  })();
+  Promise.allSettled(writePromises).catch(() => {});
 
   return {
-    success: syncAccepted,
-    relaysAccepted: syncAccepted ? 1 : 0,
+    success: confirmed,
+    relaysAccepted: Math.max(acceptedCount, confirmed ? 1 : 0),
     relaysTotal: totalWriteCount,
   };
 }
 
 export function createNostreeEvent(content: object, pubkey: string, dTag: string = "nostree-data-v1"): NDKEvent {
   const ndk = getNDK();
-  
   const event = new NDKEventClass(ndk);
   event.kind = 30078;
   event.content = JSON.stringify(content);
@@ -195,7 +287,6 @@ export function createNostreeEvent(content: object, pubkey: string, dTag: string
     ["d", dTag],
     ["p", pubkey],
   ];
-  
   return event;
 }
 

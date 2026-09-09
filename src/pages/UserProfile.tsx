@@ -1,15 +1,6 @@
-import { ProfileViewerApp } from '../components/client/ProfileViewerApp'
 import logo from '../assets/logo.png'
 
-// UserProfilePage - This page is accessed via /u/:username
-// ProfileViewerApp extracts npub from URL query/hash, so we need to redirect
-// For now, show a message since we don't have username-to-npub resolution yet
-
 export default function UserProfilePage() {
-  // ProfileViewerApp handles its own URL parsing for npub
-  // The /u/:username route needs NIP-05 resolution which is handled by TreeViewer
-  
-  // For profile viewing, redirect to /profile?npub=... pattern
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 text-center">
       <div className="mb-4 flex justify-center">

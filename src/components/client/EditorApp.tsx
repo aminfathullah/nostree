@@ -193,6 +193,8 @@ function LinkTreeEditor({
           <AppearanceEditor
             currentTheme={linkTree.data?.theme}
             onThemeChange={linkTree.updateTheme}
+            headerImage={linkTree.data?.profile?.headerImage}
+            onHeaderChange={(headerImage) => linkTree.updateProfile({ headerImage })}
             disabled={linkTree.isSaving}
           />
         )}
@@ -383,10 +385,35 @@ function EditorContent() {
   const claimParam = searchParams.get("claim")?.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
 
   const [profile, setProfile] = useState<UserProfile>({});
-  const [trees, setTrees] = useState<TreeInfo[]>([]);
+  const [trees, setTrees] = useState<TreeInfo[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const cached = localStorage.getItem("nostree_cached_trees");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [treesDataMap, setTreesDataMap] = useState<Map<string, NostreeData>>(new Map());
-  const [slug, setSlug] = useState<string | null>(null);
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [slug, setSlug] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const claim = new URLSearchParams(window.location.search).get("claim")?.trim().toLowerCase();
+    if (claim) return claim;
+    try {
+      return localStorage.getItem("nostree_cached_active_slug") || null;
+    } catch {
+      return null;
+    }
+  });
+  const [isDataLoading, setIsDataLoading] = useState(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      const cached = localStorage.getItem("nostree_cached_trees");
+      return !cached || JSON.parse(cached).length === 0;
+    } catch {
+      return true;
+    }
+  });
 
   const [openTreeSelector, setOpenTreeSelector] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
@@ -406,14 +433,13 @@ function EditorContent() {
     if (!pubkey || !isAuthenticated) return;
 
     let mounted = true;
-    setIsDataLoading(true);
 
     async function loadAdminData() {
       try {
         const events = await fetchEventsWithTimeout({
           kinds: [0, 5, 30078],
           authors: [pubkey!],
-        }, 2200, 70);
+        }, 3500, 100);
 
         if (!mounted) return;
 
@@ -533,22 +559,46 @@ function EditorContent() {
           publishEvent(event).catch(() => {});
         }
 
-        userTrees.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+        if (userTrees.length > 0) {
+          userTrees.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+          setTrees(userTrees);
+          setTreesDataMap(dataMap);
 
-        setTrees(userTrees);
-        setTreesDataMap(dataMap);
+          try {
+            localStorage.setItem("nostree_cached_trees", JSON.stringify(userTrees));
+            localStorage.setItem(`nostree_trees_${pubkey}`, JSON.stringify(userTrees));
+          } catch {}
 
-        if (claimParam && userTrees.some(t => t.slug === claimParam)) {
-          setSlug(claimParam);
-          searchParams.delete("claim");
-          setSearchParams(searchParams, { replace: true });
-        } else if (userTrees.length > 0) {
-          setSlug(prev => {
-            if (prev && userTrees.some(t => t.slug === prev)) return prev;
-            return userTrees[0].slug;
-          });
+          if (claimParam && userTrees.some(t => t.slug === claimParam)) {
+            setSlug(claimParam);
+            try {
+              localStorage.setItem("nostree_cached_active_slug", claimParam);
+              localStorage.setItem(`nostree_active_slug_${pubkey}`, claimParam);
+            } catch {}
+            searchParams.delete("claim");
+            setSearchParams(searchParams, { replace: true });
+          } else {
+            setSlug(prev => {
+              const active = (prev && userTrees.some(t => t.slug === prev)) ? prev : userTrees[0].slug;
+              try {
+                localStorage.setItem("nostree_cached_active_slug", active);
+                localStorage.setItem(`nostree_active_slug_${pubkey}`, active);
+              } catch {}
+              return active;
+            });
+          }
         } else {
-          setSlug(null);
+          const cached = localStorage.getItem(`nostree_trees_${pubkey}`) || localStorage.getItem("nostree_cached_trees");
+          if (cached) {
+            try {
+              const parsed: TreeInfo[] = JSON.parse(cached);
+              if (parsed.length > 0) {
+                setTrees(parsed);
+                const active = localStorage.getItem(`nostree_active_slug_${pubkey}`) || localStorage.getItem("nostree_cached_active_slug") || parsed[0].slug;
+                setSlug(active);
+              }
+            } catch {}
+          }
         }
       } catch (err) {
         console.error("Failed to load admin data:", err);
@@ -585,6 +635,12 @@ function EditorContent() {
 
   const handleSlugChange = (newSlug: string | null) => {
     setSlug(newSlug);
+    if (newSlug) {
+      try {
+        localStorage.setItem("nostree_cached_active_slug", newSlug);
+        if (pubkey) localStorage.setItem(`nostree_active_slug_${pubkey}`, newSlug);
+      } catch {}
+    }
   };
 
   const handleTreeCreated = (newSlug: string, newTreeData?: any) => {
@@ -594,19 +650,42 @@ function EditorContent() {
       createdAt: Math.floor(Date.now() / 1000),
       data: newTreeData,
     };
-    setTrees(prev => [...prev, newEntry]);
+    setTrees(prev => {
+      const updated = [...prev, newEntry];
+      try {
+        localStorage.setItem("nostree_cached_trees", JSON.stringify(updated));
+        if (pubkey) localStorage.setItem(`nostree_trees_${pubkey}`, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     if (newTreeData) {
       setTreesDataMap(prev => new Map(prev).set(newSlug, newTreeData));
     }
     setSlug(newSlug);
+    try {
+      localStorage.setItem("nostree_cached_active_slug", newSlug);
+      if (pubkey) localStorage.setItem(`nostree_active_slug_${pubkey}`, newSlug);
+    } catch {}
   };
 
   const handleTreeDeleted = (deletedSlug: string) => {
     setTrees(prev => {
       const remaining = prev.filter(t => t.slug !== deletedSlug);
+      const nextActive = remaining.length > 0 ? remaining[0].slug : null;
       if (slug === deletedSlug) {
-        setSlug(remaining.length > 0 ? remaining[0].slug : null);
+        setSlug(nextActive);
       }
+      try {
+        localStorage.setItem("nostree_cached_trees", JSON.stringify(remaining));
+        if (pubkey) localStorage.setItem(`nostree_trees_${pubkey}`, JSON.stringify(remaining));
+        if (nextActive) {
+          localStorage.setItem("nostree_cached_active_slug", nextActive);
+          if (pubkey) localStorage.setItem(`nostree_active_slug_${pubkey}`, nextActive);
+        } else {
+          localStorage.removeItem("nostree_cached_active_slug");
+          if (pubkey) localStorage.removeItem(`nostree_active_slug_${pubkey}`);
+        }
+      } catch {}
       return remaining;
     });
     setTreesDataMap(prev => {

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Upload, Link, X, Camera } from "lucide-react";
 import { toast } from "sonner";
+import { uploadImageFile } from "../../lib/upload";
 
 interface AvatarEditorProps {
   currentPicture: string | undefined;
@@ -40,22 +41,13 @@ export function AvatarEditor({ currentPicture, fallbackPicture, onPictureChange,
     }
 
     setIsUploading(true);
-    
     try {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        onPictureChange(dataUrl);
-        setIsUploading(false);
-        setIsOpen(false);
-      };
-      reader.onerror = () => {
-        toast.error("Failed to read image file");
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
-    } catch {
-      toast.error("Failed to upload image");
+      const cdnUrl = await uploadImageFile(file);
+      onPictureChange(cdnUrl);
+      setIsUploading(false);
+      setIsOpen(false);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to upload image");
       setIsUploading(false);
     }
   };

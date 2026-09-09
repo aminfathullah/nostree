@@ -5,9 +5,6 @@ import { fetchEventsWithTimeout } from "../../lib/ndk";
 import type { NostreeDataV2 } from "../../schemas/nostr";
 import PublicTreeViewer from "./PublicTreeViewer";
 
-const profileCache = new Map<string, { data: UserProfile; ts: number }>();
-const PROFILE_CACHE_TTL = 600000;
-
 interface UserProfile {
   pubkey: string;
   name?: string;
@@ -23,99 +20,89 @@ interface SlugTreeViewerProps {
 }
 
 export function SlugTreeViewer({ slug }: SlugTreeViewerProps) {
+  const [treeData, setTreeData] = useState<NostreeDataV2 | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [treeData, setTreeData] = useState<NostreeDataV2 | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    let loadComplete = false;
-    
+    let foundAny = false;
+
     async function loadTree() {
+      setStatus("loading");
+      setError(null);
+
       try {
-        setStatus("loading");
-        const resolution = await resolveCanonicalSlugEvent(slug);
-        
+        const resolution = await resolveCanonicalSlugEvent(slug, (liveResolution) => {
+          if (cancelled || !liveResolution.data) return;
+          const result = parseNostreeData(liveResolution.data, slug);
+          if (result.success) {
+            foundAny = true;
+            setTreeData(result.data);
+            setStatus("ready");
+          }
+        });
+
         if (cancelled) return;
-        
-        if (resolution.status !== "claimed" || !resolution.event || !resolution.data) {
-          setError(`Halaman "/${slug}" tidak ditemukan`);
-          setStatus("error");
-          return;
-        }
-        
-        const event = resolution.event;
-        const result = parseNostreeData(resolution.data, slug);
-        
-        if (!result.success) {
-          setError("Failed to load link data");
-          setStatus("error");
-          return;
-        }
-        
-        setTreeData(result.data);
-        setStatus("ready");
-        
-        const ownerPubkey = event.pubkey;
-        const cachedProfile = profileCache.get(ownerPubkey);
-        
-        if (cachedProfile && Date.now() - cachedProfile.ts < PROFILE_CACHE_TTL) {
-          setProfile(cachedProfile.data);
-        } else {
-          fetchEventsWithTimeout({
-            kinds: [0],
-            authors: [ownerPubkey],
-          }, 1500, 80).then(profileEvents => {
-            if (cancelled || profileEvents.size === 0) return;
-            
-            const profileSorted = Array.from(profileEvents).sort(
-              (a, b) => (b.created_at || 0) - (a.created_at || 0)
-            );
-            const profileEvent = profileSorted[0];
-            if (profileEvent?.content) {
-              try {
-                const data = JSON.parse(profileEvent.content);
-                const profileData: UserProfile = {
-                  pubkey: ownerPubkey,
-                  name: data.name || data.display_name,
-                  about: data.about,
-                  picture: data.picture || data.image,
-                  banner: data.banner,
-                  nip05: data.nip05,
-                  lud16: data.lud16,
-                };
-                setProfile(profileData);
-                profileCache.set(ownerPubkey, { data: profileData, ts: Date.now() });
-              } catch {}
+
+        if (resolution.status === "claimed" && resolution.data) {
+          const result = parseNostreeData(resolution.data, slug);
+          if (result.success) {
+            foundAny = true;
+            setTreeData(result.data);
+            setStatus("ready");
+
+            const ownerPubkey = resolution.ownerPubkey || resolution.event?.pubkey;
+            if (ownerPubkey) {
+              fetchEventsWithTimeout({
+                kinds: [0],
+                authors: [ownerPubkey],
+              }, 1500).then(profileEvents => {
+                if (cancelled || profileEvents.size === 0) return;
+                const sorted = Array.from(profileEvents).sort(
+                  (a, b) => (b.created_at || 0) - (a.created_at || 0)
+                );
+                const ev = sorted[0];
+                if (ev?.content) {
+                  try {
+                    const data = JSON.parse(ev.content);
+                    setProfile({
+                      pubkey: ownerPubkey,
+                      name: data.name || data.display_name,
+                      about: data.about,
+                      picture: data.picture || data.image,
+                      banner: data.banner,
+                      nip05: data.nip05,
+                      lud16: data.lud16,
+                    });
+                  } catch {}
+                }
+              });
             }
-          });
+            return;
+          }
         }
-      } catch (err) {
-        if (!cancelled) {
-          setError("Failed to load tree");
+
+        if (!foundAny) {
+          setError(`Page "/${slug}" was not found`);
           setStatus("error");
         }
-      } finally {
-        loadComplete = true;
+      } catch {
+        if (!cancelled && !foundAny) {
+          setError(`Page "/${slug}" was not found`);
+          setStatus("error");
+        }
       }
     }
-    
+
     if (slug) {
       loadTree();
-      
-      const timeout = setTimeout(() => {
-        if (!loadComplete && !cancelled) {
-          setError(`Tree "${slug}" not found`);
-          setStatus("error");
-        }
-      }, 2500);
-      
-      return () => {
-        cancelled = true;
-        clearTimeout(timeout);
-      };
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   return (
