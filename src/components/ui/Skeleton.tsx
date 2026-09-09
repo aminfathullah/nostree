@@ -4,26 +4,17 @@ interface SkeletonProps {
   className?: string;
 }
 
-/**
- * Skeleton loading component with shimmer animation
- */
 export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        "animate-pulse rounded-lg bg-gradient-to-r from-card via-card-hover to-card bg-[length:200%_100%]",
+        "animate-pulse rounded-lg bg-card-hover/80",
         className
       )}
-      style={{
-        animation: "shimmer 1.5s ease-in-out infinite",
-      }}
     />
   );
 }
 
-/**
- * Skeleton for link list items
- */
 export function LinkSkeleton() {
   return (
     <div className="bg-card border border-border rounded-xl p-4 animate-pulse">
@@ -38,9 +29,6 @@ export function LinkSkeleton() {
   );
 }
 
-/**
- * Skeleton for the link editor panel
- */
 export function LinkEditorSkeleton() {
   return (
     <div className="space-y-4">
@@ -57,24 +45,17 @@ export function LinkEditorSkeleton() {
   );
 }
 
-/**
- * Skeleton for the mobile preview
- */
 export function PreviewSkeleton() {
   return (
-    <div className="w-[375px] h-[700px] border-8 border-zinc-800 rounded-[3rem] shadow-2xl overflow-hidden mx-auto bg-card animate-pulse">
-      <div className="h-full px-6 py-10">
-        {/* Header skeleton */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-20 h-20 rounded-full bg-card-hover mb-4" />
-          <div className="h-6 w-32 rounded bg-card-hover mb-2" />
-          <div className="h-4 w-48 rounded bg-card-hover" />
-        </div>
-        {/* Links skeleton */}
-        <div className="space-y-3">
-          <div className="h-14 rounded-xl bg-card-hover" />
-          <div className="h-14 rounded-xl bg-card-hover" />
-          <div className="h-14 rounded-xl bg-card-hover" />
+    <div className="w-[340px] h-[670px] bg-[#121215] rounded-[2.75rem] p-3 shadow-2xl ring-1 ring-white/10 mx-auto">
+      <div className="w-full h-full rounded-[2.25rem] bg-card/60 p-6 flex flex-col items-center justify-start animate-pulse">
+        <div className="w-18 h-18 rounded-full bg-card-hover mb-4 mt-6" />
+        <div className="h-6 w-32 rounded-lg bg-card-hover mb-2" />
+        <div className="h-4 w-44 rounded-md bg-card-hover/70 mb-8" />
+        <div className="w-full space-y-3">
+          <div className="h-12 w-full rounded-xl bg-card-hover" />
+          <div className="h-12 w-full rounded-xl bg-card-hover" />
+          <div className="h-12 w-full rounded-xl bg-card-hover" />
         </div>
       </div>
     </div>

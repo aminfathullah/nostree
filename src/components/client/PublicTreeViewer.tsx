@@ -229,8 +229,13 @@ function PublicTreeViewerComponent({
   if (status === 'loading') {
     return (
       <TreeSkeleton 
+        bgValue={displayData.bgValue}
         bgColor={displayData.bgColor}
+        isGradient={displayData.isGradient}
+        isBackgroundImage={displayData.isBackgroundImage}
+        isDark={!!displayData.isDark}
         cardBg={displayData.cardBg}
+        cardBorder={displayData.cardBorder}
         borderRadius={displayData.borderRadius}
       />
     );

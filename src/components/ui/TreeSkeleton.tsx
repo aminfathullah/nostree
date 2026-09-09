@@ -1,104 +1,110 @@
 import { memo } from 'react';
 
 interface TreeSkeletonProps {
+  bgValue?: string;
   bgColor?: string;
+  isGradient?: boolean;
+  isBackgroundImage?: boolean;
+  isDark?: boolean;
   cardBg?: string;
+  cardBorder?: string;
   borderRadius?: string;
 }
 
 function TreeSkeletonComponent({ 
-  bgColor = '#09090b',
-  cardBg = 'rgba(255,255,255,0.06)',
+  bgValue = '#f8fafc',
+  bgColor = '#f8fafc',
+  isGradient = false,
+  isBackgroundImage = false,
+  isDark = false,
+  cardBg,
+  cardBorder,
   borderRadius = '1rem'
 }: TreeSkeletonProps) {
+  const finalCardBg = cardBg || (isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.92)');
+  const finalCardBorder = cardBorder || (isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(15, 23, 42, 0.08)');
+  const shimmerBg = isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.08)';
+  const shimmerSubtle = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.04)';
+
   return (
     <main 
-      className="min-h-screen w-full flex flex-col items-center justify-center p-0 sm:p-6 md:p-10 transition-colors relative overflow-x-hidden"
-      style={{ backgroundColor: bgColor }}
+      className="min-h-screen w-full flex flex-col items-center justify-start p-0 transition-colors relative overflow-x-hidden"
+      style={{ 
+        backgroundColor: isBackgroundImage ? '#08080a' : isGradient ? '#09090b' : bgColor,
+        backgroundImage: isGradient ? bgValue : undefined,
+      }}
     >
-      <div 
-        className="w-full sm:max-w-[450px] mx-auto sm:my-auto rounded-none sm:rounded-[36px] border-0 sm:border overflow-hidden p-5 sm:p-7 min-h-screen sm:min-h-0 flex flex-col justify-between animate-fade-in shadow-none sm:shadow-2xl"
-        style={{
-          backgroundColor: cardBg,
-          borderColor: 'rgba(255,255,255,0.1)',
-        }}
-      >
+      <div className="w-full max-w-[580px] mx-auto min-h-screen px-4 sm:px-6 py-10 sm:py-16 flex flex-col justify-between relative">
         <div>
-          <header className="flex flex-col items-center text-center mb-6 pt-2">
+          <header className="flex flex-col items-center text-center mb-6 pt-2 animate-fade-in">
             <div 
-              className="w-20 h-20 sm:w-22 sm:h-22 rounded-full mb-3 skeleton-shimmer"
-              style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+              className="w-20 h-20 sm:w-22 sm:h-22 rounded-full mb-3 animate-pulse"
+              style={{ 
+                backgroundColor: shimmerBg,
+                border: `3px solid ${finalCardBorder}`,
+              }}
             />
             
             <div 
-              className="h-6 w-36 rounded-lg mb-2 skeleton-shimmer"
-              style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+              className="h-7 w-44 rounded-xl mb-2.5 animate-pulse"
+              style={{ backgroundColor: shimmerBg }}
             />
             
             <div 
-              className="h-4 w-24 rounded-full mb-3 skeleton-shimmer"
-              style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+              className="h-5 w-32 rounded-full mb-4 animate-pulse"
+              style={{ backgroundColor: shimmerSubtle }}
             />
-            
-            <div className="space-y-1.5 w-full max-w-xs">
-              <div 
-                className="h-3.5 w-full rounded skeleton-shimmer"
-                style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
-              />
-              <div 
-                className="h-3.5 w-3/4 mx-auto rounded skeleton-shimmer"
-                style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
-              />
-            </div>
           </header>
 
-          <nav className="flex flex-col gap-2.5">
-            {[0, 1, 2].map((i) => (
+          <nav className="flex flex-col gap-3">
+            {[0, 1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="w-full p-4 skeleton-shimmer"
+                className="w-full px-4 py-3.5 sm:px-5 sm:py-4 backdrop-blur-md border animate-pulse shadow-xs"
                 style={{ 
-                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  backgroundColor: finalCardBg,
+                  borderColor: finalCardBorder,
                   borderRadius: borderRadius,
-                  animationDelay: `${i * 100}ms`,
+                  animationDelay: `${i * 80}ms`,
                 }}
               >
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-8 h-8 rounded-lg skeleton-shimmer"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  />
-                  <div className="flex-1 space-y-1.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3.5 flex-1 min-w-0">
                     <div 
-                      className="h-4 w-2/3 rounded skeleton-shimmer"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                      className="w-10 h-10 rounded-xl shrink-0"
+                      style={{ backgroundColor: shimmerBg }}
                     />
-                    <div 
-                      className="h-3 w-1/3 rounded skeleton-shimmer"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
-                    />
+                    <div className="flex-1 space-y-2 min-w-0">
+                      <div 
+                        className="h-4 w-3/5 rounded-md"
+                        style={{ backgroundColor: shimmerBg }}
+                      />
+                      <div 
+                        className="h-3 w-2/5 rounded-md"
+                        style={{ backgroundColor: shimmerSubtle }}
+                      />
+                    </div>
                   </div>
+                  <div 
+                    className="w-7 h-7 rounded-full shrink-0"
+                    style={{ backgroundColor: shimmerSubtle }}
+                  />
                 </div>
               </div>
             ))}
           </nav>
         </div>
 
-        <div className="pt-6 pb-2 text-center text-[11px] border-t border-white/10 mt-8">
-          <div className="h-3 w-28 mx-auto rounded skeleton-shimmer" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }} />
+        <div 
+          className="pt-6 pb-2 text-center text-[11px] border-t mt-10"
+          style={{ borderColor: finalCardBorder }}
+        >
+          <div 
+            className="h-3.5 w-28 mx-auto rounded-full animate-pulse"
+            style={{ backgroundColor: shimmerSubtle }}
+          />
         </div>
       </div>
-
-      <style>{`
-        @keyframes skeleton-shimmer {
-          0% { opacity: 0.6; }
-          50% { opacity: 0.25; }
-          100% { opacity: 0.6; }
-        }
-        .skeleton-shimmer {
-          animation: skeleton-shimmer 1.5s ease-in-out infinite;
-        }
-      `}</style>
     </main>
   );
 }
