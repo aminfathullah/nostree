@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { Upload, Link, X, Camera } from "lucide-react";
 import { toast } from "sonner";
-import { uploadImageFile } from "../../lib/upload";
 
 interface AvatarEditorProps {
   currentPicture: string | undefined;
@@ -42,6 +41,7 @@ export function AvatarEditor({ currentPicture, fallbackPicture, onPictureChange,
 
     setIsUploading(true);
     try {
+      const { uploadImageFile } = await import("../../lib/upload");
       const cdnUrl = await uploadImageFile(file);
       onPictureChange(cdnUrl);
       setIsUploading(false);

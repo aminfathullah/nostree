@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { getNDK, fetchEventsWithTimeout } from "../../lib/ndk";
 import { npubToHex, isNpub, shortenNpub } from "../../lib/utils/nip19";
@@ -19,10 +18,6 @@ interface ProfileViewerProps {
   npub: string;
 }
 
-/**
- * ProfileViewer - Full client-side profile display
- * Connects to Nostr relays and fetches Kind 0 and Kind 30078 data
- */
 export function ProfileViewer({ npub }: ProfileViewerProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,13 +46,11 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
         setConnectionStatus("Connecting to Nostr relays...");
         await ndk.connect();
         
-        // Wait for connections
         await new Promise(r => setTimeout(r, 1000));
         
         const connectedCount = ndk.pool.connectedRelays().length;
         setConnectionStatus(`Connected to ${connectedCount} relays. Fetching profile...`);
 
-        // Fetch Kind 0 (profile)
         const profileEvents = await fetchEventsWithTimeout({
           kinds: [0],
           authors: [pubkey!],
@@ -85,7 +78,6 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
 
         setConnectionStatus("Fetching Nostree data...");
 
-        // Fetch Kind 30078 (app data)
         const appDataEvents = await fetchEventsWithTimeout({
           kinds: [30078],
           authors: [pubkey!],
@@ -118,7 +110,6 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
     fetchData();
   }, [npub]);
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
@@ -128,7 +119,6 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 text-center">
@@ -139,7 +129,6 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
     );
   }
 
-  // No profile found
   if (!profile) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 text-center">
@@ -153,7 +142,6 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
     );
   }
 
-  // Compute display values
   const displayName = appData?.profile?.name || profile.name || "Anonymous";
   const displayBio = appData?.profile?.bio || profile.about || "";
   const showVerification = appData?.profile?.show_verification ?? true;
@@ -161,17 +149,15 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
   const socials = appData?.socials || [];
   const theme = appData?.theme;
 
-  // Theme colors with fallbacks
   const bgColor = theme?.colors.background || "#f5f5f7";
   const fgColor = theme?.colors.foreground || "#1f2937";
   const primaryColor = theme?.colors.primary || "#5E47B8";
   const borderRadius = theme?.colors.radius || "1rem";
   
-  // Computed styles for theme
-  const cardBg = `${fgColor}10`; // 10% opacity of foreground
-  const cardBorder = `${fgColor}20`; // 20% opacity
+  const cardBg = `${fgColor}10`;
+  const cardBorder = `${fgColor}20`;
   const cardHoverBorder = `${fgColor}30`;
-  const dimColor = `${fgColor}99`; // 60% opacity
+  const dimColor = `${fgColor}99`;
 
   return (
     <main 
@@ -271,7 +257,6 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
           </nav>
         )}
 
-        {/* No links message */}
         {links.length === 0 && !appData && (
           <div className="text-center py-8" style={{ color: dimColor }}>
             <p className="text-lg">No Nostree links yet</p>
@@ -279,17 +264,15 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
           </div>
         )}
 
-        {/* Social Icons */}
         {socials.length > 0 && (
           <SocialIconsRow socials={socials} cardBg={cardBg} cardBorder={cardBorder} borderRadius={borderRadius} />
         )}
 
-        {/* Zap Button */}
         {profile.lud16 && (
           <div className="mt-8 text-center">
             <a 
               href={`lightning:${profile.lud16}`}
-              className="inline-flex items-center gap-2 px-6 py-3 font-medium rounded-full transition-all duration-200 hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-2 px-6 py-3 font-medium rounded-full transition-[transform,opacity] duration-200 ease-out hover:scale-105 active:scale-95 shadow-xs"
               style={{ backgroundColor: primaryColor, color: bgColor }}
             >
               <span>⚡</span>
@@ -302,7 +285,6 @@ export function ProfileViewer({ npub }: ProfileViewerProps) {
   );
 }
 
-// Link Card Component
 interface LinkCardProps {
   link: Link;
   index: number;
@@ -320,7 +302,7 @@ function LinkCard({ link, index, fgColor, cardBg, cardBorder, cardHoverBorder, b
       href={link.url}
       target="_blank"
       rel="noopener noreferrer nofollow"
-      className="block w-full p-4 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] group animate-slide-up"
+      className="block w-full p-4 transition-[transform,border-color,box-shadow] duration-200 ease-out hover:scale-[1.02] active:scale-[0.98] group animate-slide-up"
       style={{ 
         backgroundColor: cardBg,
         border: `1px solid ${cardBorder}`,
@@ -345,7 +327,6 @@ function LinkCard({ link, index, fgColor, cardBg, cardBorder, cardHoverBorder, b
   );
 }
 
-// Social Icons Component
 interface SocialIconsRowProps {
   socials: Social[];
   cardBg: string;
@@ -381,7 +362,7 @@ function SocialIconsRow({ socials, cardBg, cardBorder, borderRadius }: SocialIco
           href={social.url}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="p-2 transition-all duration-200 hover:scale-110"
+          className="p-2 transition-transform duration-200 ease-out hover:scale-110 active:scale-95"
           style={{ 
             backgroundColor: cardBg,
             border: `1px solid ${cardBorder}`,

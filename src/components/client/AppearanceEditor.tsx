@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { THEME_PRESETS } from "./ThemeSelector";
-import { uploadImageFile } from "../../lib/upload";
 
 interface AppearanceEditorProps {
   currentTheme: Theme | undefined;
@@ -168,6 +167,7 @@ export function AppearanceEditor({
 
     setIsUploading(true);
     try {
+      const { uploadImageFile } = await import("../../lib/upload");
       const cdnUrl = await uploadImageFile(file);
       updateTheme({ background: `url(${cdnUrl})` });
       setIsUploading(false);
@@ -194,6 +194,7 @@ export function AppearanceEditor({
 
     setIsCoverUploading(true);
     try {
+      const { uploadImageFile } = await import("../../lib/upload");
       const cdnUrl = await uploadImageFile(file);
       onHeaderChange?.(cdnUrl);
       setIsCoverUploading(false);

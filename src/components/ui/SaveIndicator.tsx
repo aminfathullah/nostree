@@ -8,9 +8,6 @@ interface SaveIndicatorProps {
   className?: string;
 }
 
-/**
- * SaveIndicator - Shows saving state with animated checkmark on success
- */
 function SaveIndicatorComponent({ 
   isSaving, 
   showSuccess = false,
@@ -21,9 +18,10 @@ function SaveIndicatorComponent({
       {isSaving && (
         <motion.div
           key="saving"
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
           className={`flex items-center gap-2 text-sm text-brand ${className}`}
         >
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -34,19 +32,20 @@ function SaveIndicatorComponent({
       {!isSaving && showSuccess && (
         <motion.div
           key="success"
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
           className={`flex items-center gap-2 text-sm text-success ${className}`}
         >
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 18 }}
           >
-            <Check className="w-4 h-4" />
+            <Check className="w-4 h-4 text-emerald-500" />
           </motion.div>
-          <span>Saved!</span>
+          <span>Saved</span>
         </motion.div>
       )}
     </AnimatePresence>

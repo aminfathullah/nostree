@@ -304,7 +304,7 @@ export default function HomePage() {
       </div>
 
       <footer className="border-t border-border py-4 px-4 text-center text-[11px] text-txt-dim">
-        <p>Nostree — Platform Berbagi Tautan</p>
+        <p>Nostree: Platform Berbagi Tautan</p>
       </footer>
     </main>
   );

@@ -257,10 +257,10 @@ export function TreeSelector({
         publishEvent(delEvent)
       ]);
 
-      toast.success(`Halaman "/${slug}" berhasil dihapus`);
+      toast.success(`Tree "/${slug}" deleted successfully`);
     } catch (err) {
       console.error("Failed to delete tree:", err);
-      toast.error("Gagal menghapus halaman");
+      toast.error("Failed to delete tree");
     } finally {
       setIsDeletingTree(false);
       setTreeToDelete(null);
@@ -273,7 +273,7 @@ export function TreeSelector({
     return (
       <div className="flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-xl shadow-xs">
         <Loader2 className="w-3.5 h-3.5 animate-spin text-txt-muted" />
-        <span className="text-xs text-txt-muted font-medium">Memuat pohon...</span>
+        <span className="text-xs text-txt-muted font-medium">Loading trees...</span>
       </div>
     );
   }
@@ -295,11 +295,12 @@ export function TreeSelector({
             <button
               type="button"
               onClick={handleCopyUrl}
-              className="p-2 bg-card border border-border rounded-xl hover:border-border-hover transition-colors shadow-xs cursor-pointer active:scale-[0.95]"
+              className="p-2 bg-card border border-border rounded-xl hover:border-border-hover transition-[background-color,border-color,transform] duration-150 shadow-xs cursor-pointer active:scale-[0.92]"
               title="Copy public link"
+              aria-label="Copy public link"
             >
               {copied ? (
-                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                <Check className="w-3.5 h-3.5 text-emerald-500 animate-pop" />
               ) : (
                 <Copy className="w-3.5 h-3.5 text-txt-muted" />
               )}

@@ -6,10 +6,6 @@ interface SuccessAnimationProps {
   className?: string;
 }
 
-/**
- * Animated checkmark that plays once on mount
- * Use for success feedback after actions complete
- */
 export function SuccessAnimation({ size = "md", className = "" }: SuccessAnimationProps) {
   const sizeClasses = {
     sm: "w-4 h-4",
@@ -25,7 +21,7 @@ export function SuccessAnimation({ size = "md", className = "" }: SuccessAnimati
 
   return (
     <motion.div
-      initial={{ scale: 0, opacity: 0 }}
+      initial={{ scale: 0.95, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{
         type: "spring",
@@ -35,13 +31,13 @@ export function SuccessAnimation({ size = "md", className = "" }: SuccessAnimati
       className={`${circleSize[size]} rounded-full bg-success/20 flex items-center justify-center ${className}`}
     >
       <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
         transition={{
           type: "spring",
-          stiffness: 400,
-          damping: 15,
-          delay: 0.1,
+          stiffness: 380,
+          damping: 18,
+          delay: 0.08,
         }}
       >
         <Check className={`${sizeClasses[size]} text-success`} />
@@ -50,16 +46,13 @@ export function SuccessAnimation({ size = "md", className = "" }: SuccessAnimati
   );
 }
 
-/**
- * Inline success checkmark for button/input feedback
- */
 export function InlineSuccess({ className = "" }: { className?: string }) {
   return (
     <motion.span
-      initial={{ scale: 0, opacity: 0 }}
+      initial={{ scale: 0.95, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0, opacity: 0 }}
-      transition={{ type: "spring", stiffness: 400, damping: 15 }}
+      exit={{ scale: 0.95, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 380, damping: 18 }}
       className={`inline-flex items-center justify-center ${className}`}
     >
       <Check className="w-4 h-4 text-success" />

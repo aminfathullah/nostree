@@ -352,7 +352,7 @@ function PublicTreeViewerComponent({
                   <button
                     type="button"
                     onClick={copySlugLink}
-                    className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md transition-all duration-150 hover:opacity-90 active:scale-[0.98] cursor-pointer"
+                    className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md transition-[transform,opacity] duration-150 ease-out hover:opacity-90 active:scale-[0.94] cursor-pointer"
                     style={{ 
                       backgroundColor: cardBg, 
                       border: `1px solid ${cardBorder}`, 
@@ -362,7 +362,7 @@ function PublicTreeViewerComponent({
                   >
                     <span>{typeof window !== 'undefined' ? window.location.host : 'nostree.me'}/{slug}</span>
                     {copiedSlug ? (
-                      <Check className="w-3 h-3 text-emerald-500" />
+                      <Check className="w-3 h-3 text-emerald-500 animate-pop" />
                     ) : (
                       <Copy className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" />
                     )}
@@ -371,7 +371,7 @@ function PublicTreeViewerComponent({
                   <button
                     type="button"
                     onClick={() => handleSaveContact(displayName, displayBio)}
-                    className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md transition-all duration-150 hover:opacity-95 active:scale-[0.98] cursor-pointer shadow-2xs"
+                    className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:scale-[0.94] cursor-pointer shadow-2xs"
                     style={{
                       backgroundColor: `${primaryColor}18`,
                       border: `1px solid ${primaryColor}35`,
@@ -520,7 +520,7 @@ function PublicTreeViewerComponent({
                       href={social.url}
                       target="_blank"
                       rel="noopener noreferrer nofollow"
-                      className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 active:scale-95 backdrop-blur-md shadow-xs"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center transition-[transform,opacity] duration-150 ease-out hover:-translate-y-0.5 active:scale-95 backdrop-blur-md shadow-xs"
                       style={{ 
                         backgroundColor: cardBg, 
                         border: `1px solid ${cardBorder}`, 
@@ -541,7 +541,7 @@ function PublicTreeViewerComponent({
                 >
                   <a 
                     href={`lightning:${profile.lud16}`}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full transition-[transform,opacity] duration-150 ease-out hover:scale-105 active:scale-95 shadow-md"
                     style={{ 
                       backgroundColor: primaryColor, 
                       color: '#ffffff',
