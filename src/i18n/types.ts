@@ -171,10 +171,18 @@ export interface TranslationSchema {
       appliedPreset: string;
       imageUpdated: string;
       coverUpdated: string;
+      pageIdentityTitle: string;
+      pageIdentitySubtitle: string;
+      pageTitleLabel: string;
+      pageTitlePlaceholder: string;
+      pageBioLabel: string;
+      pageBioPlaceholder: string;
     };
     treeSelector: {
       active: string;
       createNew: string;
+      titleLabel: string;
+      titlePlaceholder: string;
       slugLabel: string;
       slugPlaceholder: string;
       deleteTitle: string;

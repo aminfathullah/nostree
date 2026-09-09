@@ -50,7 +50,7 @@ async function fetchTreeMetaFromNostr(slug: string): Promise<TreeMeta | null> {
                 ws.close();
                 resolve({
                   title: data?.treeMeta?.title || data?.profile?.name || slug,
-                  bio: data?.profile?.bio || "",
+                  bio: data?.treeMeta?.description || data?.profile?.bio || data?.profile?.about || "",
                   avatar: data?.profile?.picture || "",
                   linksCount: Array.isArray(data?.links) ? data.links.length : 0,
                 });

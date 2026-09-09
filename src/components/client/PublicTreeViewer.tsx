@@ -363,7 +363,7 @@ function PublicTreeViewerComponent({
                     }}
                     title="Click to copy link"
                   >
-                    <span>{typeof window !== 'undefined' ? window.location.host : 'nostree.me'}/{slug}</span>
+                    <span>{typeof window !== 'undefined' ? window.location.host : 'link.majapah.it'}/{slug}</span>
                     {copiedSlug ? (
                       <Check className="w-3 h-3 text-emerald-500 animate-pop" />
                     ) : (

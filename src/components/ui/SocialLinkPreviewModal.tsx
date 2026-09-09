@@ -32,11 +32,29 @@ function SocialLinkPreviewModalComponent({
   const [downloading, setDownloading] = useState(false);
 
   const cleanSlug = (slug || "hub").replace(/^\/+/, "");
-  const titleText = displayName || `/${cleanSlug}`;
-  const bioText = bio || "Explore my curated links, resources, and contact info.";
-  const fullUrl = typeof window !== "undefined"
+  const hostName = typeof window !== "undefined" && window.location.host ? window.location.host : "link.majapah.it";
+  const fullUrl = typeof window !== "undefined" && window.location.origin
     ? `${window.location.origin}/${cleanSlug}`
-    : `https://nostree.me/${cleanSlug}`;
+    : `https://link.majapah.it/${cleanSlug}`;
+
+  const [customTitle, setCustomTitle] = useState(displayName || "");
+  const [customBio, setCustomBio] = useState(bio || "");
+  const [showCustomizer, setShowCustomizer] = useState(false);
+
+  useEffect(() => {
+    if (displayName !== undefined) {
+      setCustomTitle(displayName);
+    }
+  }, [displayName]);
+
+  useEffect(() => {
+    if (bio !== undefined) {
+      setCustomBio(bio);
+    }
+  }, [bio]);
+
+  const titleText = customTitle.trim() || displayName || `/${cleanSlug}`;
+  const bioText = customBio.trim() || bio || "Explore my curated links, resources, and contact info.";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -93,7 +111,7 @@ function SocialLinkPreviewModalComponent({
 
     ctx.fillStyle = "#18181b";
     ctx.beginPath();
-    ctx.roundRect(80, 80, 240, 42, 21);
+    ctx.roundRect(80, 80, 280, 42, 21);
     ctx.fill();
     ctx.strokeStyle = "#3f3f46";
     ctx.lineWidth = 1.2;
@@ -106,7 +124,7 @@ function SocialLinkPreviewModalComponent({
 
     ctx.fillStyle = "#f4f4f5";
     ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif";
-    ctx.fillText(`nostree.me/${cleanSlug}`, 116, 106);
+    ctx.fillText(`${hostName}/${cleanSlug}`, 116, 106);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "800 52px -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif";
@@ -172,7 +190,7 @@ function SocialLinkPreviewModalComponent({
 
       ctx.fillStyle = "#71717a";
       ctx.font = "500 12px monospace";
-      ctx.fillText(`nostree.me/${cleanSlug}`, avatarX, avatarY + 78);
+      ctx.fillText(`${hostName}/${cleanSlug}`, avatarX, avatarY + 78);
 
       const drawButton = (y: number, text: string, icon: string, isPrimary = false) => {
         ctx.fillStyle = isPrimary ? primaryColor : "#27272a";
@@ -235,7 +253,7 @@ function SocialLinkPreviewModalComponent({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, cleanSlug, titleText, bioText, avatarUrl, linksCount, primaryColor]);
+  }, [isOpen, cleanSlug, titleText, bioText, avatarUrl, linksCount, primaryColor, hostName]);
 
   const handleCopyLink = useCallback(async () => {
     try {
@@ -335,6 +353,46 @@ function SocialLinkPreviewModalComponent({
             </button>
           </div>
 
+          <div className="flex items-center justify-between mb-2.5 px-1">
+            <span className="text-xs font-semibold text-txt-muted">{t("socialPreview.previewBadge")}</span>
+            <button
+              type="button"
+              onClick={() => setShowCustomizer(!showCustomizer)}
+              className="text-xs font-medium text-brand hover:text-brand-hover transition-colors cursor-pointer active:scale-95"
+            >
+              {showCustomizer ? t("common.close") : t("common.edit")}
+            </button>
+          </div>
+
+          {showCustomizer && (
+            <div className="p-3.5 bg-canvas border border-border rounded-2xl space-y-2.5 mb-3.5 text-left animate-fade-in shadow-2xs">
+              <div>
+                <label className="text-[11px] font-semibold text-txt-muted block mb-1">
+                  {t("editor.treeSelector.titleLabel")}
+                </label>
+                <input
+                  type="text"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  placeholder={displayName || cleanSlug}
+                  className="w-full px-3 py-1.5 rounded-xl bg-card border border-border text-xs text-txt-main placeholder:text-txt-dim focus:outline-none focus:border-brand transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-txt-muted block mb-1">
+                  {t("editor.appearance.pageBioLabel")}
+                </label>
+                <input
+                  type="text"
+                  value={customBio}
+                  onChange={(e) => setCustomBio(e.target.value)}
+                  placeholder={bio || "Short description"}
+                  className="w-full px-3 py-1.5 rounded-xl bg-card border border-border text-xs text-txt-main placeholder:text-txt-dim focus:outline-none focus:border-brand transition-all"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="rounded-2xl p-3 sm:p-4 bg-canvas/80 border border-border mb-4">
             <AnimatePresence mode="wait">
               {activeTab === "whatsapp" ? (
@@ -359,7 +417,7 @@ function SocialLinkPreviewModalComponent({
                         {bioText}
                       </p>
                       <span className="text-[11px] text-white/40 block mt-1.5 font-mono">
-                        nostree.me/{cleanSlug}
+                        {hostName}/{cleanSlug}
                       </span>
                     </div>
 
@@ -388,7 +446,7 @@ function SocialLinkPreviewModalComponent({
                       <canvas ref={canvasRef} className="w-full h-full object-cover" />
                     </div>
                     <div className="p-3 bg-canvas/60">
-                      <span className="text-[11px] text-txt-dim font-mono">nostree.me</span>
+                      <span className="text-[11px] text-txt-dim font-mono">{hostName}</span>
                       <h4 className="font-bold text-xs sm:text-sm text-txt-main mt-0.5 line-clamp-1">
                         {titleText}
                       </h4>

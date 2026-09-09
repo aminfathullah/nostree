@@ -109,7 +109,7 @@ export default function HomePage() {
           >
             <div className="flex items-center gap-2 p-1.5 bg-card border border-border focus-within:border-brand rounded-xl transition-colors shadow-xs">
               <div className="flex items-center px-3 text-txt-dim flex-1 min-w-0">
-                <span className="text-xs sm:text-sm font-semibold text-txt-muted select-none">nostree.me/</span>
+                <span className="text-xs sm:text-sm font-semibold text-txt-muted select-none">link.majapah.it/</span>
                 <input
                   type="text"
                   value={claimedSlug}

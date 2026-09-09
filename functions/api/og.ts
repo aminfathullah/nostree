@@ -29,6 +29,7 @@ export async function onRequest(context: any): Promise<Response> {
   const slug = escapeXml(truncate(rawSlug, 28));
   const bio = escapeXml(truncate(rawBio, 90));
   const linksCount = isNaN(rawLinksCount) ? 0 : rawLinksCount;
+  const host = escapeXml(url.host || "link.majapah.it");
   const initial = (title[0] || "N").toUpperCase();
 
   let avatarBase64 = "";
@@ -79,9 +80,9 @@ export async function onRequest(context: any): Promise<Response> {
     <rect x="24" y="24" width="1152" height="582" rx="28" fill="none" stroke="#27272a" stroke-width="1.5" stroke-opacity="0.6" />
 
     <g transform="translate(80, 80)">
-      <rect width="260" height="42" rx="21" fill="#18181b" stroke="#3f3f46" stroke-width="1.2" />
+      <rect width="300" height="42" rx="21" fill="#18181b" stroke="#3f3f46" stroke-width="1.2" />
       <circle cx="20" cy="21" r="5" fill="#10b981" />
-      <text x="36" y="26" fill="#f4f4f5" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="0.4">nostree.me/${slug}</text>
+      <text x="36" y="26" fill="#f4f4f5" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="0.4">${host}/${slug}</text>
     </g>
 
     <g transform="translate(80, 190)">
@@ -122,7 +123,7 @@ export async function onRequest(context: any): Promise<Response> {
       `}
 
       <text x="180" y="150" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="17" font-weight="700">${title}</text>
-      <text x="180" y="172" text-anchor="middle" fill="#71717a" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500">nostree.me/${slug}</text>
+      <text x="180" y="172" text-anchor="middle" fill="#71717a" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500">${host}/${slug}</text>
 
       <g transform="translate(36, 196)">
         <rect width="288" height="48" rx="14" fill="#27272a" stroke="#6366f1" stroke-width="1.5" />

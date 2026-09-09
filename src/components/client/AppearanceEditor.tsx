@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { Theme, Radius, Font } from "../../schemas/nostr";
 import { 
   Sparkles, 
@@ -23,6 +23,10 @@ interface AppearanceEditorProps {
   onThemeChange: (theme: Theme) => void;
   headerImage?: string;
   onHeaderChange?: (imageUrl: string | undefined) => void;
+  title?: string;
+  onTitleChange?: (title: string) => void;
+  bio?: string;
+  onBioChange?: (bio: string) => void;
   disabled?: boolean;
 }
 
@@ -90,9 +94,28 @@ export function AppearanceEditor({
   onThemeChange,
   headerImage,
   onHeaderChange,
+  title,
+  onTitleChange,
+  bio,
+  onBioChange,
   disabled = false,
 }: AppearanceEditorProps) {
   const { t } = useI18n();
+  const [localTitle, setLocalTitle] = useState(title || "");
+  const [localBio, setLocalBio] = useState(bio || "");
+
+  useEffect(() => {
+    if (title !== undefined) {
+      setLocalTitle(title);
+    }
+  }, [title]);
+
+  useEffect(() => {
+    if (bio !== undefined) {
+      setLocalBio(bio);
+    }
+  }, [bio]);
+
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>("all");
   const [activeSection, setActiveSection] = useState<"presets" | "custom">("presets");
   const [imageUrl, setImageUrl] = useState("");
@@ -264,6 +287,60 @@ export function AppearanceEditor({
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">{t("editor.appearance.resetDefault")}</span>
           </button>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-xs space-y-3.5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-txt-main">
+              {t("editor.appearance.pageIdentityTitle")}
+            </h3>
+            <p className="text-xs text-txt-dim">
+              {t("editor.appearance.pageIdentitySubtitle")}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-txt-main block">
+              {t("editor.appearance.pageTitleLabel")}
+            </label>
+            <input
+              type="text"
+              value={localTitle}
+              disabled={disabled}
+              onChange={(e) => {
+                const val = e.target.value;
+                setLocalTitle(val);
+                onTitleChange?.(val);
+              }}
+              placeholder={t("editor.appearance.pageTitlePlaceholder")}
+              className="w-full px-3.5 py-2 rounded-xl bg-canvas border border-border focus:border-brand focus:ring-2 focus:ring-brand/20 text-xs sm:text-sm text-txt-main placeholder:text-txt-dim outline-none transition-all"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-txt-main block">
+              {t("editor.appearance.pageBioLabel")}
+            </label>
+            <textarea
+              rows={2}
+              value={localBio}
+              disabled={disabled}
+              onChange={(e) => {
+                const val = e.target.value;
+                setLocalBio(val);
+                onBioChange?.(val);
+              }}
+              placeholder={t("editor.appearance.pageBioPlaceholder")}
+              className="w-full px-3.5 py-2 rounded-xl bg-canvas border border-border focus:border-brand focus:ring-2 focus:ring-brand/20 text-xs sm:text-sm text-txt-main placeholder:text-txt-dim outline-none transition-all resize-none"
+            />
+          </div>
         </div>
       </div>
 

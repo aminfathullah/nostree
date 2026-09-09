@@ -215,6 +215,10 @@ function LinkTreeEditor({
             onThemeChange={linkTree.updateTheme}
             headerImage={linkTree.data?.profile?.headerImage}
             onHeaderChange={(headerImage) => linkTree.updateProfile({ headerImage })}
+            title={(linkTree.data && "treeMeta" in linkTree.data ? linkTree.data.treeMeta?.title : undefined) || profile?.name}
+            onTitleChange={(title) => linkTree.updateTreeMeta({ title })}
+            bio={linkTree.data?.profile?.bio || profile?.about}
+            onBioChange={(bio) => linkTree.updateProfile({ bio })}
             disabled={linkTree.isSaving}
           />
         )}
@@ -237,7 +241,7 @@ function LinkTreeEditor({
         onClose={() => setIsSocialPreviewOpen(false)}
         slug={slug}
         displayName={(linkTree.data && "treeMeta" in linkTree.data ? linkTree.data.treeMeta?.title : undefined) || profile?.name}
-        bio={profile?.about}
+        bio={linkTree.data?.profile?.bio || profile?.about}
         avatarUrl={profile?.picture}
         linksCount={linkTree.links.length}
         primaryColor={linkTree.data?.theme?.colors?.primary}

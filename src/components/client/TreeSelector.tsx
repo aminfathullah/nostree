@@ -42,7 +42,9 @@ export function TreeSelector({
   const [internalLoading, setInternalLoading] = useState<boolean>(!propTrees);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
   const [newSlug, setNewSlug] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
   const [slugError, setSlugError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [treeToDelete, setTreeToDelete] = useState<string | null>(null);
@@ -50,6 +52,19 @@ export function TreeSelector({
 
   const trees = propTrees !== undefined ? propTrees : internalTrees;
   const isLoading = propIsLoading !== undefined ? propIsLoading : internalLoading;
+
+  const handleTitleChange = (val: string) => {
+    setNewTitle(val);
+    if (!slugTouched) {
+      const generated = val
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 32);
+      setNewSlug(generated);
+      setSlugError(null);
+    }
+  };
 
   useEffect(() => {
     if (forceOpen !== undefined && forceOpen !== isDropdownOpen) {
@@ -65,7 +80,9 @@ export function TreeSelector({
     onOpenChange?.(open);
     if (!open) {
       setIsCreating(false);
+      setNewTitle("");
       setNewSlug("");
+      setSlugTouched(false);
       setSlugError(null);
     }
   };
@@ -144,11 +161,12 @@ export function TreeSelector({
       }
       
       const dTag = slugToDTag(newSlug);
+      const finalTitle = newTitle.trim() || newSlug;
       const newTreeData = {
         version: "2.0" as const,
         treeMeta: {
           slug: newSlug,
-          title: newSlug,
+          title: finalTitle,
           isDefault: false,
           createdAt: Math.floor(Date.now() / 1000),
         },
@@ -188,7 +206,9 @@ export function TreeSelector({
       onSlugChange(newSlug);
       onTreeCreated?.(newSlug, newTreeData);
       setIsCreating(false);
+      setNewTitle("");
       setNewSlug("");
+      setSlugTouched(false);
       setSlugError(null);
       
       toast.success(t("editor.treeSelector.createdSuccess", { slug: newSlug }));
@@ -263,7 +283,8 @@ export function TreeSelector({
     }
   };
 
-  const currentTreeLabel = currentSlug ? `/${currentSlug}` : "No Tree Selected";
+  const currentTree = trees.find((t) => t.slug === currentSlug);
+  const currentTreeLabel = currentTree?.data?.treeMeta?.title || (currentSlug ? `/${currentSlug}` : "No Tree Selected");
 
   if (isLoading && trees.length === 0) {
     return (
@@ -323,7 +344,7 @@ export function TreeSelector({
           />
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden animate-pop origin-top-left"
+            className="absolute top-full left-0 mt-2 w-80 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden animate-pop origin-top-left"
           >
             <div className="max-h-56 overflow-y-auto p-1.5 space-y-0.5">
               {trees.map((tree) => (
@@ -342,10 +363,13 @@ export function TreeSelector({
                     className="flex-1 text-left cursor-pointer min-w-0 pr-2"
                   >
                     <span className="text-xs font-semibold text-txt-main truncate block">
-                      {`/${tree.slug}`}
+                      {tree.data?.treeMeta?.title || `/${tree.slug}`}
+                    </span>
+                    <span className="text-[10px] font-mono text-txt-dim truncate block">
+                      /{tree.slug}
                     </span>
                     {tree.slug === currentSlug && (
-                      <span className="text-[10px] text-brand font-medium">{t("editor.treeSelector.active")}</span>
+                      <span className="text-[10px] text-brand font-medium block mt-0.5">{t("editor.treeSelector.active")}</span>
                     )}
                   </button>
                   <button
@@ -381,13 +405,32 @@ export function TreeSelector({
             ) : (
               <div className="p-3.5 space-y-3">
                 <div>
-                  <label className="text-xs font-medium text-txt-muted block mb-1">{t("editor.treeSelector.slugLabel")}</label>
+                  <label className="text-xs font-medium text-txt-muted block mb-1">
+                    {t("editor.treeSelector.titleLabel")}
+                  </label>
+                  <div className="flex items-center gap-1.5 bg-canvas border border-border rounded-xl px-3 py-1.5 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
+                    <input
+                      type="text"
+                      value={newTitle}
+                      onChange={(e) => handleTitleChange(e.target.value)}
+                      placeholder={t("editor.treeSelector.titlePlaceholder")}
+                      className="flex-1 bg-transparent text-xs text-txt-main focus:outline-none"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-txt-muted block mb-1">
+                    {t("editor.treeSelector.slugLabel")}
+                  </label>
                   <div className="flex items-center gap-1.5 bg-canvas border border-border rounded-xl px-3 py-1.5 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
                     <span className="text-txt-dim text-xs font-mono">/</span>
                     <input
                       type="text"
                       value={newSlug}
                       onChange={(e) => {
+                        setSlugTouched(true);
                         setNewSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
                         setSlugError(null);
                       }}
@@ -399,7 +442,6 @@ export function TreeSelector({
                       }}
                       placeholder={t("editor.treeSelector.slugPlaceholder")}
                       className="flex-1 bg-transparent text-xs text-txt-main focus:outline-none font-mono"
-                      autoFocus
                     />
                   </div>
                   {slugError && (
@@ -407,7 +449,7 @@ export function TreeSelector({
                   )}
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1">
                   <Button
                     size="sm"
                     onClick={handleCreateTree}
@@ -420,7 +462,9 @@ export function TreeSelector({
                     variant="ghost"
                     onClick={() => {
                       setIsCreating(false);
+                      setNewTitle("");
                       setNewSlug("");
+                      setSlugTouched(false);
                       setSlugError(null);
                     }}
                     className="text-xs"
