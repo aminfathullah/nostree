@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Theme } from "../../schemas/nostr";
-import { Check, Palette, Sparkles, Feather, Gem, Zap } from "lucide-react";
+import { Check, Palette, X } from "lucide-react";
 
 export interface ThemePresetInfo extends Theme {
   name: string;
@@ -439,11 +439,29 @@ interface ThemeSelectorProps {
   currentTheme: Theme | undefined;
   onThemeChange: (theme: Theme) => void;
   disabled?: boolean;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function ThemeSelector({ currentTheme, onThemeChange, disabled }: ThemeSelectorProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function ThemeSelector({ 
+  currentTheme, 
+  onThemeChange, 
+  disabled, 
+  isOpen: propIsOpen, 
+  onOpenChange 
+}: ThemeSelectorProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>("all");
+
+  const isControlled = propIsOpen !== undefined;
+  const isOpen = isControlled ? propIsOpen : internalIsOpen;
+  const setIsOpen = (next: boolean) => {
+    if (isControlled) {
+      onOpenChange?.(next);
+    } else {
+      setInternalIsOpen(next);
+    }
+  };
 
   const currentPresetKey = Object.entries(THEME_PRESETS).find(
     ([key, preset]) => 
@@ -469,23 +487,24 @@ export function ThemeSelector({ currentTheme, onThemeChange, disabled }: ThemeSe
   });
 
   const categories = [
-    { id: "all" as const, label: "Semua", icon: Palette },
-    { id: "aura" as const, label: "Aura & Dark", icon: Sparkles },
-    { id: "organic" as const, label: "Organik & Minimal", icon: Feather },
-    { id: "jewel" as const, label: "Jewel & Velvet", icon: Gem },
-    { id: "vibrant" as const, label: "Vibrant & Pop", icon: Zap },
+    { id: "all" as const, label: "All" },
+    { id: "aura" as const, label: "Aura & Dark" },
+    { id: "organic" as const, label: "Organic & Light" },
+    { id: "jewel" as const, label: "Jewel" },
+    { id: "vibrant" as const, label: "Vibrant" },
   ];
 
   return (
-    <div className="relative">
+    <div className="relative lg:static">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
         className="flex items-center gap-2 px-3.5 py-1.5 bg-card border border-border rounded-xl hover:border-border-hover transition-colors disabled:opacity-50 shadow-xs cursor-pointer active:scale-[0.98]"
       >
         <Palette className="w-3.5 h-3.5 text-txt-muted" />
         <span className="text-xs font-semibold text-txt-main">
-          {THEME_PRESETS[currentPresetKey]?.name || "Tema"}
+          {THEME_PRESETS[currentPresetKey]?.name || "Theme"}
         </span>
       </button>
 
@@ -497,41 +516,47 @@ export function ThemeSelector({ currentTheme, onThemeChange, disabled }: ThemeSe
           />
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="absolute top-full left-0 mt-2 w-80 sm:w-96 bg-card border border-border rounded-2xl shadow-elevated z-50 p-4 animate-pop origin-top-left"
+            className="absolute top-full left-0 mt-2 lg:top-0 lg:right-[calc(100%+1rem)] lg:left-auto lg:mt-0 w-[calc(100vw-2rem)] max-w-sm sm:max-w-none lg:w-[480px] bg-card border border-border rounded-2xl shadow-elevated z-50 p-4 animate-pop origin-top-left lg:origin-top-right"
           >
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-xs font-bold text-txt-main uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-brand" />
-                <span>Pilih Gaya Estetika</span>
-              </h4>
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-brand/10 text-brand">
-                16 Pilihan Premium
-              </span>
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Palette className="w-4 h-4 text-brand" />
+                <div>
+                  <h3 className="text-xs font-semibold text-txt-main">Theme Presets</h3>
+                  <p className="text-[11px] text-txt-dim">16 curated styles with typography and color harmony</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="p-1 rounded-lg text-txt-muted hover:text-txt-main hover:bg-card-hover transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            <div className="flex gap-1 overflow-x-auto pb-2 mb-3 no-scrollbar">
+            <div className="flex flex-wrap gap-1.5 mb-3">
               {categories.map((cat) => {
-                const Icon = cat.icon;
                 const isActive = selectedCategory === cat.id;
                 return (
                   <button
                     key={cat.id}
                     type="button"
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap flex items-center gap-1 transition-all cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
                       isActive
                         ? "bg-brand text-brand-fg shadow-2xs"
                         : "bg-canvas text-txt-muted hover:text-txt-main hover:bg-card-hover"
                     }`}
                   >
-                    <Icon className="w-3 h-3" />
                     <span>{cat.label}</span>
                   </button>
                 );
               })}
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-[300px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
               {filteredKeys.map((key) => {
                 const preset = THEME_PRESETS[key];
                 const isSelected = currentPresetKey === key;
@@ -541,7 +566,7 @@ export function ThemeSelector({ currentTheme, onThemeChange, disabled }: ThemeSe
                     key={key}
                     type="button"
                     onClick={() => handleSelectTheme(key)}
-                    className={`relative p-2 rounded-xl border transition-all duration-150 text-left group cursor-pointer active:scale-[0.96] flex flex-col justify-between overflow-hidden ${
+                    className={`relative p-2.5 rounded-xl border transition-all duration-150 text-left group cursor-pointer active:scale-[0.97] flex flex-col justify-between overflow-hidden ${
                       isSelected
                         ? "border-brand ring-2 ring-brand/30 shadow-md"
                         : "border-border hover:border-border-hover hover:shadow-xs"
@@ -551,56 +576,79 @@ export function ThemeSelector({ currentTheme, onThemeChange, disabled }: ThemeSe
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span 
-                        className="text-[9px] font-bold px-1.5 py-0.2 rounded-full backdrop-blur-md shadow-2xs"
+                        className="text-[9px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-md shadow-2xs whitespace-nowrap"
                         style={{
-                          backgroundColor: preset.mode === "dark" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)",
+                          backgroundColor: preset.mode === "dark" ? "rgba(255,255,255,0.16)" : "rgba(0,0,0,0.07)",
                           color: preset.colors.foreground,
                         }}
                       >
                         {preset.font}
                       </span>
 
-                      {isSelected && (
-                        <div className="w-4 h-4 rounded-full bg-brand flex items-center justify-center shadow-xs">
+                      {isSelected ? (
+                        <div className="w-4 h-4 rounded-full bg-brand flex items-center justify-center shadow-xs shrink-0">
                           <Check className="w-2.5 h-2.5 text-brand-fg" />
                         </div>
+                      ) : (
+                        <span
+                          className="text-[9px] font-mono opacity-50 uppercase"
+                          style={{ color: preset.colors.foreground }}
+                        >
+                          {preset.mode}
+                        </span>
                       )}
                     </div>
 
                     <div 
-                      className="w-full p-1.5 rounded-lg backdrop-blur-md mb-1.5 shadow-2xs flex items-center gap-1.5"
+                      className="w-full py-1.5 px-2 rounded-lg backdrop-blur-md mb-2 shadow-2xs flex items-center justify-between transition-transform duration-150 group-hover:scale-[1.02]"
                       style={{
-                        backgroundColor: preset.mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.9)",
-                        border: `1px solid ${preset.mode === "dark" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.06)"}`,
+                        backgroundColor: preset.mode === "dark" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.92)",
+                        border: `1px solid ${preset.mode === "dark" ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.06)"}`,
+                        borderRadius: preset.colors.radius === "9999px" ? "9999px" : preset.colors.radius === "0" ? "2px" : "8px",
                       }}
                     >
+                      <span 
+                        className="text-[10px] font-semibold truncate leading-none"
+                        style={{
+                          color: preset.colors.foreground,
+                          fontFamily: preset.font === "Serif" ? "Georgia, serif" : preset.font === "Mono" ? "monospace" : preset.font,
+                        }}
+                      >
+                        Sample Link
+                      </span>
                       <div 
-                        className="w-2.5 h-2.5 rounded-full shrink-0" 
+                        className="w-2 h-2 rounded-full shrink-0 ml-1" 
                         style={{ backgroundColor: preset.colors.primary }} 
-                      />
-                      <div 
-                        className="h-1.5 rounded-full flex-1" 
-                        style={{ 
-                          backgroundColor: preset.colors.foreground, 
-                          opacity: preset.mode === "dark" ? 0.4 : 0.25 
-                        }} 
                       />
                     </div>
 
-                    <span 
-                      className="text-[11px] font-bold tracking-tight truncate block"
-                      style={{ color: preset.colors.foreground }}
-                    >
-                      {preset.name}
-                    </span>
+                    <div className="pt-0.5">
+                      <span 
+                        className="text-xs font-semibold block leading-snug whitespace-nowrap truncate"
+                        style={{ color: preset.colors.foreground }}
+                      >
+                        {preset.name}
+                      </span>
+                    </div>
                   </button>
                 );
               })}
             </div>
 
-            <p className="text-[11px] text-txt-dim mt-3 text-center border-t border-border pt-2.5">
-              Tema aktif: <span className="font-semibold text-txt-main">{THEME_PRESETS[currentPresetKey]?.name}</span>
-            </p>
+            <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border text-[11px]">
+              <div className="flex items-center gap-2 min-w-0">
+                <div
+                  className="w-3.5 h-3.5 rounded-full border border-border shrink-0 shadow-2xs"
+                  style={{ background: THEME_PRESETS[currentPresetKey]?.previewGradient }}
+                />
+                <span className="text-txt-dim truncate">
+                  Active: <strong className="text-txt-main font-semibold">{THEME_PRESETS[currentPresetKey]?.name}</strong>
+                </span>
+              </div>
+              <span className="text-[10px] text-txt-dim font-mono shrink-0 ml-2">
+                {THEME_PRESETS[currentPresetKey]?.font} • {THEME_PRESETS[currentPresetKey]?.mode}
+              </span>
+            </div>
           </div>
         </>
       )}

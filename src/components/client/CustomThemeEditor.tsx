@@ -8,6 +8,8 @@ interface CustomThemeEditorProps {
   currentTheme: Theme | undefined;
   onThemeChange: (theme: Theme) => void;
   disabled?: boolean;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const RADIUS_OPTIONS: { value: Radius; label: string }[] = [
@@ -39,8 +41,23 @@ const GRADIENT_PRESETS = [
   { label: "Synth", gradient: "linear-gradient(145deg, #050510 0%, #15092a 50%, #09031a 100%)" },
 ];
 
-export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: CustomThemeEditorProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function CustomThemeEditor({ 
+  currentTheme, 
+  onThemeChange, 
+  disabled, 
+  isOpen: propIsOpen, 
+  onOpenChange 
+}: CustomThemeEditorProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isControlled = propIsOpen !== undefined;
+  const isOpen = isControlled ? propIsOpen : internalIsOpen;
+  const setIsOpen = (next: boolean) => {
+    if (isControlled) {
+      onOpenChange?.(next);
+    } else {
+      setInternalIsOpen(next);
+    }
+  };
   const [activeTab, setActiveTab] = useState<"colors" | "background" | "style" | "effects">("colors");
   const [imageUrl, setImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -133,8 +150,9 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
   ];
 
   return (
-    <div className="relative">
+    <div className="relative lg:static">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
         className="flex items-center gap-2 px-3 py-1.5 bg-card border border-border rounded-xl hover:border-border-hover transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50"
@@ -152,18 +170,32 @@ export function CustomThemeEditor({ currentTheme, onThemeChange, disabled }: Cus
           />
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 w-80 bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden max-h-[80vh] overflow-y-auto origin-top-left animate-pop"
+            className="absolute top-full right-0 mt-2 lg:top-0 lg:right-[calc(100%+1rem)] lg:left-auto lg:mt-0 w-[calc(100vw-2rem)] max-w-sm sm:max-w-none lg:w-[420px] bg-card border border-border rounded-2xl shadow-elevated z-50 overflow-hidden max-h-[85vh] overflow-y-auto origin-top-left lg:origin-top-right animate-pop"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border sticky top-0 bg-card/95 backdrop-blur-md z-10">
-              <h4 className="text-xs font-semibold text-txt-main uppercase tracking-wider">Customize Appearance</h4>
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-1 text-xs text-txt-muted hover:text-txt-main transition-colors active:scale-95 cursor-pointer"
-                title="Reset to default"
-              >
-                <RotateCcw className="w-3 h-3" />
-                Reset
-              </button>
+              <div className="flex items-center gap-2">
+                <Sliders className="w-3.5 h-3.5 text-brand" />
+                <h4 className="text-xs font-semibold text-txt-main">Customize Appearance</h4>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-txt-muted hover:text-txt-main hover:bg-card-hover transition-colors active:scale-95 cursor-pointer"
+                  title="Reset to default"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Reset</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 rounded-lg text-txt-muted hover:text-txt-main hover:bg-card-hover transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
             <div className="flex border-b border-border sticky top-10 bg-card z-10">

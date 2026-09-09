@@ -119,9 +119,41 @@ function LinkTreeEditor({
     initialData,
   });
 
+  const [activeThemeTool, setActiveThemeTool] = useState<"preset" | "custom" | null>(null);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
       <div className="space-y-6">
+        <div className="flex lg:hidden items-center justify-between p-3 rounded-2xl bg-card border border-border">
+          <div className="flex items-center gap-2">
+            <ThemeSelector
+              currentTheme={linkTree.data?.theme}
+              onThemeChange={linkTree.updateTheme}
+              disabled={linkTree.isSaving}
+              isOpen={activeThemeTool === "preset"}
+              onOpenChange={(open) => setActiveThemeTool(open ? "preset" : null)}
+            />
+            <CustomThemeEditor
+              currentTheme={linkTree.data?.theme}
+              onThemeChange={linkTree.updateTheme}
+              disabled={linkTree.isSaving}
+              isOpen={activeThemeTool === "custom"}
+              onOpenChange={(open) => setActiveThemeTool(open ? "custom" : null)}
+            />
+          </div>
+          {slug && (
+            <a
+              href={`/${slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand text-brand-fg shadow-xs"
+            >
+              <span>Preview</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+        </div>
+
         <LinkEditorV2
           links={linkTree.links}
           isSaving={linkTree.isSaving}
@@ -139,17 +171,21 @@ function LinkTreeEditor({
         />
       </div>
 
-      <div className="hidden lg:block space-y-4">
+      <div className="hidden lg:block space-y-4 sticky top-20 self-start relative">
         <div className="flex flex-wrap items-center justify-center gap-2">
           <ThemeSelector
             currentTheme={linkTree.data?.theme}
             onThemeChange={linkTree.updateTheme}
             disabled={linkTree.isSaving}
+            isOpen={activeThemeTool === "preset"}
+            onOpenChange={(open) => setActiveThemeTool(open ? "preset" : null)}
           />
           <CustomThemeEditor
             currentTheme={linkTree.data?.theme}
             onThemeChange={linkTree.updateTheme}
             disabled={linkTree.isSaving}
+            isOpen={activeThemeTool === "custom"}
+            onOpenChange={(open) => setActiveThemeTool(open ? "custom" : null)}
           />
         </div>
         
