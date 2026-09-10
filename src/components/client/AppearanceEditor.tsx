@@ -387,7 +387,11 @@ export function AppearanceEditor({
                       ? "border-brand ring-2 ring-brand/40 shadow-md"
                       : "border-border hover:border-border-hover hover:shadow-xs"
                   }`}
-                  style={{ background: preset.previewGradient }}
+                  style={{ 
+                    background: preset.previewGradient,
+                    backgroundOrigin: "border-box",
+                    backgroundRepeat: "no-repeat",
+                  }}
                 >
                   <div className="flex items-center justify-between w-full mb-3">
                     <span 
@@ -475,7 +479,11 @@ export function AppearanceEditor({
                         ? "border-fuchsia-300/60 hover:scale-[1.02]"
                         : "border-white/20 hover:scale-[1.02]"
                     }`}
-                    style={{ background: p.gradient }}
+                    style={{ 
+                      background: p.gradient,
+                      backgroundOrigin: "border-box",
+                      backgroundRepeat: "no-repeat",
+                    }}
                   >
                     <span>{p.label}</span>
                     {isSelected && (

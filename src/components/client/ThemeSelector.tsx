@@ -628,7 +628,11 @@ export function ThemeSelector({
                         ? "border-brand ring-2 ring-brand/30 shadow-md"
                         : "border-border hover:border-border-hover hover:shadow-xs"
                     }`}
-                    style={{ background: preset.previewGradient }}
+                    style={{ 
+                      background: preset.previewGradient,
+                      backgroundOrigin: "border-box",
+                      backgroundRepeat: "no-repeat",
+                    }}
                     title={preset.name}
                   >
                     <div className="flex items-center justify-between mb-2">

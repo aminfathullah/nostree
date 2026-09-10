@@ -321,7 +321,11 @@ export function CustomThemeEditor({
                               ? "ring-2 ring-brand border-brand shadow-sm"
                               : "border-white/20 hover:scale-105"
                           }`}
-                          style={{ background: p.gradient }}
+                          style={{ 
+                            background: p.gradient,
+                            backgroundOrigin: "border-box",
+                            backgroundRepeat: "no-repeat",
+                          }}
                           title={p.label}
                         >
                           {p.label}
