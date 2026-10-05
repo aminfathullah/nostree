@@ -2,27 +2,19 @@ import { useState, useEffect } from "react";
 import ProfileViewer from "./ProfileViewer";
 import logo from "../../assets/logo.png";
 
-/**
- * ProfileViewerApp - Wrapper that extracts npub from URL
- * Supports /profile?npub=... or /profile#npub1...
- */
 export function ProfileViewerApp() {
   const [npub, setNpub] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    // Try to get npub from different URL patterns
     const url = new URL(window.location.href);
     
-    // Pattern 1: /profile?npub=npub1...
     let npubValue = url.searchParams.get("npub");
     
-    // Pattern 2: /profile#npub1...
     if (!npubValue && url.hash.startsWith("#npub1")) {
       npubValue = url.hash.slice(1);
     }
     
-    // Pattern 3: /p/npub1... (from pathname)
     if (!npubValue) {
       const pathMatch = url.pathname.match(/\/p\/(npub1[a-z0-9]+)/);
       if (pathMatch) {

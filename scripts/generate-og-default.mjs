@@ -48,7 +48,7 @@ async function generateDefaultOG() {
     <g transform="translate(80, 80)">
       <rect width="240" height="42" rx="21" fill="#18181b" stroke="#3f3f46" stroke-width="1.2" />
       ${logoBase64 ? `<image href="${logoBase64}" x="10" y="8" width="26" height="26" />` : ''}
-      <text x="44" y="26" fill="#f4f4f5" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="0.5">link.majapah.it</text>
+      <text x="44" y="26" fill="#f4f4f5" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="0.5">tree.majapah.it</text>
       <circle cx="218" cy="21" r="4" fill="#10b981" />
     </g>
 
@@ -86,7 +86,7 @@ async function generateDefaultOG() {
       <path d="M 156 104 C 156 94 168 88 180 88 C 192 88 204 94 204 104 Z" fill="#a1a1aa" />
 
       <text x="180" y="150" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700">Creator Profile</text>
-      <text x="180" y="172" text-anchor="middle" fill="#71717a" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500">link.majapah.it/hub</text>
+      <text x="180" y="172" text-anchor="middle" fill="#71717a" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500">tree.majapah.it/hub</text>
 
       <g transform="translate(36, 196)">
         <rect width="288" height="48" rx="14" fill="#27272a" stroke="#6366f1" stroke-width="1.5" />

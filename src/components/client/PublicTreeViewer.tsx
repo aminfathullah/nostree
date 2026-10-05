@@ -9,6 +9,7 @@ import { TiltLinkCard } from './TiltLinkCard';
 import { toast } from 'sonner';
 import { generateVCard, downloadVCard } from '../../lib/vcard';
 import { useI18n } from '../../i18n/context';
+import { getSiteHost } from '../../config/site';
 import { LanguageToggle } from '../ui/LanguageToggle';
 
 interface UserProfile {
@@ -364,7 +365,7 @@ function PublicTreeViewerComponent({
                     }}
                     title="Click to copy link"
                   >
-                    <span>{typeof window !== 'undefined' ? window.location.host : 'link.majapah.it'}/{slug}</span>
+                    <span>{getSiteHost()}/{slug}</span>
                     {copiedSlug ? (
                       <Check className="w-3 h-3 text-emerald-500 animate-pop" />
                     ) : (

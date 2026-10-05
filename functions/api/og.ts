@@ -29,7 +29,7 @@ export async function onRequest(context: any): Promise<Response> {
   const slug = escapeXml(truncate(rawSlug, 28));
   const bio = escapeXml(truncate(rawBio, 90));
   const linksCount = isNaN(rawLinksCount) ? 0 : rawLinksCount;
-  const host = escapeXml(url.host || "link.majapah.it");
+  const host = escapeXml(url.host || "tree.majapah.it");
   const initial = (title[0] || "N").toUpperCase();
 
   let avatarBase64 = "";

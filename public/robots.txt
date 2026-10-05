@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://link.majapah.it/sitemap.xml
+Sitemap: https://tree.majapah.it/sitemap.xml

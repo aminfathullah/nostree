@@ -3,6 +3,7 @@ import { X, Download, Share2, Copy, Check, MessageSquare, Twitter } from "lucide
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { useI18n } from "../../i18n/context";
+import { getSiteHost, getSiteOrigin } from "../../config/site";
 
 interface SocialLinkPreviewModalProps {
   isOpen: boolean;
@@ -33,10 +34,8 @@ function SocialLinkPreviewModalComponent({
   const [cardPreviewUrl, setCardPreviewUrl] = useState<string>("");
 
   const cleanSlug = (slug || "hub").replace(/^\/+/, "");
-  const hostName = typeof window !== "undefined" && window.location.host ? window.location.host : "link.majapah.it";
-  const fullUrl = typeof window !== "undefined" && window.location.origin
-    ? `${window.location.origin}/${cleanSlug}`
-    : `https://link.majapah.it/${cleanSlug}`;
+  const hostName = getSiteHost();
+  const fullUrl = `${getSiteOrigin()}/${cleanSlug}`;
 
   const [customTitle, setCustomTitle] = useState(displayName || "");
   const [customBio, setCustomBio] = useState(bio || "");

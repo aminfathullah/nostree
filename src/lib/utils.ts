@@ -1,20 +1,13 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-/**
- * Merge Tailwind CSS classes with clsx
- * Handles conditional classes and deduplication
- */
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-/**
- * Format a timestamp as relative time (e.g., "2 hours ago")
- */
 export function formatRelativeTime(timestamp: number): string {
   const now = Date.now();
-  const diff = now - timestamp * 1000; // Nostr timestamps are in seconds
+  const diff = now - timestamp * 1000;
   
   const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);
@@ -27,24 +20,15 @@ export function formatRelativeTime(timestamp: number): string {
   return "just now";
 }
 
-/**
- * Truncate a string to a maximum length
- */
 export function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
   return str.slice(0, maxLength - 3) + "...";
 }
 
-/**
- * Sleep for a specified duration (useful for testing/debugging)
- */
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * Safely parse JSON with a fallback
- */
 export function safeJsonParse<T>(json: string, fallback: T): T {
   try {
     return JSON.parse(json) as T;

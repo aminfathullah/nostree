@@ -8,7 +8,6 @@ export default function SlugPage() {
     return <div>Page not found</div>
   }
   
-  // Reserved paths that shouldn't be handled by slug viewer
   const reservedPaths = ['login', 'admin', 'profile', 'u']
   if (reservedPaths.includes(slug)) {
     return <div>Page not found</div>

@@ -705,6 +705,52 @@ function EditorContent() {
     } catch {}
   };
 
+  const handleDirectCreate = async (newSlug: string, title: string): Promise<boolean> => {
+    if (!pubkey) return false;
+    const cleanSlug = newSlug.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+    const dTag = slugToDTag(cleanSlug);
+    const finalTitle = title.trim() || cleanSlug;
+    const newTreeData = {
+      version: "2.0" as const,
+      treeMeta: {
+        slug: cleanSlug,
+        title: finalTitle,
+        isDefault: false,
+        createdAt: Math.floor(Date.now() / 1000),
+      },
+      links: [],
+      socials: [],
+      theme: {
+        mode: "light" as const,
+        colors: {
+          background: "#ffffff",
+          foreground: "#000000",
+          primary: "#5E47B8",
+          radius: "0.5rem",
+        },
+        font: "Inter",
+      },
+    };
+
+    try {
+      const event = createNostreeEvent(newTreeData, pubkey, dTag);
+      const result = await publishEvent(event);
+      if (!result.success || result.relaysAccepted === 0) {
+        toast.error("Failed to create tree", {
+          description: "Could not publish to relays. Please try again.",
+        });
+        return false;
+      }
+      handleTreeCreated(cleanSlug, newTreeData);
+      toast.success(t("common.saved"));
+      return true;
+    } catch (err) {
+      console.error("Direct create failed:", err);
+      toast.error(t("common.error"));
+      return false;
+    }
+  };
+
   const handleTreeDeleted = (deletedSlug: string) => {
     setTrees(prev => {
       const remaining = prev.filter(t => t.slug !== deletedSlug);
@@ -987,7 +1033,11 @@ function EditorContent() {
             initialData={treesDataMap.get(slug)}
           />
         ) : (
-          <EmptyState onCreateTree={() => setOpenTreeSelector(true)} />
+          <EmptyState 
+            onCreateTreeDirect={handleDirectCreate}
+            onCreateTree={() => setOpenTreeSelector(true)}
+            defaultSlug={claimParam}
+          />
         )}
       </main>
     </div>

@@ -6,9 +6,8 @@ import { npubToHex } from "../../lib/utils/nip19";
 import type { NostreeDataV2 } from "../../schemas/nostr";
 import PublicTreeViewer from "./PublicTreeViewer";
 
-// Profile cache for performance
 const profileCache = new Map<string, { data: any; ts: number }>();
-const CACHE_TTL = 60000; // 1 minute
+const CACHE_TTL = 60000;
 
 interface UserProfile {
   pubkey: string;
@@ -24,10 +23,6 @@ interface TreeViewerProps {
   path: string;
 }
 
-/**
- * TreeViewer - Client-side tree display with custom URL support
- * Resolves /@username/tree paths and displays the tree
- */
 export function TreeViewer({ path }: TreeViewerProps) {
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
@@ -35,13 +30,11 @@ export function TreeViewer({ path }: TreeViewerProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [treeData, setTreeData] = useState<NostreeDataV2 | null>(null);
 
-  // Resolve path and fetch data
   useEffect(() => {
     async function resolve() {
       try {
         setStatus("loading");
         
-        // Parse the path
         const parsed = parseTreePath(path);
         if (!parsed) {
           setError("Invalid URL format");
@@ -51,14 +44,12 @@ export function TreeViewer({ path }: TreeViewerProps) {
         
         setSlug(parsed.slug);
         
-        // Resolve pubkey based on type
         let resolvedPubkey: string | null = null;
         
         if (parsed.type === "nip05") {
-          // Check if it's a full NIP-05 (contains @) or just username
           const identifier = parsed.identifier.includes("@") 
             ? parsed.identifier 
-            : `${parsed.identifier}@nostree.me`; // Default domain
+            : `${parsed.identifier}@nostree.me`;
           
           resolvedPubkey = await resolveNip05(identifier);
           if (!resolvedPubkey) {
@@ -83,15 +74,12 @@ export function TreeViewer({ path }: TreeViewerProps) {
           return;
         }
         
-        // At this point resolvedPubkey is guaranteed to be non-null
         const pubkey = resolvedPubkey;
         
-        // Connect and fetch data
         const ndk = getNDK();
         await ndk.connect();
         await new Promise(r => setTimeout(r, 500));
         
-        // Fetch profile (with cache)
         const cached = profileCache.get(pubkey);
         if (cached && Date.now() - cached.ts < CACHE_TTL) {
           setProfile(cached.data);
@@ -123,7 +111,6 @@ export function TreeViewer({ path }: TreeViewerProps) {
           }
         }
         
-        // Fetch tree data
         const dTag = slugToDTag(parsed.slug);
         const treeEvents = await fetchEventsWithTimeout({
           kinds: [30078],
@@ -131,7 +118,6 @@ export function TreeViewer({ path }: TreeViewerProps) {
           "#d": [dTag],
         }, 8000);
         
-        // Also try legacy format for default slug
         if (treeEvents.size === 0 && parsed.slug === DEFAULT_SLUG) {
           const legacyEvents = await fetchEventsWithTimeout({
             kinds: [30078],
@@ -172,7 +158,6 @@ export function TreeViewer({ path }: TreeViewerProps) {
           }
         }
         
-        // No tree found
         setError(`Tree "${parsed.slug}" not found`);
         setStatus("error");
         
